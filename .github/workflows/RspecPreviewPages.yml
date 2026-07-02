@@ -1,0 +1,147 @@
+name: RSpec Rule Docs Preview
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'analyzers/rspec/cs/**'
+      - 'analyzers/rspec/vbnet/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+
+      - name: Generate rule docs site
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          declare -A LANG_LABEL=( [cs]="C#" [vbnet]="VB.NET" )
+          LANGS=(cs vbnet)
+
+          mkdir -p _site
+          INDEX=_site/index.html
+
+          cat > "$INDEX" <<'HTML'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+          <meta charset="utf-8">
+          <title>SonarAnalyzer Rule Specs</title>
+          <style>
+            body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; max-width: 1000px; margin: 2rem auto; padding: 0 1rem; color: #1b1b1b; }
+            h1 { margin-bottom: 0.25rem; }
+            input#filter { width: 100%; padding: 0.5rem; font-size: 1rem; margin: 1rem 0; box-sizing: border-box; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid #ddd; }
+            th { position: sticky; top: 0; background: #fff; }
+            tr:hover { background: #f6f6f6; }
+            .lang { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 3px; font-size: 0.75rem; font-weight: 600; }
+            .lang-cs { background: #d6e9ff; }
+            .lang-vbnet { background: #ffe6cc; }
+            code { background: #f2f2f2; padding: 0.1rem 0.3rem; border-radius: 3px; }
+          </style>
+          </head>
+          <body>
+          <h1>SonarAnalyzer Rule Specs</h1>
+          <p>Rule descriptions from <code>analyzers/rspec/cs</code> and <code>analyzers/rspec/vbnet</code>, rendered for review.</p>
+          <input id="filter" type="text" placeholder="Filter by rule id, title or tag...">
+          <table id="rules">
+          <thead><tr><th>Rule</th><th>Language</th><th>Title</th><th>Type</th><th>Severity</th><th>Tags</th></tr></thead>
+          <tbody>
+          HTML
+
+          for lang in "${LANGS[@]}"; do
+            label="${LANG_LABEL[$lang]}"
+            src="analyzers/rspec/$lang"
+            mkdir -p "_site/$lang"
+
+            for json in "$src"/S*.json; do
+              [ -e "$json" ] || continue
+              base=$(basename "$json" .json)
+              html_src="$src/$base.html"
+              [ -f "$html_src" ] || continue
+
+              title=$(jq -r '.title // ""' "$json")
+              type=$(jq -r '.type // ""' "$json")
+              severity=$(jq -r '.defaultSeverity // ""' "$json")
+              tags=$(jq -r '(.tags // []) | join(", ")' "$json")
+              esc_title=$(printf '%s' "$title" | sed 's/&/\&amp;/g; s/</\&lt;/g')
+
+              page="_site/$lang/$base.html"
+              {
+                echo "<!DOCTYPE html>"
+                echo "<html lang=\"en\">"
+                echo "<head><meta charset=\"utf-8\"><title>$base - $esc_title ($label)</title>"
+                cat <<'STYLE'
+          <style>
+            body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; color: #1b1b1b; line-height: 1.5; }
+            header { border-bottom: 1px solid #ddd; margin-bottom: 1.5rem; padding-bottom: 1rem; }
+            header p { margin: 0.2rem 0; color: #555; }
+            a.back { display: inline-block; margin-bottom: 1rem; }
+            pre { background: #f2f2f2; padding: 0.75rem; overflow-x: auto; border-radius: 4px; }
+            code { background: #f2f2f2; padding: 0.1rem 0.3rem; border-radius: 3px; }
+            pre code { background: none; padding: 0; }
+          </style>
+          STYLE
+                echo "</head><body>"
+                echo "<a class=\"back\" href=\"../index.html\">&larr; back to index</a>"
+                echo "<header>"
+                echo "<h1>$base &mdash; $esc_title</h1>"
+                echo "<p>Language: $label &nbsp;|&nbsp; Type: $type &nbsp;|&nbsp; Severity: $severity</p>"
+                [ -n "$tags" ] && echo "<p>Tags: $tags</p>"
+                echo "</header>"
+                cat "$html_src"
+                echo "</body></html>"
+              } > "$page"
+
+              echo "<tr><td><code>$base</code></td><td><span class=\"lang lang-$lang\">$label</span></td><td><a href=\"$lang/$base.html\">$esc_title</a></td><td>$type</td><td>$severity</td><td>$tags</td></tr>" >> "$INDEX"
+            done
+          done
+
+          cat >> "$INDEX" <<'HTML'
+          </tbody>
+          </table>
+          <script>
+            const filter = document.getElementById('filter');
+            const rows = Array.from(document.querySelectorAll('#rules tbody tr'));
+            filter.addEventListener('keyup', () => {
+              const q = filter.value.toLowerCase();
+              rows.forEach(r => { r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+            });
+          </script>
+          </body>
+          </html>
+          HTML
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
