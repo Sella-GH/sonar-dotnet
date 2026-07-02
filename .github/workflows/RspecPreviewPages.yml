@@ -19,6 +19,7 @@ concurrency:
 
 jobs:
   build:
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -33,10 +34,28 @@ jobs:
           set -euo pipefail
 
           declare -A LANG_LABEL=( [cs]="C#" [vbnet]="VB.NET" )
-          LANGS=(cs vbnet)
 
           mkdir -p _site
           INDEX=_site/index.html
+
+          cat > _site/style.css <<'CSS'
+          body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; max-width: 960px; margin: 2rem auto; padding: 0 1rem; color: #1b1b1b; line-height: 1.5; }
+          h1 { margin-bottom: 0.25rem; }
+          input#filter { width: 100%; padding: 0.5rem; font-size: 1rem; margin: 1rem 0; box-sizing: border-box; }
+          table { width: 100%; border-collapse: collapse; }
+          th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid #ddd; }
+          th { position: sticky; top: 0; background: #fff; }
+          tr:hover { background: #f6f6f6; }
+          .lang { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 3px; font-size: 0.75rem; font-weight: 600; }
+          .lang-cs { background: #d6e9ff; }
+          .lang-vbnet { background: #ffe6cc; }
+          code { background: #f2f2f2; padding: 0.1rem 0.3rem; border-radius: 3px; }
+          header { border-bottom: 1px solid #ddd; margin-bottom: 1.5rem; padding-bottom: 1rem; }
+          header p { margin: 0.2rem 0; color: #555; }
+          a.back { display: inline-block; margin-bottom: 1rem; }
+          pre { background: #f2f2f2; padding: 0.75rem; overflow-x: auto; border-radius: 4px; }
+          pre code { background: none; padding: 0; }
+          CSS
 
           cat > "$INDEX" <<'HTML'
           <!DOCTYPE html>
@@ -44,19 +63,7 @@ jobs:
           <head>
           <meta charset="utf-8">
           <title>SonarAnalyzer Rule Specs</title>
-          <style>
-            body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; max-width: 1000px; margin: 2rem auto; padding: 0 1rem; color: #1b1b1b; }
-            h1 { margin-bottom: 0.25rem; }
-            input#filter { width: 100%; padding: 0.5rem; font-size: 1rem; margin: 1rem 0; box-sizing: border-box; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid #ddd; }
-            th { position: sticky; top: 0; background: #fff; }
-            tr:hover { background: #f6f6f6; }
-            .lang { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 3px; font-size: 0.75rem; font-weight: 600; }
-            .lang-cs { background: #d6e9ff; }
-            .lang-vbnet { background: #ffe6cc; }
-            code { background: #f2f2f2; padding: 0.1rem 0.3rem; border-radius: 3px; }
-          </style>
+          <link rel="stylesheet" href="style.css">
           </head>
           <body>
           <h1>SonarAnalyzer Rule Specs</h1>
@@ -67,7 +74,7 @@ jobs:
           <tbody>
           HTML
 
-          for lang in "${LANGS[@]}"; do
+          for lang in "${!LANG_LABEL[@]}"; do
             label="${LANG_LABEL[$lang]}"
             src="analyzers/rspec/$lang"
             mkdir -p "_site/$lang"
@@ -78,40 +85,27 @@ jobs:
               html_src="$src/$base.html"
               [ -f "$html_src" ] || continue
 
-              title=$(jq -r '.title // ""' "$json")
-              type=$(jq -r '.type // ""' "$json")
-              severity=$(jq -r '.defaultSeverity // ""' "$json")
-              tags=$(jq -r '(.tags // []) | join(", ")' "$json")
-              esc_title=$(printf '%s' "$title" | sed 's/&/\&amp;/g; s/</\&lt;/g')
+              fields=$(jq -r '[(.title // "" | @html), (.type // "" | @html), (.defaultSeverity // "" | @html), ((.tags // []) | join(", ") | @html)] | @tsv' "$json")
+              IFS=$'\t' read -r esc_title esc_type esc_severity esc_tags <<< "$fields"
 
               page="_site/$lang/$base.html"
               {
                 echo "<!DOCTYPE html>"
                 echo "<html lang=\"en\">"
                 echo "<head><meta charset=\"utf-8\"><title>$base - $esc_title ($label)</title>"
-                cat <<'STYLE'
-          <style>
-            body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; color: #1b1b1b; line-height: 1.5; }
-            header { border-bottom: 1px solid #ddd; margin-bottom: 1.5rem; padding-bottom: 1rem; }
-            header p { margin: 0.2rem 0; color: #555; }
-            a.back { display: inline-block; margin-bottom: 1rem; }
-            pre { background: #f2f2f2; padding: 0.75rem; overflow-x: auto; border-radius: 4px; }
-            code { background: #f2f2f2; padding: 0.1rem 0.3rem; border-radius: 3px; }
-            pre code { background: none; padding: 0; }
-          </style>
-          STYLE
+                echo "<link rel=\"stylesheet\" href=\"../style.css\">"
                 echo "</head><body>"
                 echo "<a class=\"back\" href=\"../index.html\">&larr; back to index</a>"
                 echo "<header>"
                 echo "<h1>$base &mdash; $esc_title</h1>"
-                echo "<p>Language: $label &nbsp;|&nbsp; Type: $type &nbsp;|&nbsp; Severity: $severity</p>"
-                [ -n "$tags" ] && echo "<p>Tags: $tags</p>"
+                echo "<p>Language: $label &nbsp;|&nbsp; Type: $esc_type &nbsp;|&nbsp; Severity: $esc_severity</p>"
+                [ -n "$esc_tags" ] && echo "<p>Tags: $esc_tags</p>"
                 echo "</header>"
                 cat "$html_src"
                 echo "</body></html>"
               } > "$page"
 
-              echo "<tr><td><code>$base</code></td><td><span class=\"lang lang-$lang\">$label</span></td><td><a href=\"$lang/$base.html\">$esc_title</a></td><td>$type</td><td>$severity</td><td>$tags</td></tr>" >> "$INDEX"
+              echo "<tr><td><code>$base</code></td><td><span class=\"lang lang-$lang\">$label</span></td><td><a href=\"$lang/$base.html\">$esc_title</a></td><td>$esc_type</td><td>$esc_severity</td><td>$esc_tags</td></tr>" >> "$INDEX"
             done
           done
 
