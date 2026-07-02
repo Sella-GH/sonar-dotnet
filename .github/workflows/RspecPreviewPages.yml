@@ -14,7 +14,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -74,33 +74,40 @@ jobs:
           <tbody>
           HTML
 
-          for lang in "${!LANG_LABEL[@]}"; do
+          for lang in $(printf '%s\n' "${!LANG_LABEL[@]}" | sort); do
             label="${LANG_LABEL[$lang]}"
             src="analyzers/rspec/$lang"
             mkdir -p "_site/$lang"
 
             for json in "$src"/S*.json; do
               [ -e "$json" ] || continue
-              base=$(basename "$json" .json)
+              base=${json##*/}
+              base=${base%.json}
+              [[ "$base" =~ ^S[0-9]+$ ]] || continue
               html_src="$src/$base.html"
               [ -f "$html_src" ] || continue
 
-              fields=$(jq -r '[(.title // "" | @html), (.type // "" | @html), (.defaultSeverity // "" | @html), ((.tags // []) | join(", ") | @html)] | @tsv' "$json")
-              IFS=$'\t' read -r esc_title esc_type esc_severity esc_tags <<< "$fields"
+              fields=$(jq -r '[(.title // "" | @html), (.type // "" | @html), (.defaultSeverity // "" | @html), ((.tags // []) | join(", ") | @html)] | join("\u001e")' "$json")
+              IFS=$'\x1e' read -r esc_title esc_type esc_severity esc_tags <<< "$fields"
+
+              tags_html=""
+              [ -n "$esc_tags" ] && tags_html="<p>Tags: $esc_tags</p>"
 
               page="_site/$lang/$base.html"
               {
-                echo "<!DOCTYPE html>"
-                echo "<html lang=\"en\">"
-                echo "<head><meta charset=\"utf-8\"><title>$base - $esc_title ($label)</title>"
-                echo "<link rel=\"stylesheet\" href=\"../style.css\">"
-                echo "</head><body>"
-                echo "<a class=\"back\" href=\"../index.html\">&larr; back to index</a>"
-                echo "<header>"
-                echo "<h1>$base &mdash; $esc_title</h1>"
-                echo "<p>Language: $label &nbsp;|&nbsp; Type: $esc_type &nbsp;|&nbsp; Severity: $esc_severity</p>"
-                [ -n "$esc_tags" ] && echo "<p>Tags: $esc_tags</p>"
-                echo "</header>"
+                cat <<PAGE
+          <!DOCTYPE html>
+          <html lang="en">
+          <head><meta charset="utf-8"><title>$base - $esc_title ($label)</title>
+          <link rel="stylesheet" href="../style.css">
+          </head><body>
+          <a class="back" href="../index.html">&larr; back to index</a>
+          <header>
+          <h1>$base &mdash; $esc_title</h1>
+          <p>Language: $label &nbsp;|&nbsp; Type: $esc_type &nbsp;|&nbsp; Severity: $esc_severity</p>
+          $tags_html
+          </header>
+          PAGE
                 cat "$html_src"
                 echo "</body></html>"
               } > "$page"
