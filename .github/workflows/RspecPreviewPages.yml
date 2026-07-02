@@ -86,8 +86,10 @@ jobs:
               html_src="$src/$base.html"
               [ -f "$html_src" ] || continue
 
-              assignments=$(jq -r '@sh "esc_title=\(.title // "" | @html) esc_type=\(.type // "" | @html) esc_severity=\(.defaultSeverity // "" | @html) esc_tags=\((.tags // []) | join(", ") | @html)"' "$json")
-              eval "$assignments"
+              esc_title=$(jq -r '.title // "" | @html' "$json")
+              esc_type=$(jq -r '.type // "" | @html' "$json")
+              esc_severity=$(jq -r '.defaultSeverity // "" | @html' "$json")
+              esc_tags=$(jq -r '(.tags // []) | join(", ") | @html' "$json")
 
               page="_site/$lang/$base.html"
               {
