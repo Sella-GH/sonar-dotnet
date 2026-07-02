@@ -81,17 +81,13 @@ jobs:
 
             for json in "$src"/S*.json; do
               [ -e "$json" ] || continue
-              base=${json##*/}
-              base=${base%.json}
+              base=$(basename "$json" .json)
               [[ "$base" =~ ^S[0-9]+$ ]] || continue
               html_src="$src/$base.html"
               [ -f "$html_src" ] || continue
 
-              fields=$(jq -r '[(.title // "" | @html), (.type // "" | @html), (.defaultSeverity // "" | @html), ((.tags // []) | join(", ") | @html)] | join("\u001e")' "$json")
-              IFS=$'\x1e' read -r esc_title esc_type esc_severity esc_tags <<< "$fields"
-
-              tags_html=""
-              [ -n "$esc_tags" ] && tags_html="<p>Tags: $esc_tags</p>"
+              assignments=$(jq -r '@sh "esc_title=\(.title // "" | @html) esc_type=\(.type // "" | @html) esc_severity=\(.defaultSeverity // "" | @html) esc_tags=\((.tags // []) | join(", ") | @html)"' "$json")
+              eval "$assignments"
 
               page="_site/$lang/$base.html"
               {
@@ -105,7 +101,7 @@ jobs:
           <header>
           <h1>$base &mdash; $esc_title</h1>
           <p>Language: $label &nbsp;|&nbsp; Type: $esc_type &nbsp;|&nbsp; Severity: $esc_severity</p>
-          $tags_html
+          ${esc_tags:+<p>Tags: $esc_tags</p>}
           </header>
           PAGE
                 cat "$html_src"
