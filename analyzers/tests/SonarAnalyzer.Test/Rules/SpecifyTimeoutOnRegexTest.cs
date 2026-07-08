@@ -24,14 +24,12 @@ namespace SonarAnalyzer.Test.Rules;
 public class SpecifyTimeoutOnRegexTest
 {
     private readonly VerifierBuilder builderCS = new VerifierBuilder()
-        .AddAnalyzer(() => new CS.SpecifyTimeoutOnRegex(AnalyzerConfiguration.AlwaysEnabled))
-        .WithBasePath("Hotspots")
+        .AddAnalyzer(() => new CS.SpecifyTimeoutOnRegex())
         .AddReferences(MetadataReferenceFacade.RegularExpressions)
         .AddReferences(NuGetMetadataReference.SystemComponentModelAnnotations());
 
     private readonly VerifierBuilder builderVB = new VerifierBuilder()
-        .AddAnalyzer(() => new VB.SpecifyTimeoutOnRegex(AnalyzerConfiguration.AlwaysEnabled))
-        .WithBasePath("Hotspots")
+        .AddAnalyzer(() => new VB.SpecifyTimeoutOnRegex())
         .AddReferences(MetadataReferenceFacade.RegularExpressions)
         .AddReferences(NuGetMetadataReference.SystemComponentModelAnnotations());
 
@@ -45,9 +43,21 @@ public class SpecifyTimeoutOnRegexTest
 
     [TestMethod]
     public void SpecifyTimeoutOnRegex_DefaultMatchTimeout() =>
-        builderCS.AddPaths("SpecifyTimeoutOnRegex.DefaultMatchTimeout.cs").WithTopLevelStatements().Verify();
+        builderCS.AddPaths("SpecifyTimeoutOnRegex.DefaultMatchTimeout.cs").WithTopLevelStatements().VerifyNoIssues();
+
+    [TestMethod]
+    public void SpecifyTimeoutOnRegex_DefaultMatchTimeout_Invalid() =>
+        builderCS.AddPaths("SpecifyTimeoutOnRegex.DefaultMatchTimeout.Invalid.cs").WithTopLevelStatements().Verify();
 
     [TestMethod]
     public void SpecifyTimeoutOnRegex_VB() =>
         builderVB.AddPaths("SpecifyTimeoutOnRegex.vb").Verify();
+
+    [TestMethod]
+    public void SpecifyTimeoutOnRegex_DefaultMatchTimeout_VB() =>
+        builderVB.AddPaths("SpecifyTimeoutOnRegex.DefaultMatchTimeout.vb").VerifyNoIssues();
+
+    [TestMethod]
+    public void SpecifyTimeoutOnRegex_DefaultMatchTimeout_Invalid_VB() =>
+        builderVB.AddPaths("SpecifyTimeoutOnRegex.DefaultMatchTimeout.Invalid.vb").Verify();
 }

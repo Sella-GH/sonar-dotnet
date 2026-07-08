@@ -16,60 +16,48 @@ public class EntityFrameworkReproGH3604
         public Microsoft.EntityFrameworkCore.DbSet<MyEntity> MyEntities { get; set; }
     }
 
+    // Materializing an IQueryable with ToList() (eager, buffered) is not equivalent to AsEnumerable() (deferred,
+    // streaming); the rule cannot tell whether the materialization is intentional, so these must not be flagged.
     public void GetEntitiesFromEntityFrameworkCoreDbContext(MyDbContext dbContext)
     {
-        _ = dbContext.MyEntities.OrderBy(v => v.Id).ToList().Where(SomeTest).ToList(); // Noncompliant {{Use 'AsEnumerable' here instead.}}
-        //                                          ^^^^^^
-        _ = dbContext.MyEntities.ToList().Where(SomeTest).ToList(); // Noncompliant {{Use 'AsEnumerable' here instead.}}
-        //                       ^^^^^^
+        _ = dbContext.MyEntities.OrderBy(v => v.Id).ToList().Where(SomeTest).ToList(); // Compliant
+        _ = dbContext.MyEntities.ToList().Where(SomeTest).ToList(); // Compliant
         _ = (from v in dbContext.MyEntities
              orderby v.Id
-             select v).ToList().Where(SomeTest).ToList(); // Noncompliant {{Use 'AsEnumerable' here instead.}}
-        //             ^^^^^^
+             select v).ToList().Where(SomeTest).ToList(); // Compliant
     }
 
     public void GetEntitiesFromEntityFrameworkCoreDbSet(Microsoft.EntityFrameworkCore.DbSet<MyEntity> entities)
     {
-        _ = entities.OrderBy(v => v.Id).ToList().Where(SomeTest).ToList(); // Noncompliant {{Use 'AsEnumerable' here instead.}}
-        //                              ^^^^^^
-        _ = entities.ToList().Where(SomeTest).ToList(); // Noncompliant {{Use 'AsEnumerable' here instead.}}
-        //           ^^^^^^
+        _ = entities.OrderBy(v => v.Id).ToList().Where(SomeTest).ToList(); // Compliant
+        _ = entities.ToList().Where(SomeTest).ToList(); // Compliant
         _ = (from v in entities
              orderby v.Id
-             select v).ToList().Where(SomeTest).ToList(); // Noncompliant {{Use 'AsEnumerable' here instead.}}
-        //             ^^^^^^
+             select v).ToList().Where(SomeTest).ToList(); // Compliant
     }
 
     public void GetEntitiesFromEntityFrameworkDbSet_TEntity(System.Data.Entity.DbSet<MyEntity> entities)
     {
-        _ = entities.OrderBy(v => v.Id).ToList().Where(SomeTest).ToList(); // Noncompliant {{Use 'AsEnumerable' here instead.}}
-        //                              ^^^^^^
-        _ = entities.ToList().Where(SomeTest).ToList(); // Noncompliant {{Use 'AsEnumerable' here instead.}}
-        //           ^^^^^^
+        _ = entities.OrderBy(v => v.Id).ToList().Where(SomeTest).ToList(); // Compliant
+        _ = entities.ToList().Where(SomeTest).ToList(); // Compliant
         _ = (from v in entities
              orderby v.Id
-             select v).ToList().Where(SomeTest).ToList(); // Noncompliant {{Use 'AsEnumerable' here instead.}}
-        //             ^^^^^^
+             select v).ToList().Where(SomeTest).ToList(); // Compliant
     }
 
     public void GetEntitiesFromEntityFrameworkDbSet(System.Data.Entity.DbSet entities)
     {
-        _ = entities.Cast<MyEntity>().OrderBy(v => v.Id).ToList().Where(SomeTest).ToList(); // Noncompliant {{Use 'AsEnumerable' here instead.}}
-        //                                               ^^^^^^
-        _ = entities.Cast<MyEntity>().ToList().Where(SomeTest).ToList(); // Noncompliant {{Use 'AsEnumerable' here instead.}}
-        //                            ^^^^^^
+        _ = entities.Cast<MyEntity>().OrderBy(v => v.Id).ToList().Where(SomeTest).ToList(); // Compliant
+        _ = entities.Cast<MyEntity>().ToList().Where(SomeTest).ToList(); // Compliant
     }
 
     public void GetEntitiesFromEntityFrameworkObjectQuery_TEntity(System.Data.Entity.Core.Objects.ObjectQuery<MyEntity> entities)
     {
-        _ = entities.OrderBy(v => v.Id).ToList().Where(SomeTest).ToList(); // Noncompliant {{Use 'AsEnumerable' here instead.}}
-        //                              ^^^^^^
-        _ = entities.ToList().Where(SomeTest).ToList(); // Noncompliant {{Use 'AsEnumerable' here instead.}}
-        //           ^^^^^^
+        _ = entities.OrderBy(v => v.Id).ToList().Where(SomeTest).ToList(); // Compliant
+        _ = entities.ToList().Where(SomeTest).ToList(); // Compliant
         _ = (from v in entities
              orderby v.Id
-             select v).ToList().Where(SomeTest).ToList(); // Noncompliant {{Use 'AsEnumerable' here instead.}}
-        //             ^^^^^^
+             select v).ToList().Where(SomeTest).ToList(); // Compliant
     }
 
     public bool SomeTest(MyEntity entity)
@@ -90,6 +78,20 @@ namespace CSharp14
 
             public bool NonCompliantMethod() { return source.Select(x => x as object).Any(x => x != null); }    // Noncompliant
             public bool CompliantMethod() { return source.OfType<object>().Any(x => x != null); }
+            public bool Overlaps(List<int> other) => true;
+        }
+
+        public class Sample { }
+        extension(Sample sample)
+        {
+            public bool Any(IEnumerable<int> items) => items.Any();
+        }
+        public static void CustomAnyWithCollectionArgument(Sample sample, IEnumerable<int> xs)
+        {
+            _ = sample.Any(xs.ToList());     // Compliant
+            _ = sample.Any(xs.ToArray());    // Compliant
+            _ = xs!.Overlaps(xs.ToList());   // Compliant
+            _ = xs?.Overlaps(xs.ToList());   // Compliant
         }
     }
 
