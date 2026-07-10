@@ -2,12 +2,12 @@ name: Sync fork with upstream
 
 on:
   schedule:
-    - cron: '0 * * * *'   # hourly, on the hour
-  workflow_dispatch:        # allow manual runs
+    - cron: '0 * * * *'
+  workflow_dispatch:
 
 permissions:
-  contents: write   # gh repo sync updates the fork's master
-  issues: write     # open the tracking issue on failure
+  contents: write
+  issues: write
 
 concurrency:
   group: sync-fork
@@ -16,7 +16,7 @@ concurrency:
 jobs:
   sync:
     name: Sync master from upstream
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
