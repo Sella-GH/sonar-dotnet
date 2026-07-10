@@ -1,0 +1,40 @@
+name: Sync fork with upstream
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: sync-fork
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync master from upstream
+    runs-on: ubuntu-slim
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Sync master with SonarSource/sonar-dotnet
+        run: gh repo sync ${{ github.repository }} --source SonarSource/sonar-dotnet --branch master
+
+      - name: Open issue on sync failure
+        if: failure()
+        run: |
+          existing=$(gh issue list --repo ${{ github.repository }} \
+            --state open --label fork-sync-failure --limit 1 --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            echo "Existing open issue #$existing already tracks this failure; skipping."
+            exit 0
+          fi
+          gh issue create --repo ${{ github.repository }} \
+            --label fork-sync-failure \
+            --title "Fork sync with upstream failed" \
+            --body "The scheduled fork-sync workflow could not sync \`master\` with \`SonarSource/sonar-dotnet\`. This usually means the branch has diverged and can no longer be fast-forwarded, and needs manual reconciliation.
+
+          Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
