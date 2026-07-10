@@ -28,12 +28,42 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v6
 
+      - name: Vendor syntax highlighting assets
+        shell: bash
+        env:
+          HLJS_VERSION: 11.11.1
+        run: |
+          set -euo pipefail
+          mkdir -p _site/vendor hljs-tmp
+          base="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/$HLJS_VERSION"
+          curl --fail --silent --show-error --retry 3 -o hljs-tmp/highlight.min.js "$base/highlight.min.js"
+          curl --fail --silent --show-error --retry 3 -o hljs-tmp/vbnet.min.js "$base/languages/vbnet.min.js"
+          curl --fail --silent --show-error --retry 3 -o hljs-tmp/github.min.css "$base/styles/github.min.css"
+          curl --fail --silent --show-error --retry 3 -o hljs-tmp/github-dark.min.css "$base/styles/github-dark.min.css"
+          sha256sum -c <<'SUMS'
+          c4a399dd6f488bc97a3546e3476747b3e714c99c57b9473154c6fb8d259b9381  hljs-tmp/highlight.min.js
+          05e574cc80446ae29610a51e148766dca68788e43934bc1d3dca8cf3cd1a0575  hljs-tmp/vbnet.min.js
+          3a9a5def8b9c311e5ae43abde85c63133185eed4f0d9f67fea4b00a8308cf066  hljs-tmp/github.min.css
+          9f208d022102b1d0c7aebfecd8e42ca7997d5de636649d2b31ea63093d809019  hljs-tmp/github-dark.min.css
+          SUMS
+          cat hljs-tmp/highlight.min.js hljs-tmp/vbnet.min.js > _site/vendor/highlight.js
+          {
+            cat hljs-tmp/github.min.css
+            echo '@media (prefers-color-scheme: dark) {'
+            cat hljs-tmp/github-dark.min.css
+            echo '}'
+            echo 'pre code.hljs { padding: 0; background: transparent; overflow-x: visible; }'
+            echo '@media (prefers-color-scheme: light) { .hljs-built_in, .hljs-symbol { color: #b35900; } }'
+          } > _site/vendor/hljs.css
+          rm -rf hljs-tmp
+
       - name: Generate rule docs site
         shell: bash
         run: |
           set -euo pipefail
 
           declare -A LANG_LABEL=( [cs]="C#" [vbnet]="VB.NET" )
+          declare -A HL_LANG=( [cs]="csharp" [vbnet]="vbnet" )
 
           mkdir -p _site
           INDEX=_site/index.html
@@ -70,7 +100,7 @@ jobs:
           dl.meta dt::after { content: ":"; }
           dl.meta dd { margin: 0; }
           a.back { display: inline-block; margin-bottom: 1rem; }
-          pre { background: #f2f2f2; padding: 0.75rem; overflow-x: auto; border-radius: 4px; }
+          pre { background: #ffffff; padding: 0.75rem; overflow-x: auto; border-radius: 4px; border: 1px solid #d0d7de; }
           pre code { background: none; padding: 0; }
           pre[data-diff-type="noncompliant"] { border-left: 4px solid #b0413e; }
           pre[data-diff-type="compliant"] { border-left: 4px solid #3e7a44; }
@@ -126,6 +156,7 @@ jobs:
 
           for lang in $(printf '%s\n' "${!LANG_LABEL[@]}" | sort); do
             label="${LANG_LABEL[$lang]}"
+            hl="${HL_LANG[$lang]}"
             src="analyzers/rspec/$lang"
             mkdir -p "_site/$lang"
 
@@ -155,6 +186,7 @@ jobs:
           <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
           <title>$base - $esc_title ($label)</title>
           <link rel="stylesheet" href="../style.css">
+          <link rel="stylesheet" href="../vendor/hljs.css">
           </head><body>
           <nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
           <header>
@@ -168,8 +200,16 @@ jobs:
           </header>
           <main>
           PAGE
-                sed -e 's|<table>|<div class="table-scroll" role="group" aria-label="Scrollable table" tabindex="0"><table>|g' -e 's|</table>|</table></div>|g' -e 's|<pre|<pre tabindex="0"|g' "$html_src"
-                echo "</main></body></html>"
+                sed -e 's|<table>|<div class="table-scroll" role="group" aria-label="Scrollable table" tabindex="0"><table>|g' \
+                    -e 's|</table>|</table></div>|g' \
+                    -e "s|<pre\([^>]*\)>|<pre tabindex=\"0\"\1><code class=\"language-$hl\">|g" \
+                    -e 's|</pre>|</code></pre>|g' "$html_src"
+                cat <<'PAGEEND'
+          </main>
+          <script src="../vendor/highlight.js"></script>
+          <script>hljs.highlightAll();</script>
+          </body></html>
+          PAGEEND
               } > "$page"
 
               echo "<tr><td><code>$base</code></td><td><span class=\"lang lang-$lang\">$label</span></td><td><a href=\"$lang/$base.html\">$esc_title</a></td><td>$esc_type</td><td>$esc_severity</td><td>$esc_tags</td></tr>" >> "$INDEX"
