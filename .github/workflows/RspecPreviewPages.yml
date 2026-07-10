@@ -45,10 +45,19 @@ jobs:
           label[for="filter"] { display: block; margin-top: 1rem; font-weight: 600; }
           input#filter { width: 100%; padding: 0.5rem; font-size: 1rem; margin: 0.25rem 0 0.5rem; box-sizing: border-box; background: inherit; color: inherit; border: 1px solid #767676; border-radius: 3px; }
           #filter-status { min-height: 1.5em; margin: 0 0 0.5rem; color: #555555; }
+          html { scroll-padding-top: 3.5rem; }
+          search { display: block; }
           table { width: 100%; border-collapse: collapse; }
           th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid #dddddd; }
+          .table-scroll { overflow-x: auto; }
           #rules th { position: sticky; top: 0; z-index: 1; background: #ffffff; }
-          tr:hover { background: #f6f6f6; }
+          @media (min-width: 761px) {
+            #rules-scroll { overflow: visible; }
+          }
+          @media (max-width: 760px) {
+            #rules th { position: static; }
+          }
+          tr:hover, tr:focus-within { background: #f6f6f6; }
           .lang { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 3px; font-size: 0.75rem; font-weight: 600; color: #1b1b1b; }
           .lang-cs { background: #d6e9ff; }
           .lang-vbnet { background: #ffe6cc; }
@@ -65,13 +74,13 @@ jobs:
           pre code { background: none; padding: 0; }
           pre[data-diff-type="noncompliant"] { border-left: 4px solid #b0413e; }
           pre[data-diff-type="compliant"] { border-left: 4px solid #3e7a44; }
-          a:focus-visible, input:focus-visible { outline: 2px solid #0b5fff; outline-offset: 2px; }
+          a:focus-visible, input:focus-visible, .table-scroll:focus-visible { outline: 2px solid #0b5fff; outline-offset: 2px; }
           .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
           @media (prefers-color-scheme: dark) {
             body { background: #16181d; color: #e4e4e4; }
             #rules th { background: #16181d; }
             th, td, header { border-color: #3a3d44; }
-            tr:hover { background: #22252c; }
+            tr:hover, tr:focus-within { background: #22252c; }
             code, pre { background: #24272e; }
             header p, dl.meta dt, #filter-status { color: #a5a8ae; }
             input#filter { border-color: #8b8e94; }
@@ -79,6 +88,7 @@ jobs:
             a:visited { color: #c0a4f0; }
             pre[data-diff-type="noncompliant"] { border-left-color: #e5766f; }
             pre[data-diff-type="compliant"] { border-left-color: #79c47f; }
+            a:focus-visible, input:focus-visible, .table-scroll:focus-visible { outline-color: #7ab3ff; }
           }
           CSS
 
@@ -89,6 +99,10 @@ jobs:
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1">
           <meta name="description" content="Rendered SonarAnalyzer rule specifications (RSPEC) for C# and VB.NET, generated for review.">
+          <meta name="color-scheme" content="light dark">
+          <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+          <meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+          <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
           <title>SonarAnalyzer Rule Specs</title>
           <link rel="stylesheet" href="style.css">
           </head>
@@ -98,11 +112,14 @@ jobs:
           <p>Rule descriptions from <code>analyzers/rspec/cs</code> and <code>analyzers/rspec/vbnet</code>, rendered for review.</p>
           </header>
           <main>
+          <search>
           <label for="filter">Filter rules</label>
           <input id="filter" type="search" placeholder="Rule id, title or tag &hellip;" autocomplete="off">
           <p id="filter-status" role="status"></p>
+          </search>
+          <section class="table-scroll" id="rules-scroll" aria-labelledby="rules-caption" tabindex="0">
           <table id="rules">
-          <caption class="visually-hidden">Rule specifications: id, language, title, type, severity and tags</caption>
+          <caption class="visually-hidden" id="rules-caption">Rule specifications: id, language, title, type, severity and tags</caption>
           <thead><tr><th scope="col">Rule</th><th scope="col">Language</th><th scope="col">Title</th><th scope="col">Type</th><th scope="col">Severity</th><th scope="col">Tags</th></tr></thead>
           <tbody>
           HTML
@@ -132,6 +149,10 @@ jobs:
           <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1">
+          <meta name="color-scheme" content="light dark">
+          <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+          <meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+          <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
           <title>$base - $esc_title ($label)</title>
           <link rel="stylesheet" href="../style.css">
           </head><body>
@@ -147,7 +168,7 @@ jobs:
           </header>
           <main>
           PAGE
-                cat "$html_src"
+                sed -e 's|<table>|<div class="table-scroll" role="group" aria-label="Scrollable table" tabindex="0"><table>|g' -e 's|</table>|</table></div>|g' -e 's|<pre|<pre tabindex="0"|g' "$html_src"
                 echo "</main></body></html>"
               } > "$page"
 
@@ -158,6 +179,7 @@ jobs:
           cat >> "$INDEX" <<'HTML'
           </tbody>
           </table>
+          </section>
           <p id="no-results" hidden>No rules match the current filter.</p>
           </main>
           <script>
@@ -166,6 +188,7 @@ jobs:
             const noResults = document.getElementById('no-results');
             const rows = Array.from(document.querySelectorAll('#rules tbody tr'));
             const haystack = rows.map(r => r.textContent.toLowerCase());
+            let announceTimer;
             filter.addEventListener('input', () => {
               const q = filter.value.trim().toLowerCase();
               let shown = 0;
@@ -175,7 +198,10 @@ jobs:
                 if (match) shown++;
               });
               noResults.hidden = shown !== 0;
-              status.textContent = q ? shown + ' of ' + rows.length + ' rules shown' : '';
+              clearTimeout(announceTimer);
+              announceTimer = setTimeout(() => {
+                status.textContent = q ? shown + ' of ' + rows.length + ' rules shown' : '';
+              }, 400);
             });
           </script>
           </body>
