@@ -104,13 +104,38 @@ jobs:
             preview_banner="<p class=\"preview-banner\" role=\"note\">Branch preview for <strong>$esc_branch</strong> &mdash; not the production site.</p>"
           fi
 
+          # Counted up front (same validity rules as the generation loop
+          # below) so the header can show them before any rule page exists.
+          count_rules() {
+            local src=$1 count=0 json base
+            for json in "$src"/S*.json; do
+              [ -e "$json" ] || continue
+              base=$(basename "$json" .json)
+              [[ "$base" =~ ^S[0-9]+$ ]] || continue
+              [ -f "$src/$base.html" ] || continue
+              count=$((count + 1))
+            done
+            printf '%s' "$count"
+          }
+          cs_count=$(count_rules analyzers/rspec/cs)
+          vbnet_count=$(count_rules analyzers/rspec/vbnet)
+
+          # GITHUB_SHA / GITHUB_REPOSITORY / GITHUB_SERVER_URL are also the
+          # runner's own trusted env vars (build metadata, not attacker input).
+          build_time_iso=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          build_time_human=$(date -u '+%d %b %Y, %H:%M UTC')
+          commit_short=${GITHUB_SHA::7}
+          commit_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$GITHUB_SHA"
+          repo_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+
           mkdir -p _site
           INDEX=_site/index.html
 
           cp "$TEMPLATES/style.css" _site/style.css
           cp "$TEMPLATES/theme.js" _site/theme.js
           BRANCH_PREVIEWS_LINK="$branch_previews_link" PREVIEW_BANNER="$preview_banner" \
-            envsubst '$BRANCH_PREVIEWS_LINK $PREVIEW_BANNER' \
+            CS_COUNT="$cs_count" VBNET_COUNT="$vbnet_count" \
+            envsubst '$BRANCH_PREVIEWS_LINK $PREVIEW_BANNER $CS_COUNT $VBNET_COUNT' \
             < "$TEMPLATES/index-head.html" > "$INDEX"
 
           for lang in $(printf '%s\n' "${!LANG_LABEL[@]}" | sort); do
@@ -158,7 +183,11 @@ jobs:
             done
           done
 
-          cat "$TEMPLATES/index-foot.html" >> "$INDEX"
+          BUILD_TIME_ISO="$build_time_iso" BUILD_TIME_HUMAN="$build_time_human" \
+            COMMIT_SHORT="$commit_short" COMMIT_URL="$commit_url" \
+            REPO_URL="$repo_url" REPO_NAME="$GITHUB_REPOSITORY" \
+            envsubst '$BUILD_TIME_ISO $BUILD_TIME_HUMAN $COMMIT_SHORT $COMMIT_URL $REPO_URL $REPO_NAME' \
+            < "$TEMPLATES/index-foot.html" >> "$INDEX"
 
       - name: Update preview site cache
         shell: bash
