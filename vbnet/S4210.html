@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S4210 - Windows Forms entry points should be marked with STAThread (VB.NET)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S4210 &mdash; Windows Forms entry points should be marked with STAThread</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>VB.NET</dd></div>
+<div><dt>Type</dt><dd>BUG</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+<div><dt>Tags</dt><dd>winforms, pitfall</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>When an assembly uses Windows Forms (classes and interfaces from the <code>System.Windows.Forms</code> namespace) its entry point should be marked
+with the <code>STAThreadAttribute</code> to indicate that the threading model should be "Single-Threaded Apartment" (STA) which is the only one
+supported by Windows Forms.</p>
+<p>This rule raises an issue when the entry point (<code>Shared Sub Main</code> method) of an assembly using Windows Forms is not marked as STA.</p>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0"><code class="language-vbnet">
+Imports System.Windows.Forms
+
+Public Class Foo
+  Shared Sub Main()
+    Dim winForm As Form = New Form
+    Application.Run(winForm)
+  End Sub
+End Class
+</code></pre>
+<h3>Compliant solution</h3>
+<pre tabindex="0"><code class="language-vbnet">
+Imports System.Windows.Forms
+
+Public Class Foo
+  &lt;STAThread()&gt; Shared Sub Main()
+    Dim winForm As Form = New Form
+    Application.Run(winForm)
+  End Sub
+End Class
+</code></pre>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

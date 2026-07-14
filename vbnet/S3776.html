@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S3776 - Cognitive Complexity of methods should not be too high (VB.NET)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S3776 &mdash; Cognitive Complexity of methods should not be too high</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>VB.NET</dd></div>
+<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Severity</dt><dd>Critical</dd></div>
+<div><dt>Tags</dt><dd>brain-overload</dd></div>
+</dl>
+</header>
+<main>
+<p>This rule raises an issue when the code cognitive complexity of a function is above a certain threshold.</p>
+<h2>Why is this an issue?</h2>
+<p>Cognitive Complexity is a measure of how hard it is to understand the control flow of a unit of code. Code with high cognitive complexity is hard
+to read, understand, test, and modify.</p>
+<p>As a rule of thumb, high cognitive complexity is a sign that the code should be refactored into smaller, easier-to-manage pieces.</p>
+<h3>Which syntax in code does impact cognitive complexity score?</h3>
+<p>Here are the core concepts:</p>
+<ul>
+  <li><strong>Cognitive complexity is incremented each time the code breaks the normal linear reading flow.</strong>
+    <br>
+    This concerns, for example, loop structures, conditionals, catches, switches, jumps to labels, and conditions mixing multiple operators.</li>
+  <li><strong>Each nesting level increases complexity.</strong>
+    <br>
+    During code reading, the deeper you go through nested layers, the harder it becomes to keep the context in mind.</li>
+  <li><strong>Method calls are free</strong>
+    <br>
+    A well-picked method name is a summary of multiple lines of code. A reader can first explore a high-level view of what the code is performing then
+    go deeper and deeper by looking at called functions content.
+    <br>
+    <em>Note:</em> This does not apply to recursive calls, those will increment cognitive score.</li>
+</ul>
+<p>The method of computation is fully detailed in the pdf linked in the resources.</p>
+<h3>What is the potential impact?</h3>
+<p>Developers spend more time reading and understanding code than writing it. High cognitive complexity slows down changes and increases the cost of
+maintenance.</p>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant"><code class="language-vbnet">
+Function Abs(ByVal n As Integer) As Integer ' Noncompliant: cognitive complexity = 5
+    If n &gt;= 0 Then    ' +1
+        Return n
+    Else              ' +2, due to nesting
+        If n = Integer.MinValue Then      ' +1
+            Throw New ArgumentException("The absolute value of int.MinValue is outside of int boundaries")
+        Else                              ' +1
+            Return -n
+        End If
+    End If
+End Function
+</code></pre>
+<p>They should be refactored to have lower complexity:</p>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant"><code class="language-vbnet">
+Function Abs(ByVal n As Integer) As Integer  ' Compliant: cognitive complexity = 3
+    If n = Integer.MinValue Then    ' +1
+        Throw New ArgumentException("The absolute value of int.MinValue is outside of int boundaries")
+    Else If n &gt;= 0 Then             ' +1
+        Return n
+    Else                            ' +1
+        Return -n
+    End If
+End Function
+</code></pre>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li>Sonar - <a href="https://www.sonarsource.com/docs/CognitiveComplexity.pdf">Cognitive Complexity</a></li>
+</ul>
+<h3>Articles &amp; blog posts</h3>
+<ul>
+  <li>Sonar Blog - <a href="https://www.sonarsource.com/blog/5-clean-code-tips-for-reducing-cognitive-complexity/">5 Clean Code Tips for Reducing
+  Cognitive Complexity</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

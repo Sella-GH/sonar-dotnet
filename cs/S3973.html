@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S3973 - A conditionally executed single line should be denoted by indentation (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S3973 &mdash; A conditionally executed single line should be denoted by indentation</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Severity</dt><dd>Critical</dd></div>
+<div><dt>Tags</dt><dd>confusing, suspicious</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>When the line immediately after conditional statements has neither curly braces nor indentation, the intent of the code is unclear and perhaps not
+executed as expected. Additionally, such code is confusing to maintainers.</p>
+<p>The rule will check the line indentation after the following conditional statements:</p>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/selection-statements#the-if-statement">if and if-else
+  statements</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/iteration-statements#the-for-statement">for
+  statement</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/iteration-statements#the-foreach-statement">foreach
+  statement</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/iteration-statements#the-do-statement">do
+  statement</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/iteration-statements#the-while-statement">while
+  statement</a></li>
+</ul>
+<pre tabindex="0"><code class="language-csharp">
+if (condition)  // Noncompliant
+DoTheThing();
+DoTheOtherThing(); // Was the intent to call this function unconditionally?
+</code></pre>
+<p>It becomes even more confusing and bug-prone if lines get commented out.</p>
+<pre tabindex="0"><code class="language-csharp">
+if (condition)  // Noncompliant
+//   DoTheThing();
+DoTheOtherThing(); // Was the intent to call this function conditionally?
+</code></pre>
+<p>Indentation alone or together with curly braces makes the intent clear.</p>
+<pre tabindex="0"><code class="language-csharp">
+if (condition)
+  DoTheThing();
+DoTheOtherThing(); // Clear intent to call this function unconditionally
+
+// or
+
+if (condition)
+{
+  DoTheThing();
+}
+DoTheOtherThing(); // Clear intent to call this function unconditionally
+</code></pre>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

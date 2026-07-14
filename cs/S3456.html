@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S3456 - &quot;string.ToCharArray()&quot; and &quot;ReadOnlySpan&lt;T&gt;.ToArray()&quot; should not be called redundantly (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S3456 &mdash; &quot;string.ToCharArray()&quot; and &quot;ReadOnlySpan&lt;T&gt;.ToArray()&quot; should not be called redundantly</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>BUG</dd></div>
+<div><dt>Severity</dt><dd>Minor</dd></div>
+<div><dt>Tags</dt><dd>clumsy</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>The <code>string</code> type offers an indexer property that allows you to treat it as a <code>char</code> array. Therefore, if you just need to
+access a specific character or iterate over all of them, the <code>ToCharArray</code> call should be omitted. For these cases, not omitting makes the
+code harder to read and less efficient as <code>ToCharArray</code> copies the characters from the <code>string</code> object into a new Unicode
+character array.</p>
+<p>The same principle applies to <a href="https://devblogs.microsoft.com/dotnet/csharp-11-preview-updates/#utf-8-string-literals">utf-8 literals
+types</a> (<code>ReadOnlySpan&lt;byte&gt;</code>, <code>Span&lt;byte&gt;</code>) and the <a
+href="https://learn.microsoft.com/en-us/dotnet/api/system.span-1.toarray?view=net-7.0"><code>ToArray</code></a> method.</p>
+<h2>How to fix it</h2>
+<h3>Code examples</h3>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant"><code class="language-csharp">
+string str = "some string";
+foreach (var c in str.ToCharArray()) // Noncompliant
+{
+  // ...
+}
+
+ReadOnlySpan&lt;byte&gt; span = "some UTF-8 string literal"u8;
+foreach (var c in span.ToArray()) // Noncompliant
+{
+  // ...
+}
+</code></pre>
+<h4>Compliant solution</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant"><code class="language-csharp">
+string str = "some string";
+foreach (var c in str)
+{
+  // ...
+}
+
+ReadOnlySpan&lt;byte&gt; span = "some UTF-8 string literal"u8;
+foreach (var b in span) // Compliant
+{
+  // ...
+}
+</code></pre>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.string.tochararray">String.ToCharArray Method</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/strings/#accessing-individual-characters">Accessing individual
+  characters</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/lexical-structure#6456-string-literals">UTF-8
+  Strings literals</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

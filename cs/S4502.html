@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S4502 - CSRF protections should not be disabled (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S4502 &mdash; CSRF protections should not be disabled</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>VULNERABILITY</dd></div>
+<div><dt>Severity</dt><dd>Critical</dd></div>
+<div><dt>Tags</dt><dd>cwe, former-hotspot</dd></div>
+</dl>
+</header>
+<main>
+<p>Cross-site request forgery (CSRF) forces an authenticated user to perform unintended state-changing actions in a web application. This rule detects
+when CSRF protection is explicitly disabled or missing from an application.</p>
+<h2>Why is this an issue?</h2>
+<p>When CSRF protection is disabled or bypassed, an attacker can trick a logged-in user into submitting requests the application treats as
+authenticated. The rule flags configurations that disable framework CSRF middleware, exempt specific routes or views, or leave unsafe HTTP methods
+unprotected.</p>
+<h3>What is the potential impact?</h3>
+<h4>Unauthorized state changes</h4>
+<p>An attacker can change passwords, transfer funds, modify data, or perform other privileged operations using the victim’s session.</p>
+<h4>Account compromise</h4>
+<p>Successful CSRF attacks can lead to full account takeover when combined with sensitive actions such as email or credential changes.</p>
+<h2>How to fix it</h2>
+<h3>Code examples</h3>
+<p>Disabling or bypassing CSRF protection allows an authenticated user’s browser to execute state-changing requests the user did not intend.</p>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant"><code class="language-csharp">
+public void ConfigureServices(IServiceCollection services)
+{
+    // ...
+    services.AddControllersWithViews(options =&gt; options.Filters.Add(new IgnoreAntiforgeryTokenAttribute())); // Noncompliant
+    // ...
+}
+</code></pre>
+<pre tabindex="0" data-diff-id="2" data-diff-type="noncompliant"><code class="language-csharp">
+[HttpPost, IgnoreAntiforgeryToken] // Noncompliant
+public IActionResult ChangeEmail(ChangeEmailModel model) =&gt; View("~/Views/...");
+</code></pre>
+<h4>Compliant solution</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant"><code class="language-csharp">
+public void ConfigureServices(IServiceCollection services)
+{
+    // ...
+    services.AddControllersWithViews(options =&gt; options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
+    // or
+    services.AddControllersWithViews(options =&gt; options.Filters.Add(new ValidateAntiForgeryTokenAttribute()));
+    // ...
+}
+</code></pre>
+<pre tabindex="0" data-diff-id="2" data-diff-type="compliant"><code class="language-csharp">
+[HttpPost]
+[AutoValidateAntiforgeryToken]
+public IActionResult ChangeEmail(ChangeEmailModel model) =&gt; View("~/Views/...");
+</code></pre>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li><a href="https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-5.0">ASP.NET Core</a> - Cross-site request
+  forgery protection</li>
+  <li><a href="https://owasp.org/www-community/attacks/csrf">OWASP</a> - Cross-Site Request Forgery</li>
+</ul>
+<h3>Articles &amp; blog posts</h3>
+<ul>
+  <li>PortSwigger - <a href="https://portswigger.net/research/web-storage-the-lesser-evil-for-session-tokens">Web storage: the lesser evil for session
+  tokens</a></li>
+</ul>
+<h3>Standards</h3>
+<ul>
+  <li>OWASP - <a href="https://owasp.org/Top10/A01_2021-Broken_Access_Control/">Top 10 2021 Category A1 - Broken Access Control</a></li>
+  <li>CWE - <a href="https://cwe.mitre.org/data/definitions/352">CWE-352 - Cross-Site Request Forgery (CSRF)</a></li>
+  <li>OWASP - <a href="https://owasp.org/www-project-top-ten/2017/A6_2017-Security_Misconfiguration">Top 10 2017 Category A6 - Security
+  Misconfiguration</a></li>
+  <li>STIG Viewer - <a href="https://stigviewer.com/stigs/application_security_and_development/2024-12-06/finding/V-222603">Application Security and
+  Development: V-222603</a> - The application must protect from Cross-Site Request Forgery (CSRF) vulnerabilities.</li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

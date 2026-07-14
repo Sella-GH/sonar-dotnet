@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S4457 - Parameter validation in &quot;async&quot;/&quot;await&quot; methods should be wrapped (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S4457 &mdash; Parameter validation in &quot;async&quot;/&quot;await&quot; methods should be wrapped</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+<div><dt>Tags</dt><dd>async-await</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>Because of the way <code>async</code>/<code>await</code> methods are rewritten by the compiler, any exceptions thrown during the parameters check
+are captured in the returned <code>Task</code> and will only be observed when the task is awaited. That could happen far away from the source of the
+buggy code or never happen for fire-and-forget tasks.</p>
+<p>Therefore it is recommended to split the method into two: an outer method handling the parameter checks (without being
+<code>async</code>/<code>await</code>) and an inner method to handle the iterator block with the <code>async</code>/<code>await</code> pattern.</p>
+<p>This rule raises an issue when an <code>async</code> method throws any exception derived from <code>ArgumentException</code> and contains the
+<code>await</code> keyword.</p>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant"><code class="language-csharp">
+public static async Task SkipLinesAsync(this TextReader reader, int linesToSkip) // Noncompliant
+{
+    if (reader == null) { throw new ArgumentNullException(nameof(reader)); }
+    if (linesToSkip &lt; 0) { throw new ArgumentOutOfRangeException(nameof(linesToSkip)); }
+
+    for (var i = 0; i &lt; linesToSkip; ++i)
+    {
+        var line = await reader.ReadLineAsync().ConfigureAwait(false);
+        if (line == null) { break; }
+    }
+}
+
+var task = SkipLinesAsync(null, -1); // No exception - captured in the task
+await task;                          // ArgumentNullException thrown here
+</code></pre>
+<h3>Compliant solution</h3>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant"><code class="language-csharp">
+public static Task SkipLinesAsync(this TextReader reader, int linesToSkip)
+{
+    if (reader == null) { throw new ArgumentNullException(nameof(reader)); }
+    if (linesToSkip &lt; 0) { throw new ArgumentOutOfRangeException(nameof(linesToSkip)); }
+
+    return reader.SkipLinesInternalAsync(linesToSkip);
+}
+
+private static async Task SkipLinesInternalAsync(this TextReader reader, int linesToSkip)
+{
+    for (var i = 0; i &lt; linesToSkip; ++i)
+    {
+        var line = await reader.ReadLineAsync().ConfigureAwait(false);
+        if (line == null) { break; }
+    }
+}
+
+var task = SkipLinesAsync(null, -1); // ArgumentNullException thrown here
+await task;
+</code></pre>
+<h2>Resources</h2>
+<h3>Related rules</h3>
+<ul>
+  <li>{rule:csharpsquid:S4456} - Parameter validation in yielding methods should be wrapped</li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

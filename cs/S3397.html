@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S3397 - &quot;base.Equals&quot; should not be used to check for reference equality in &quot;Equals&quot; if &quot;base&quot; is not &quot;object&quot; (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S3397 &mdash; &quot;base.Equals&quot; should not be used to check for reference equality in &quot;Equals&quot; if &quot;base&quot; is not &quot;object&quot;</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>BUG</dd></div>
+<div><dt>Severity</dt><dd>Minor</dd></div>
+
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p><code>object.Equals()</code> overrides can be optimized by checking first for reference equality between <code>this</code> and the parameter. This
+check can be implemented by calling <code>object.ReferenceEquals()</code> or <code>base.Equals()</code>, where <code>base</code> is
+<code>object</code>. However, using <code>base.Equals()</code> is a maintenance hazard because while it works if you extend <code>Object</code>
+directly, if you introduce a new base class that overrides <code>Equals</code>, it suddenly stops working.</p>
+<p>This rule raises an issue if <code>base.Equals()</code> is used but <code>base</code> is not <code>object</code>.</p>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0"><code class="language-csharp">
+class Base
+{
+  private int baseField;
+
+  public override bool Equals(object other)
+  {
+    if (base.Equals(other)) // Okay; base is object
+    {
+      return true;
+    }
+
+    return this.baseField == ((Base)other).baseField;
+  }
+}
+
+class Derived : Base
+{
+  private int derivedField;
+
+  public override bool Equals(object other)
+  {
+    if (base.Equals(other))  // Noncompliant
+    {
+      return true;
+    }
+
+    return this.derivedField == ((Derived)other).derivedField;
+  }
+}
+</code></pre>
+<h3>Compliant solution</h3>
+<pre tabindex="0"><code class="language-csharp">
+class Base
+{
+  private int baseField;
+
+  public override bool Equals(object other)
+  {
+    if (object.ReferenceEquals(this, other))  // base.Equals is okay here, but object.ReferenceEquals is better
+    {
+      return true;
+    }
+
+    return this.baseField == ((Base)other).baseField;
+  }
+}
+
+class Derived : Base
+{
+  private int derivedField;
+
+  public override bool Equals(object other)
+  {
+    if (object.ReferenceEquals(this, other))
+    {
+      return true;
+    }
+
+    return base.Equals(other) &amp;&amp; this.derivedField == ((Derived)other).derivedField;
+  }
+}
+</code></pre>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

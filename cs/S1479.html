@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S1479 - &quot;switch&quot; statements with many &quot;case&quot; clauses should have only one statement (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S1479 &mdash; &quot;switch&quot; statements with many &quot;case&quot; clauses should have only one statement</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+<div><dt>Tags</dt><dd>brain-overload</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>When <a href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/selection-statements#the-switch-statement">switch</a>
+statements have large sets of multi-line <code>case</code> clauses, the code becomes hard to read and maintain.</p>
+<p>For example, the <a href="https://www.sonarsource.com/docs/CognitiveComplexity.pdf">Cognitive Complexity</a> is going to be particularly high.</p>
+<p>In such scenarios, it’s better to refactor the <code>switch</code> to only have single-line case clauses.</p>
+<p>When all the <code>case</code> clauses of a <code>switch</code> statement are single-line, the readability of the code is not affected. Moreover,
+<code>switch</code> statements with single-line <code>case</code> clauses can easily be converted into <a
+href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/switch-expression"><code>switch</code> expressions</a>, which are
+more concise for assignment and avoid the need for <code>break</code> statements.</p>
+<h3>Exceptions</h3>
+<p>This rule ignores:</p>
+<ul>
+  <li><code>switch</code> statements over <code>Enum</code> arguments</li>
+  <li>fall-through cases</li>
+  <li><code>return</code>, <code>break</code> and <code>throw</code> statements in case clauses</li>
+</ul>
+<h2>How to fix it</h2>
+<p>Extract the logic of multi-line <code>case</code> clauses into separate methods.</p>
+<h3>Code examples</h3>
+<p>The examples below use the "Maximum number of case" property set to <code>4</code>.</p>
+<p>Note that from C# 8, you can use <a
+href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/switch-expression"><code>switch</code> expression</a>.</p>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant"><code class="language-csharp">
+public int MapChar(char ch, int value)
+{
+    switch(ch) // Noncompliant
+    {
+        case 'a':
+            return 1;
+        case 'b':
+            return 2;
+        case 'c':
+            return 3;
+        // ...
+        case '-':
+            if (value &gt; 10)
+            {
+                return 42;
+            }
+            else if (value &lt; 5 &amp;&amp; value &gt; 1)
+            {
+                return 21;
+            }
+            return 99;
+        default:
+            return 1000;
+    }
+}
+</code></pre>
+<h4>Compliant solution</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant"><code class="language-csharp">
+public int MapChar(char ch, int value)
+{
+    switch(ch) // Compliant: All 5 cases are single line statements
+    {
+        case 'a':
+            return 1;
+        case 'b':
+            return 2;
+        case 'c':
+            return 3;
+        // ...
+        case '-':
+            return HandleDash(value);
+        default:
+            return 1000;
+    }
+}
+
+private int HandleDash(int value)
+{
+    if (value &gt; 10)
+    {
+        return 42;
+    }
+    else if (value &lt; 5 &amp;&amp; value &gt; 1)
+    {
+        return 21;
+    }
+    return 99;
+}
+</code></pre>
+<p>For this example, a <code>switch</code> expression is more concise and clear:</p>
+<pre tabindex="0"><code class="language-csharp">
+public int MapChar(char ch, int value) =&gt;
+    ch switch // Compliant
+    {
+        'a' =&gt; 1,
+        'b' =&gt; 2,
+        'c' =&gt; 3,
+        // ...
+        '-' =&gt; HandleDash(value),
+        _ =&gt; 1000,
+    };
+
+private int HandleDash(int value)
+{
+    if (value &gt; 10)
+    {
+        return 42;
+    }
+    else if (value &lt; 5 &amp;&amp; value &gt; 1)
+    {
+        return 21;
+    }
+    return 99;
+}
+</code></pre>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li>Sonar - <a href="https://www.sonarsource.com/docs/CognitiveComplexity.pdf">Cognitive Complexity</a></li>
+  <li>Microsoft Learn - <a
+  href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/selection-statements#the-switch-statement">The
+  <code>switch</code> statement</a></li>
+  <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/switch-expression">C#: Switch
+  Expression</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

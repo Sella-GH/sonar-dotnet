@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S2290 - Field-like events should not be virtual (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S2290 &mdash; Field-like events should not be virtual</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Severity</dt><dd>Critical</dd></div>
+
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p><a href="https://learn.microsoft.com/en-us/dotnet/csharp/event-pattern#define-and-raise-field-like-events">Field-like</a> events are events that do
+not have explicit <a href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/add"><code>add</code></a> and <a
+href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/remove"><code>remove</code></a> accessors.</p>
+<pre tabindex="0"><code class="language-csharp">
+public event EventHandler MyEvent; // No add and remove accessors
+</code></pre>
+<p>The compiler generates a <code>private</code> <code>delegate</code> field to back the event, as well as generating the implicit <code>add</code>
+and <code>remove</code> accessors.</p>
+<p>When a <code>virtual</code> field-like <code>event</code> is overridden by another field-like <code>event</code>, the behavior of the C# compiler
+is to generate a new <code>private</code> <code>delegate</code> field in the derived class, separate from the parent’s field. This results in multiple
+and separate events being created, which is rarely what’s actually intended.</p>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant"><code class="language-csharp">
+abstract class Car
+{
+  public virtual event EventHandler OnRefuel; // Noncompliant
+
+  public void Refuel()
+  {
+    // This OnRefuel will always be null
+     if (OnRefuel != null)
+     {
+       OnRefuel(this, EventArgs.Empty);
+     }
+  }
+}
+
+class R2 : Car
+{
+  public override event EventHandler OnRefuel;
+}
+
+class Program
+{
+  static void Main(string[] args)
+  {
+    var r2 = new R2();
+    r2.OnRefuel += (o, a) =&gt;
+    {
+        Console.WriteLine("This event will be called");
+    };
+    r2.Refuel();
+  }
+}
+</code></pre>
+<h3>Compliant solution</h3>
+<p>To prevent this, remove the <code>virtual</code> designation from the parent class event.</p>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant"><code class="language-csharp">
+abstract class Car
+{
+  public event EventHandler OnRefuel; // Compliant
+
+  public void Refuel()
+  {
+    if (OnRefuel != null)
+    {
+      OnRefuel(this, EventArgs.Empty);
+    }
+  }
+}
+
+class R2 : Car
+{
+
+}
+
+class Program
+{
+  static void Main(string[] args)
+  {
+    var r2 = new R2();
+    r2.OnRefuel += (o, a) =&gt;
+    {
+        Console.WriteLine("This event will be called");
+    };
+    r2.Refuel();
+  }
+}
+</code></pre>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/add">Add keyword</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/remove">Remove keyword</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/csharp/delegate-class">Delegates</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/csharp/events-overview">Introduction to events</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/csharp/event-pattern#define-and-raise-field-like-events">Field-like events</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S3431 - &quot;[ExpectedException]&quot; should not be used (VB.NET)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S3431 &mdash; &quot;[ExpectedException]&quot; should not be used</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>VB.NET</dd></div>
+<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+<div><dt>Tags</dt><dd>tests</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>It should be clear to a casual reader what code a test is testing and what results are expected. Unfortunately, that’s not usually the case with
+the <code>ExpectedException</code> attribute since an exception could be thrown from almost any line in the method.</p>
+<p>This rule detects MSTest and NUnit <code>ExpectedException</code> attribute.</p>
+<h3>Exceptions</h3>
+<p>This rule ignores:</p>
+<ul>
+  <li>single-line tests, since it is obvious in such methods where the exception is expected to be thrown</li>
+  <li>tests when it tests control flow and assertion are present in either a <code>Catch</code> or <code>Finally</code> clause</li>
+</ul>
+<pre tabindex="0"><code class="language-vbnet">
+&lt;TestMethod&gt;
+&lt;ExpectedException(GetType(InvalidOperationException))&gt;
+Public Sub UsingTest()
+    Console.ForegroundColor = ConsoleColor.Black
+    Try
+        Using alert As New ConsoleAlert()
+            Assert.AreEqual(ConsoleColor.Red, Console.ForegroundColor)
+            Throw New InvalidOperationException()
+        End Using
+    Finally
+        Assert.AreEqual(ConsoleColor.Black, Console.ForegroundColor) ' The exception itself is not relevant for the test.
+    End Try
+End Sub
+
+Public NotInheritable Class ConsoleAlert
+    Implements IDisposable
+
+    Private ReadOnly previous As ConsoleColor
+
+    Public Sub New()
+        previous = Console.ForegroundColor
+        Console.ForegroundColor = ConsoleColor.Red
+    End Sub
+
+    Public Sub Dispose() Implements IDisposable.Dispose
+        Console.ForegroundColor = previous
+    End Sub
+End Class
+</code></pre>
+<h2>How to fix it in MSTest</h2>
+<p>Remove the <code>ExpectedException</code> attribute in favor of using the <a
+href="https://learn.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.testtools.unittesting.assert.throwsexception">Assert.ThrowsException</a>
+assertion.</p>
+<h3>Code examples</h3>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant"><code class="language-vbnet">
+&lt;TestMethod&gt;
+&lt;ExpectedException(GetType(ArgumentNullException))&gt;  ' Noncompliant
+Public Sub Method_NullParam()
+    Dim sut As New MyService()
+    sut.Method(Nothing)
+End Sub
+</code></pre>
+<h4>Compliant solution</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant"><code class="language-vbnet">
+&lt;TestMethod&gt;
+Public Sub Method_NullParam()
+    Dim sut As New MyService()
+    Assert.ThrowsException(Of ArgumentNullException)(Sub() sut.Method(Nothing))
+End Sub
+</code></pre>
+<h2>How to fix it in NUnit</h2>
+<p>Remove the <code>ExpectedException</code> attribute in favor of using the <a
+href="https://docs.nunit.org/articles/nunit/writing-tests/assertions/classic-assertions/Assert.Throws.html">Assert.Throws</a> assertion.</p>
+<h3>Code examples</h3>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="2" data-diff-type="noncompliant"><code class="language-vbnet">
+&lt;Test&gt;
+&lt;ExpectedException(GetType(ArgumentNullException))&gt;  ' Noncompliant
+Public Sub Method_NullParam()
+    Dim sut As New MyService()
+    sut.Method(Nothing)
+End Sub
+</code></pre>
+<h4>Compliant solution</h4>
+<pre tabindex="0" data-diff-id="2" data-diff-type="compliant"><code class="language-vbnet">
+&lt;Test&gt;
+Public Sub Method_NullParam()
+    Dim sut As New MyService()
+    Assert.Throws(Of ArgumentNullException)(Sub() sut.Method(Nothing))
+End Sub
+</code></pre>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li>Microsoft Learn - <a
+  href="https://learn.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.testtools.unittesting.assert.throwsexception">Assert.ThrowsException
+  Method</a></li>
+  <li>Microsoft Learn - <a
+  href="https://learn.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.testtools.unittesting.expectedexceptionattribute">ExpectedExceptionAttribute Class</a></li>
+  <li>NUnit - <a href="https://docs.nunit.org/articles/nunit/writing-tests/assertions/classic-assertions/Assert.Throws.html">Assert.Throws</a></li>
+  <li>NUnit - <a href="https://docs.nunit.org/2.4/exception.html">ExpectedExceptionAttribute</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

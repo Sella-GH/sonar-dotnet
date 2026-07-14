@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S6962 - You should pool HTTP connections with HttpClientFactory (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S6962 &mdash; You should pool HTTP connections with HttpClientFactory</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+<div><dt>Tags</dt><dd>asp.net</dd></div>
+</dl>
+</header>
+<main>
+<p>In frequently used code paths, such as controller actions, you should avoid using the <a
+href="https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient">HttpClient</a> directly and opt for <a
+href="https://learn.microsoft.com/en-us/dotnet/core/extensions/httpclient-factory">one of the IHttpClientFactory-based mechanisms</a> instead. This
+way, you avoid wasting resources and creating performance overhead.</p>
+<h2>Why is this an issue?</h2>
+<p>If a code path that creates and disposes of HttpClient objects is frequently used, then the following issues can occur:</p>
+<ul>
+  <li>Under heavy load, there’s the risk of <a
+  href="https://learn.microsoft.com/en-us/dotnet/fundamentals/networking/http/httpclient-guidelines#pooled-connections">running out of available
+  sockets</a>, leading to <a href="https://learn.microsoft.com/en-us/dotnet/api/system.net.sockets.socketexception">SocketException</a> errors. This
+  is because each HttpClient instance uses a separate network connection, and there’s a limit to the number of connections that can be opened
+  simultaneously. Note that even after you dispose of an HttpClient <a
+  href="https://learn.microsoft.com/en-us/dotnet/architecture/microservices/implement-resilient-applications/use-httpclientfactory-to-implement-resilient-http-requests#issues-with-the-original-httpclient-class-available-in-net">its sockets are not immediately freed up</a>.</li>
+  <li>Each HttpClient has its own set of resources (like headers, base address, timeout, etc.) that must be managed. Creating a new HttpClient for
+  every request means these resources are not being reused, leading to resource waste.</li>
+  <li>You introduce a significant performance overhead when creating a new HttpClient for every HTTP request.</li>
+</ul>
+<h2>How to fix it</h2>
+<p>The <a href="https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory"><code>IHttpClientFactory</code></a> was introduced in
+ASP.NET Core 2.1 to solve these problems. It handles pooling HTTP connections to optimize performance and reliability.</p>
+<p>There are <a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/http-requests#consumption-patterns">several ways</a> that you can use
+IHttpClientFactory in your application:</p>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/core/extensions/httpclient-factory#basic-usage">Basic usage</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/core/extensions/httpclient-factory#named-clients">Named Clients</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/core/extensions/httpclient-factory#typed-clients">Typed Clients</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/core/extensions/httpclient-factory#generated-clients">Generated Clients</a></li>
+</ul>
+<p>Alternatively, you may cache the HttpClient in a singleton or a static field. You should be aware that by default, the HttpClient doesn’t respect
+the DNS’s Time To Live (TTL) settings. If the IP address associated with a domain name changes, HttpClient might still use the old, cached IP address,
+leading to failed requests.</p>
+<h3>Code examples</h3>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant"><code class="language-csharp">
+[ApiController]
+[Route("controller")]
+public class FooController : Controller
+{
+    [HttpGet]
+    public async Task&lt;string&gt; Foo()
+    {
+        using var client = new HttpClient();  // Noncompliant
+        return await client.GetStringAsync(_url);
+    }
+}
+</code></pre>
+<h4>Compliant solution</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant"><code class="language-csharp">
+// File: Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services.AddHttpClient();
+        // ...
+    }
+}
+
+[ApiController]
+[Route("controller")]
+public class FooController : Controller
+{
+    private readonly IHttpClientFactory _clientFactory;
+
+    public FooController(IHttpClientFactory clientFactory)
+    {
+        _clientFactory = clientFactory;
+    }
+
+    [HttpGet]
+    public async Task&lt;string&gt; Foo()
+    {
+        using var client = _clientFactory.CreateClient(); // Compliant (Basic usage)
+        return await client.GetStringAsync(_url);
+    }
+}
+</code></pre>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li>{rule:csharpsquid:S6420} - Client instances should not be recreated on each Azure Function invocation</li>
+  <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory">IHttpClientFactory
+  Interface</a></li>
+  <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient">HttpClient Class</a></li>
+  <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/dotnet/core/extensions/httpclient-factory">IHttpClientFactory with .NET</a></li>
+  <li>Microsoft Learn - <a
+  href="https://learn.microsoft.com/en-us/dotnet/architecture/microservices/implement-resilient-applications/use-httpclientfactory-to-implement-resilient-http-requests">Use IHttpClientFactory to implement resilient HTTP requests</a></li>
+  <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/http-requests">Make HTTP requests using IHttpClientFactory
+  in ASP.NET Core</a></li>
+  <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/dotnet/fundamentals/networking/http/httpclient-guidelines">Guidelines for using
+  HttpClient</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

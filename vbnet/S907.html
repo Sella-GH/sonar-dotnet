@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S907 - &quot;GoTo&quot; statements should not be used (VB.NET)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S907 &mdash; &quot;GoTo&quot; statements should not be used</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>VB.NET</dd></div>
+<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+<div><dt>Tags</dt><dd>brain-overload</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p><code>GoTo</code> is an unstructured control flow statement. It makes code less readable and maintainable. Structured control flow statements such
+as <code>If</code>, <code>For</code>, <code>While</code>, or <code>Exit</code> should be used instead.</p>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0"><code class="language-vbnet">
+    Sub GoToStatementDemo()
+        Dim number As Integer = 1
+        Dim sampleString As String
+        ' Evaluate number and branch to appropriate label.
+        If number = 1 Then GoTo Line1 Else GoTo Line2
+Line1:
+        sampleString = "Number equals 1"
+        GoTo LastLine
+Line2:
+        ' The following statement never gets executed because number = 1.
+        sampleString = "Number equals 2"
+LastLine:
+        ' Write "Number equals 1" in the Debug window.
+        Debug.WriteLine(sampleString)
+    End Sub
+</code></pre>
+<h3>Compliant solution</h3>
+<pre tabindex="0"><code class="language-vbnet">
+    Sub GoToStatementDemo()
+        Dim number As Integer = 1
+        Dim sampleString As String
+        ' Evaluate number and branch to appropriate label.
+        If number = 1 Then
+            sampleString = "Number equals 1"
+        Else
+            sampleString = "Number equals 2"
+        End If
+        Debug.WriteLine(sampleString)
+    End Sub
+</code></pre>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

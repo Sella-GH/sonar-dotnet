@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S6444 - Regular expressions should be executed with a timeout (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S6444 &mdash; Regular expressions should be executed with a timeout</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>VULNERABILITY</dd></div>
+<div><dt>Severity</dt><dd>Minor</dd></div>
+<div><dt>Tags</dt><dd>cwe, regex, former-hotspot</dd></div>
+</dl>
+</header>
+<main>
+<p>Regular expressions without a timeout can be exploited to cause a Denial-of-Service attack.</p>
+<h2>Why is this an issue?</h2>
+<p>When a regular expression is executed against untrusted input without a timeout, a malicious user may craft an input that triggers catastrophic
+backtracking, where the regex engine takes exponential time to determine there is no match. This type of attack is known as a Regular Expression
+Denial of Service (ReDoS). This rule raises an issue when <code>System.Text.RegularExpressions</code> APIs are called without a
+<code>matchTimeout</code> parameter and no process-wide default timeout has been configured via
+<code>AppDomain.CurrentDomain.SetData("REGEX_DEFAULT_MATCH_TIMEOUT", timeout)</code>.</p>
+<h3>What is the potential impact?</h3>
+<p>An attacker who controls the input to a vulnerable regular expression can cause the application to consume all available CPU time while processing
+a single request, making the service unavailable to legitimate users.</p>
+<h2>How to fix it</h2>
+<h3>Code examples</h3>
+<p>The following code is vulnerable because the regular expressions are executed without a timeout, allowing a crafted input to trigger catastrophic
+backtracking.</p>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant"><code class="language-csharp">
+public void RegexPattern(string input)
+{
+    var emailPattern = new Regex(".+@.+", RegexOptions.None);
+    var isNumber = Regex.IsMatch(input, "[0-9]+");
+    var isLetterA = Regex.IsMatch(input, "(a+)+");
+    // Noncompliant: missing timeout
+}
+</code></pre>
+<h4>Compliant solution</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant"><code class="language-csharp">
+public void RegexPattern(string input)
+{
+    var emailPattern = new Regex(".+@.+", RegexOptions.None, TimeSpan.FromMilliseconds(100));
+    var isNumber = Regex.IsMatch(input, "[0-9]+", RegexOptions.None, TimeSpan.FromMilliseconds(100));
+    var isLetterA = Regex.IsMatch(input, "(a+)+", RegexOptions.NonBacktracking); // .NET 7 and above
+    AppDomain.CurrentDomain.SetData("REGEX_DEFAULT_MATCH_TIMEOUT", TimeSpan.FromMilliseconds(100)); // process-wide setting
+}
+</code></pre>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li><a href="https://docs.microsoft.com/dotnet/standard/base-types/best-practices">Best practices for regular expressions in .NET</a></li>
+  <li><a href="https://docs.microsoft.com/dotnet/standard/base-types/backtracking-in-regular-expressions">Backtracking in Regular Expressions</a></li>
+  <li><a href="https://docs.microsoft.com/dotnet/api/system.text.regularexpressions.regex.matchtimeout">Regex.MatchTimeout Property</a></li>
+  <li><a href="https://docs.microsoft.com/dotnet/api/system.text.regularexpressions.regexoptions?view=net-7.0">RegexOptions Enum</a> - NonBacktracking
+  option</li>
+</ul>
+<h3>Articles &amp; blog posts</h3>
+<ul>
+  <li><a href="https://www.regular-expressions.info/catastrophic.html">regular-expressions.info</a> - Runaway Regular Expressions: Catastrophic
+  Backtracking</li>
+  <li><a href="https://owasp.org/www-community/attacks/Regular_expression_Denial_of_Service_-_ReDoS">owasp.org</a> - Regular expression Denial of
+  Service - ReDoS</li>
+  <li><a
+  href="https://devblogs.microsoft.com/dotnet/regular-expression-improvements-in-dotnet-7/#backtracking-and-regexoptions-nonbacktracking">devblogs.microsoft.com</a> - Regular Expression Improvements in .NET 7: Backtracking and RegexOptions.NonBacktracking</li>
+</ul>
+<h3>Standards</h3>
+<ul>
+  <li>OWASP - <a href="https://owasp.org/www-project-top-ten/2017/A1_2017-Injection">Top 10 2017 Category A1 - Injection</a></li>
+  <li>CWE - <a href="https://cwe.mitre.org/data/definitions/400">CWE-400 - Uncontrolled Resource Consumption</a></li>
+  <li>CWE - <a href="https://cwe.mitre.org/data/definitions/1333">CWE-1333 - Inefficient Regular Expression Complexity</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S134 - Control flow statements &quot;If&quot;, &quot;For&quot;, &quot;For Each&quot;, &quot;Do&quot;, &quot;While&quot;, &quot;Select&quot; and &quot;Try&quot; should not be nested too deeply (VB.NET)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S134 &mdash; Control flow statements &quot;If&quot;, &quot;For&quot;, &quot;For Each&quot;, &quot;Do&quot;, &quot;While&quot;, &quot;Select&quot; and &quot;Try&quot; should not be nested too deeply</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>VB.NET</dd></div>
+<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Severity</dt><dd>Critical</dd></div>
+<div><dt>Tags</dt><dd>brain-overload</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>Nested control flow statements <code>If</code>, <code>Select</code>, <code>For</code>, <code>For Each</code>, <code>While</code>, <code>Do</code>,
+and <code>Try</code> are often key ingredients in creating what’s known as "Spaghetti code". This code smell can make your program difficult to
+understand and maintain.</p>
+<p>When numerous control structures are placed inside one another, the code becomes a tangled, complex web. This significantly reduces the code’s
+readability and maintainability, and it also complicates the testing process.</p>
+<h2>How to fix it</h2>
+<h3>Code examples</h3>
+<p>The following example demonstrates the behavior of the rule with the default threshold of 3 levels of nesting:</p>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0"><code class="language-vbnet">
+If condition1 ' Compliant - depth = 1
+  ' ...
+  If condition2 ' Compliant - depth = 2
+    ' ...
+    For i = 0 to 10 ' Compliant - depth = 3, not exceeding the limit
+      ' ...
+      If condition4 ' Noncompliant - depth = 4
+        If condition5 ' Depth = 5, exceeding the limit, but issues are only reported on depth = 4
+          ' ...
+        End If
+        Return
+      End If
+    Next
+  End If
+End If
+</code></pre>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

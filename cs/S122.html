@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S122 - Statements should be on separate lines (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S122 &mdash; Statements should be on separate lines</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+<div><dt>Tags</dt><dd>convention</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>Putting multiple statements on a single line lowers the code readability and makes debugging the code more complex.</p>
+<pre tabindex="0"><code class="language-csharp">
+if (someCondition) { DoSomething(); } // Noncompliant
+
+DoSomething(); DoSomethingElse(); // Noncompliant
+</code></pre>
+<p>Write one statement per line to improve readability.</p>
+<pre tabindex="0"><code class="language-csharp">
+if (someCondition)
+{
+  DoSomething();
+}
+
+DoSomething();
+DoSomethingElse();
+</code></pre>
+<h3>Exceptions</h3>
+<p>The rule ignores:</p>
+<ul>
+  <li>block statements</li>
+  <li>anonymous functions containing a single statement</li>
+</ul>
+<pre tabindex="0"><code class="language-csharp">
+Func&lt;object, bool&gt; item1 = o =&gt; { return true; }; // Compliant by exception
+Func&lt;object, bool&gt; item1 = o =&gt; { var r = false; return r; }; // Noncompliant
+</code></pre>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/csharp-formatting-options">C# formatting
+  options</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>
