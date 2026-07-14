@@ -63,11 +63,12 @@ jobs:
             echo ':root[data-theme="dark"] {'
             cat hljs-tmp/github-dark.min.css
             echo '}'
-            # !important: nesting the dark theme under :root[data-theme="dark"] /
-            # :root:not(...) raises .hljs{background:...}'s specificity enough
-            # to beat this reset otherwise, leaking the vendor theme's own
-            # background through instead of the page's pre background.
-            echo ':root pre code.hljs { padding: 0; background: transparent !important; overflow-x: visible; }'
+            # !important on all three: nesting the dark theme under
+            # :root[data-theme="dark"] / :root:not(...) raises the vendor
+            # theme's own pre code.hljs/code.hljs rules' specificity enough to
+            # beat this reset otherwise, leaking the vendor theme's own
+            # padding/background/overflow-x through instead of the page's.
+            echo ':root pre code.hljs { padding: 0 !important; background: transparent !important; overflow-x: visible !important; }'
             echo '@media (prefers-color-scheme: light) {'
             echo ':root:not([data-theme="dark"]) { .hljs-built_in, .hljs-symbol { color: #b35900; } }'
             echo '}'
