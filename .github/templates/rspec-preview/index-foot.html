@@ -1,0 +1,29 @@
+</tbody>
+</table>
+</section>
+<p id="no-results" hidden>No rules match the current filter.</p>
+</main>
+<script>
+  const filter = document.getElementById('filter');
+  const status = document.getElementById('filter-status');
+  const noResults = document.getElementById('no-results');
+  const rows = Array.from(document.querySelectorAll('#rules tbody tr'));
+  const haystack = rows.map(r => r.textContent.toLowerCase());
+  let announceTimer;
+  filter.addEventListener('input', () => {
+    const q = filter.value.trim().toLowerCase();
+    let shown = 0;
+    rows.forEach((r, i) => {
+      const match = !q || haystack[i].includes(q);
+      r.hidden = !match;
+      if (match) shown++;
+    });
+    noResults.hidden = shown !== 0;
+    clearTimeout(announceTimer);
+    announceTimer = setTimeout(() => {
+      status.textContent = q ? shown + ' of ' + rows.length + ' rules shown' : '';
+    }, 400);
+  });
+</script>
+</body>
+</html>

@@ -7,19 +7,20 @@ on:
       - 'analyzers/rspec/cs/**'
       - 'analyzers/rspec/vbnet/**'
   workflow_dispatch:
+  delete:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
 concurrency:
-  group: pages-${{ github.ref }}
+  group: rspec-preview-pages
   cancel-in-progress: false
 
 jobs:
   build:
-    if: github.ref == 'refs/heads/master'
+    if: github.event_name != 'delete' && (github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -62,97 +63,21 @@ jobs:
         run: |
           set -euo pipefail
 
+          TEMPLATES=.github/templates/rspec-preview
+
+          if ! command -v envsubst >/dev/null 2>&1; then
+            sudo apt-get update -y
+            sudo apt-get install -y gettext-base
+          fi
+
           declare -A LANG_LABEL=( [cs]="C#" [vbnet]="VB.NET" )
           declare -A HL_LANG=( [cs]="csharp" [vbnet]="vbnet" )
 
           mkdir -p _site
           INDEX=_site/index.html
 
-          cat > _site/style.css <<'CSS'
-          :root { color-scheme: light dark; }
-          body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; max-width: 960px; margin: 2rem auto; padding: 0 1rem; background: #ffffff; color: #1b1b1b; line-height: 1.5; }
-          h1 { margin-bottom: 0.25rem; }
-          label[for="filter"] { display: block; margin-top: 1rem; font-weight: 600; }
-          input#filter { width: 100%; padding: 0.5rem; font-size: 1rem; margin: 0.25rem 0 0.5rem; box-sizing: border-box; background: inherit; color: inherit; border: 1px solid #767676; border-radius: 3px; }
-          #filter-status { min-height: 1.5em; margin: 0 0 0.5rem; color: #555555; }
-          html { scroll-padding-top: 3.5rem; }
-          search { display: block; }
-          table { width: 100%; border-collapse: collapse; }
-          th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid #dddddd; }
-          .table-scroll { overflow-x: auto; }
-          #rules th { position: sticky; top: 0; z-index: 1; background: #ffffff; }
-          @media (min-width: 761px) {
-            #rules-scroll { overflow: visible; }
-          }
-          @media (max-width: 760px) {
-            #rules th { position: static; }
-          }
-          tr:hover, tr:focus-within { background: #f6f6f6; }
-          .lang { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 3px; font-size: 0.75rem; font-weight: 600; color: #1b1b1b; }
-          .lang-cs { background: #d6e9ff; }
-          .lang-vbnet { background: #ffe6cc; }
-          code { background: #f2f2f2; padding: 0.1rem 0.3rem; border-radius: 3px; }
-          header { border-bottom: 1px solid #dddddd; margin-bottom: 1.5rem; padding-bottom: 1rem; }
-          header p { margin: 0.2rem 0; color: #555555; }
-          dl.meta { display: flex; flex-wrap: wrap; gap: 0.2rem 1.5rem; margin: 0.5rem 0 0; }
-          dl.meta div { display: flex; gap: 0.4rem; }
-          dl.meta dt { font-weight: 600; color: #555555; }
-          dl.meta dt::after { content: ":"; }
-          dl.meta dd { margin: 0; }
-          a.back { display: inline-block; margin-bottom: 1rem; }
-          pre { background: #ffffff; padding: 0.75rem; overflow-x: auto; border-radius: 4px; border: 1px solid #d0d7de; }
-          pre code { background: none; padding: 0; }
-          pre[data-diff-type="noncompliant"] { border-left: 4px solid #b0413e; }
-          pre[data-diff-type="compliant"] { border-left: 4px solid #3e7a44; }
-          a:focus-visible, input:focus-visible, .table-scroll:focus-visible { outline: 2px solid #0b5fff; outline-offset: 2px; }
-          .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
-          @media (prefers-color-scheme: dark) {
-            body { background: #16181d; color: #e4e4e4; }
-            #rules th { background: #16181d; }
-            th, td, header { border-color: #3a3d44; }
-            tr:hover, tr:focus-within { background: #22252c; }
-            code, pre { background: #24272e; }
-            header p, dl.meta dt, #filter-status { color: #a5a8ae; }
-            input#filter { border-color: #8b8e94; }
-            a { color: #7ab3ff; }
-            a:visited { color: #c0a4f0; }
-            pre[data-diff-type="noncompliant"] { border-left-color: #e5766f; }
-            pre[data-diff-type="compliant"] { border-left-color: #79c47f; }
-            a:focus-visible, input:focus-visible, .table-scroll:focus-visible { outline-color: #7ab3ff; }
-          }
-          CSS
-
-          cat > "$INDEX" <<'HTML'
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <meta name="description" content="Rendered SonarAnalyzer rule specifications (RSPEC) for C# and VB.NET, generated for review.">
-          <meta name="color-scheme" content="light dark">
-          <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-          <meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
-          <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
-          <title>SonarAnalyzer Rule Specs</title>
-          <link rel="stylesheet" href="style.css">
-          </head>
-          <body>
-          <header>
-          <h1>SonarAnalyzer Rule Specs</h1>
-          <p>Rule descriptions from <code>analyzers/rspec/cs</code> and <code>analyzers/rspec/vbnet</code>, rendered for review.</p>
-          </header>
-          <main>
-          <search>
-          <label for="filter">Filter rules</label>
-          <input id="filter" type="search" placeholder="Rule id, title or tag &hellip;" autocomplete="off">
-          <p id="filter-status" role="status"></p>
-          </search>
-          <section class="table-scroll" id="rules-scroll" aria-labelledby="rules-caption" tabindex="0">
-          <table id="rules">
-          <caption class="visually-hidden" id="rules-caption">Rule specifications: id, language, title, type, severity and tags</caption>
-          <thead><tr><th scope="col">Rule</th><th scope="col">Language</th><th scope="col">Title</th><th scope="col">Type</th><th scope="col">Severity</th><th scope="col">Tags</th></tr></thead>
-          <tbody>
-          HTML
+          cp "$TEMPLATES/style.css" _site/style.css
+          cp "$TEMPLATES/index-head.html" "$INDEX"
 
           for lang in $(printf '%s\n' "${!LANG_LABEL[@]}" | sort); do
             label="${LANG_LABEL[$lang]}"
@@ -172,89 +97,95 @@ jobs:
               esc_severity=$(jq -r '.defaultSeverity // "" | @html' "$json")
               esc_tags=$(jq -r '(.tags // []) | join(", ") | @html' "$json")
 
+              esc_tags_block=""
+              if [ -n "$esc_tags" ]; then
+                esc_tags_block="<div><dt>Tags</dt><dd>$esc_tags</dd></div>"
+              fi
+
               page="_site/$lang/$base.html"
               {
-                cat <<PAGE
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <meta name="color-scheme" content="light dark">
-          <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-          <meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
-          <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
-          <title>$base - $esc_title ($label)</title>
-          <link rel="stylesheet" href="../style.css">
-          <link rel="stylesheet" href="../vendor/hljs.css">
-          </head><body>
-          <nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
-          <header>
-          <h1>$base &mdash; $esc_title</h1>
-          <dl class="meta">
-          <div><dt>Language</dt><dd>$label</dd></div>
-          <div><dt>Type</dt><dd>$esc_type</dd></div>
-          <div><dt>Severity</dt><dd>$esc_severity</dd></div>
-          ${esc_tags:+<div><dt>Tags</dt><dd>$esc_tags</dd></div>}
-          </dl>
-          </header>
-          <main>
-          PAGE
+                BASE="$base" ESC_TITLE="$esc_title" LABEL="$label" ESC_TYPE="$esc_type" \
+                  ESC_SEVERITY="$esc_severity" ESC_TAGS_BLOCK="$esc_tags_block" \
+                  envsubst '$BASE $ESC_TITLE $LABEL $ESC_TYPE $ESC_SEVERITY $ESC_TAGS_BLOCK' \
+                  < "$TEMPLATES/rule-head.html"
                 sed -e 's|<table>|<div class="table-scroll" role="group" aria-label="Scrollable table" tabindex="0"><table>|g' \
                     -e 's|</table>|</table></div>|g' \
                     -e "s|<pre\([^>]*\)>|<pre tabindex=\"0\"\1><code class=\"language-$hl\">|g" \
                     -e 's|</pre>|</code></pre>|g' "$html_src"
-                cat <<'PAGEEND'
-          </main>
-          <script src="../vendor/highlight.js"></script>
-          <script>hljs.highlightAll();</script>
-          </body></html>
-          PAGEEND
+                cat "$TEMPLATES/rule-foot.html"
               } > "$page"
 
-              echo "<tr><td><code>$base</code></td><td><span class=\"lang lang-$lang\">$label</span></td><td><a href=\"$lang/$base.html\">$esc_title</a></td><td>$esc_type</td><td>$esc_severity</td><td>$esc_tags</td></tr>" >> "$INDEX"
+              BASE="$base" LANG_CODE="$lang" LABEL="$label" ESC_TITLE="$esc_title" \
+                ESC_TYPE="$esc_type" ESC_SEVERITY="$esc_severity" ESC_TAGS="$esc_tags" \
+                envsubst '$BASE $LANG_CODE $LABEL $ESC_TITLE $ESC_TYPE $ESC_SEVERITY $ESC_TAGS' \
+                < "$TEMPLATES/row.html" >> "$INDEX"
             done
           done
 
-          cat >> "$INDEX" <<'HTML'
-          </tbody>
-          </table>
-          </section>
-          <p id="no-results" hidden>No rules match the current filter.</p>
-          </main>
-          <script>
-            const filter = document.getElementById('filter');
-            const status = document.getElementById('filter-status');
-            const noResults = document.getElementById('no-results');
-            const rows = Array.from(document.querySelectorAll('#rules tbody tr'));
-            const haystack = rows.map(r => r.textContent.toLowerCase());
-            let announceTimer;
-            filter.addEventListener('input', () => {
-              const q = filter.value.trim().toLowerCase();
-              let shown = 0;
-              rows.forEach((r, i) => {
-                const match = !q || haystack[i].includes(q);
-                r.hidden = !match;
-                if (match) shown++;
-              });
-              noResults.hidden = shown !== 0;
-              clearTimeout(announceTimer);
-              announceTimer = setTimeout(() => {
-                status.textContent = q ? shown + ' of ' + rows.length + ' rules shown' : '';
-              }, 400);
-            });
-          </script>
-          </body>
-          </html>
-          HTML
+          cat "$TEMPLATES/index-foot.html" >> "$INDEX"
+
+      - name: Update preview site cache
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.ref }}" = "refs/heads/master" ]; then
+            DEPLOY_SUBPATH=""
+          else
+            DEPLOY_SUBPATH="preview/${{ github.ref_name }}"
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          .github/scripts/rspec-preview-publish.sh _cache "$DEPLOY_SUBPATH" _site
+
+      - name: Verify site root is present
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f _cache/index.html || {
+            echo "::error::_cache/index.html is missing - gh-pages-data has no site root yet. Run this workflow on master (push or workflow_dispatch) at least once before relying on branch previews."
+            exit 1
+          }
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
-          path: _site
+          path: _cache
+
+  cleanup:
+    if: github.event_name == 'delete' && github.event.ref_type == 'branch' && github.event.ref != 'master'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+
+      - name: Remove branch preview from cache
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          .github/scripts/rspec-preview-publish.sh _cache "preview/${{ github.event.ref }}"
+
+      - name: Verify site root is present
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f _cache/index.html || {
+            echo "::error::_cache/index.html is missing - gh-pages-data has no site root yet. Run this workflow on master (push or workflow_dispatch) at least once before relying on branch previews."
+            exit 1
+          }
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _cache
 
   deploy:
-    needs: build
+    needs: [build, cleanup]
+    if: always() && (needs.build.result == 'success' || needs.cleanup.result == 'success')
     runs-on: ubuntu-latest
     environment:
       name: github-pages
