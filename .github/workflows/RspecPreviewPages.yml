@@ -134,8 +134,8 @@ jobs:
           cp "$TEMPLATES/style.css" _site/style.css
           cp "$TEMPLATES/theme.js" _site/theme.js
           BRANCH_PREVIEWS_LINK="$branch_previews_link" PREVIEW_BANNER="$preview_banner" \
-            CS_COUNT="$cs_count" VBNET_COUNT="$vbnet_count" \
-            envsubst '$BRANCH_PREVIEWS_LINK $PREVIEW_BANNER $CS_COUNT $VBNET_COUNT' \
+            CS_COUNT="$cs_count" VBNET_COUNT="$vbnet_count" REPO_URL="$repo_url" \
+            envsubst '$BRANCH_PREVIEWS_LINK $PREVIEW_BANNER $CS_COUNT $VBNET_COUNT $REPO_URL' \
             < "$TEMPLATES/index-head.html" > "$INDEX"
 
           for lang in $(printf '%s\n' "${!LANG_LABEL[@]}" | sort); do
