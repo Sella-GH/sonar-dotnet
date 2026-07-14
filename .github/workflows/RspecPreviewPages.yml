@@ -73,11 +73,26 @@ jobs:
           declare -A LANG_LABEL=( [cs]="C#" [vbnet]="VB.NET" )
           declare -A HL_LANG=( [cs]="csharp" [vbnet]="vbnet" )
 
+          # GITHUB_REF / GITHUB_REF_NAME are the runner's own env vars (safe to
+          # use in a run script), unlike interpolating ${{ github.ref_name }}
+          # directly into the script text, which would let a crafted branch
+          # name inject shell commands.
+          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
+            branch_previews_link='<p><a href="preview/">Branch previews &rarr;</a></p>'
+            preview_banner=""
+          else
+            esc_branch=$(printf '%s' "$GITHUB_REF_NAME" | jq -Rr '@html')
+            branch_previews_link=""
+            preview_banner="<p class=\"preview-banner\" role=\"note\">Branch preview for <strong>$esc_branch</strong> &mdash; not the production site.</p>"
+          fi
+
           mkdir -p _site
           INDEX=_site/index.html
 
           cp "$TEMPLATES/style.css" _site/style.css
-          cp "$TEMPLATES/index-head.html" "$INDEX"
+          BRANCH_PREVIEWS_LINK="$branch_previews_link" PREVIEW_BANNER="$preview_banner" \
+            envsubst '$BRANCH_PREVIEWS_LINK $PREVIEW_BANNER' \
+            < "$TEMPLATES/index-head.html" > "$INDEX"
 
           for lang in $(printf '%s\n' "${!LANG_LABEL[@]}" | sort); do
             label="${LANG_LABEL[$lang]}"
@@ -105,8 +120,8 @@ jobs:
               page="_site/$lang/$base.html"
               {
                 BASE="$base" ESC_TITLE="$esc_title" LABEL="$label" ESC_TYPE="$esc_type" \
-                  ESC_SEVERITY="$esc_severity" ESC_TAGS_BLOCK="$esc_tags_block" \
-                  envsubst '$BASE $ESC_TITLE $LABEL $ESC_TYPE $ESC_SEVERITY $ESC_TAGS_BLOCK' \
+                  ESC_SEVERITY="$esc_severity" ESC_TAGS_BLOCK="$esc_tags_block" PREVIEW_BANNER="$preview_banner" \
+                  envsubst '$BASE $ESC_TITLE $LABEL $ESC_TYPE $ESC_SEVERITY $ESC_TAGS_BLOCK $PREVIEW_BANNER' \
                   < "$TEMPLATES/rule-head.html"
                 sed -e 's|data-diff-type="noncompliant">|data-diff-type="noncompliant" aria-label="Noncompliant code example">|g' \
                     -e 's|data-diff-type="compliant">|data-diff-type="compliant" aria-label="Compliant solution">|g' \
