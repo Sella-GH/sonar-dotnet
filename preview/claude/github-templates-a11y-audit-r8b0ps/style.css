@@ -3,6 +3,8 @@
 :root[data-theme="dark"] { color-scheme: dark; }
 body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; max-width: 960px; margin: 2rem auto; padding: 0 1rem; background: light-dark(#ffffff, #16181d); color: light-dark(#1b1b1b, #e4e4e4); line-height: 1.5; }
 h1 { margin: 0 0 0.25rem; }
+.brand { display: flex; align-items: center; gap: 0.5rem; }
+.brand .logo { flex-shrink: 0; }
 .header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
 button#theme-toggle { display: inline-flex; align-items: center; justify-content: center; width: 2.25rem; height: 2.25rem; padding: 0; border-radius: 3px; border: 1px solid light-dark(#767676, #8b8e94); background: light-dark(#ffffff, #24272e); color: inherit; cursor: pointer; }
 button#theme-toggle:hover { background: light-dark(#f2f2f2, #2e323b); }
@@ -10,7 +12,7 @@ button#theme-toggle svg { display: block; }
 label[for="filter"] { display: block; margin-top: 1rem; font-weight: 600; }
 input#filter { width: 100%; padding: 0.5rem; font-size: 1rem; margin: 0.25rem 0 0.5rem; box-sizing: border-box; background: inherit; color: inherit; border: 1px solid light-dark(#767676, #8b8e94); border-radius: 3px; }
 #filter-status { min-height: 1.5em; margin: 0 0 0.5rem; color: light-dark(#555555, #a5a8ae); }
-html { scroll-padding-top: 3.5rem; }
+html { scroll-padding-top: 3.5rem; border-top: 4px solid #c0392b; }
 search { display: block; }
 table { width: 100%; border-collapse: collapse; }
 th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid light-dark(#dddddd, #3a3d44); }
@@ -32,8 +34,13 @@ tr:hover, tr:focus-within { background: light-dark(#f6f6f6, #22252c); }
 code { background: light-dark(#f2f2f2, #24272e); padding: 0.1rem 0.3rem; border-radius: 3px; }
 header { border-bottom: 1px solid light-dark(#dddddd, #3a3d44); margin-bottom: 1.5rem; padding-bottom: 1rem; }
 header p { margin: 0.2rem 0; color: light-dark(#555555, #a5a8ae); }
+header p.tagline { margin: 0.4rem 0 0.2rem; font-size: 1.05rem; color: inherit; }
 #rule-count { color: light-dark(#555555, #a5a8ae); }
 .preview-banner { display: inline-block; margin: 0.4rem 0 0.2rem; padding: 0.3rem 0.6rem; border-radius: 3px; font-size: 0.85rem; font-weight: 600; background: light-dark(#fff2cc, #3a2f10); color: light-dark(#6b4e00, #f0d896); border: 1px solid light-dark(#e8c468, #8a6a1f); }
+.chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.6rem 0 0; padding: 0; list-style: none; }
+.chip { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600; background: light-dark(#eef1f5, #262a31); color: light-dark(#33383f, #c7cbd1); border: 1px solid light-dark(#dde1e6, #3a3d44); }
+footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid light-dark(#dddddd, #3a3d44); display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; font-size: 0.85rem; color: light-dark(#555555, #a5a8ae); }
+footer p { margin: 0; }
 dl.meta { display: flex; flex-wrap: wrap; gap: 0.2rem 1.5rem; margin: 0.5rem 0 0; }
 dl.meta div { display: flex; gap: 0.4rem; }
 dl.meta dt { font-weight: 600; color: light-dark(#555555, #a5a8ae); }

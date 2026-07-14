@@ -15,11 +15,18 @@
 <body>
 <header>
 <div class="header-row">
-<h1>SonarAnalyzer Rule Specs</h1>
+<h1 class="brand"><svg class="logo" viewBox="0 0 16 16" width="28" height="28" aria-hidden="true"><rect width="16" height="16" rx="3" fill="#c0392b"></rect><text x="8" y="12" font-size="10" font-weight="bold" text-anchor="middle" fill="#ffffff">S</text></svg> SonarAnalyzer Rule Specs</h1>
 <button type="button" id="theme-toggle" aria-label="Toggle color theme, currently Auto" title="Theme: Auto"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="18" x2="12" y2="21"></line></svg></button>
 </div>
 <p class="preview-banner" role="note">Branch preview for <strong>claude/github-templates-a11y-audit-r8b0ps</strong> &mdash; not the production site.</p>
-<p>Rule descriptions from <code>analyzers/rspec/cs</code> and <code>analyzers/rspec/vbnet</code>, rendered for review.</p>
+<p class="tagline">A browsable, filterable reference of every rule specification (RSPEC) shipped with the SonarAnalyzer for .NET.</p>
+<p>Full description, code samples, type, severity and tags for each rule &mdash; generated from <code>analyzers/rspec/cs</code> and <code>analyzers/rspec/vbnet</code>.</p>
+<ul class="chips">
+<li class="chip">471 C# rules</li>
+<li class="chip">212 VB.NET rules</li>
+<li class="chip">Syntax-highlighted examples</li>
+<li class="chip">Filter by id, title or tag</li>
+</ul>
 
 </header>
 <main>
@@ -722,6 +729,11 @@
 </section>
 <p id="no-results" hidden>No rules match the current filter.</p>
 </main>
+<footer>
+<p>Last updated <time datetime="2026-07-14T18:56:49Z">14 Jul 2026, 18:56 UTC</time></p>
+<p>Commit <a href="https://github.com/Sella-GH/sonar-dotnet/commit/8eee5ad8c58596d33411a80ed187109f93972667"><code>8eee5ad</code></a></p>
+<p>Made with &#10084;&#65039; by <a href="https://github.com/Sella-GH/sonar-dotnet">Sella-GH/sonar-dotnet</a></p>
+</footer>
 <script>
   const filter = document.getElementById('filter');
   const status = document.getElementById('filter-status');
