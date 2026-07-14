@@ -137,6 +137,15 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           .github/scripts/rspec-preview-publish.sh _cache "$DEPLOY_SUBPATH" _site
 
+      - name: Verify site root is present
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f _cache/index.html || {
+            echo "::error::_cache/index.html is missing - gh-pages-data has no site root yet. Run this workflow on master (push or workflow_dispatch) at least once before relying on branch previews."
+            exit 1
+          }
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
@@ -159,6 +168,15 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           .github/scripts/rspec-preview-publish.sh _cache "preview/${{ github.event.ref }}"
+
+      - name: Verify site root is present
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f _cache/index.html || {
+            echo "::error::_cache/index.html is missing - gh-pages-data has no site root yet. Run this workflow on master (push or workflow_dispatch) at least once before relying on branch previews."
+            exit 1
+          }
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
