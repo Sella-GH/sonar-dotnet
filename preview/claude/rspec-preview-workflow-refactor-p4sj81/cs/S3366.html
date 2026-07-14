@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S3366 - &quot;this&quot; should not be exposed from constructors (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S3366 &mdash; &quot;this&quot; should not be exposed from constructors</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+<div><dt>Tags</dt><dd>multi-threading, suspicious</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>In single-threaded environments, the use of <code>this</code> in constructors is normal, and expected. But in multi-threaded environments, it could
+expose partially-constructed objects to other threads, and should be used with caution.</p>
+<p>The classic example is a class with a <code>static</code> list of its instances. If the constructor stores <code>this</code> in the list, another
+thread could access the object before it’s fully-formed. Even when the storage of <code>this</code> is the last instruction in the constructor,
+there’s still a danger if the class is not <code>final</code>. In that case, the initialization of subclasses won’t be complete before
+<code>this</code> is exposed.</p>
+<p>This rule raises an issue when <code>this</code> is assigned to any globally-visible object in a constructor, and when it is passed to the method
+of another object in a constructor</p>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0"><code class="language-csharp">
+public class Monument
+{
+  public static readonly List&lt;Monument&gt; ALL_MONUMENTS = new List&lt;Monument&gt;();
+  // ...
+
+  public Monument(string location, ...)
+  {
+    ALL_MONUMENTS.Add(this);  // Noncompliant; passed to a method of another object
+
+    this.location = location;
+    // ...
+  }
+}
+</code></pre>
+<h3>Exceptions</h3>
+<p>This rule ignores instances of assigning <code>this</code> directly to a <code>static</code> field of the same class because that case is covered
+by {rule:csharpsquid:S3010} .</p>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S3433 - Test method signatures should be correct (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S3433 &mdash; Test method signatures should be correct</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Severity</dt><dd>Blocker</dd></div>
+<div><dt>Tags</dt><dd>tests</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>A method is identified as a test method if it is marked with one of the following attributes:</p>
+<ul>
+  <li><code>[TestMethod]</code> or <code>[DataTestMethod]</code> (for <strong>MSTest</strong>).</li>
+  <li><code>[Fact]</code> or <code>[Theory]</code> (for <strong>xUnit</strong>).</li>
+  <li><code>[Test]</code>, <code>[TestCase]</code>, <code>[TestCaseSource]</code>, or <code>[Theory]</code> (for <strong>NUnit</strong>).</li>
+</ul>
+<p>However, non-<code>public</code> methods are not considered test methods and will not be executed, regardless of whether they have a test
+attribute. Additionally, methods with the <code>async void</code> modifier or methods that contain generics <code>&lt;T&gt;</code> anywhere in their
+signatures are also excluded from being recognized as tests and will not be executed.</p>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant"><code class="language-csharp">
+[TestMethod]
+void TestNullArg()  // Noncompliant, method is not public
+{  /* ... */  }
+
+[TestMethod]
+public async void MyIgnoredTestMethod()  // Noncompliant, this is an 'async void' method
+{ /* ... */ }
+
+[TestMethod]
+public void MyIgnoredGenericTestMethod&lt;T&gt;(T foo)  // Noncompliant, method has generics in its signature
+{ /* ... */ }
+</code></pre>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant"><code class="language-csharp">
+[TestMethod]
+public void TestNullArg()
+{  /* ... */  }
+
+[TestMethod]
+public async Task MyIgnoredTestMethod()
+{ /* ... */ }
+
+[TestMethod]
+public void MyIgnoredGenericTestMethod(int foo)
+{ /* ... */ }
+</code></pre>
+<h3>Exceptions</h3>
+<p>For <strong>xUnit</strong>, accessibility is disregarded when it comes to <code>[Fact]</code> test methods, as they do not necessarily need to be
+declared as <code>public</code>.</p>
+<p>In <strong>xUnit</strong>, <code>[Theory]</code> test methods, as well as <code>[TestCase]</code> and <code>[TestCaseSource]</code> test methods in
+<strong>NUnit</strong>, have the flexibility to be generic, allowing for a wider range of test scenarios.</p>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-with-mstest">Unit testing C# with MSTest</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-with-nunit">Unit testing C# with NUnit</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-with-dotnet-test">Unit testing C# with xUnit</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

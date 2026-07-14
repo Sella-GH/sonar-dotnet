@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S3457 - Composite format strings should be used correctly (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S3457 &mdash; Composite format strings should be used correctly</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+<div><dt>Tags</dt><dd>confusing</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>A <a href="https://learn.microsoft.com/en-us/dotnet/standard/base-types/composite-formatting">composite format string</a> is a string that contains
+placeholders, represented by indices inside curly braces "{0}", "{1}", etc. These placeholders are replaced by values when the string is printed or
+logged.</p>
+<p>Because composite format strings are interpreted at runtime, rather than validated by the compiler, they can contain errors that lead to unexpected
+behaviors or runtime errors.</p>
+<p>This rule validates the correspondence between arguments and composite formats when calling the following methods:</p>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.string.format"><code>String.Format</code></a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.text.stringbuilder.appendformat"><code>StringBuilder.AppendFormat</code></a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.console.write"><code>Console.Write</code></a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.console.writeline"><code>Console.WriteLine</code></a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.io.textwriter.write"><code>TextWriter.Write</code></a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.io.textwriter.writeline"><code>TextWriter.WriteLine</code></a></li>
+  <li><a
+  href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.debug.writeline"><code>Debug.WriteLine(String, Object[])</code></a></li>
+  <li><a
+  href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.trace.traceerror"><code>Trace.TraceError(String, Object[])</code></a></li>
+  <li><a
+  href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.trace.traceinformation"><code>Trace.TraceInformation(String, Object[])</code></a></li>
+  <li><a
+  href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.trace.tracewarning"><code>Trace.TraceWarning(String, Object[])</code></a></li>
+  <li><a
+  href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.tracesource.traceinformation"><code>TraceSource.TraceInformation(String, Object[])</code></a></li>
+</ul>
+<h3>Exceptions</h3>
+<ul>
+  <li>No issue is raised if the format string is not a string literal, but comes from a variable.</li>
+</ul>
+<pre tabindex="0"><code class="language-csharp">
+var pattern = "{0} {1} {2}";
+var res = string.Format(pattern, 1, 2); // Incorrect, but the analyzer doesn't raise any warnings here
+</code></pre>
+<ul>
+  <li>No issue is raised if the argument is not an inline created array.</li>
+</ul>
+<pre tabindex="0"><code class="language-csharp">
+var array = new int[] {};
+var res = string.Format("{0} {1}", array); // Compliant; we don't know the size of the array
+</code></pre>
+<ul>
+  <li>This rule doesn’t check whether the format specifier (defined after the <code>:</code>) is actually valid.</li>
+</ul>
+<h2>How to fix it</h2>
+<p>A composite format string contains placeholders, replaced by values when the string is printed or logged. Mismatch in the format specifiers and the
+arguments provided can lead to incorrect strings being created.</p>
+<p>To avoid issues, a developer should ensure that the provided arguments match format specifiers.</p>
+<p>Moreover, use <a href="https://learn.microsoft.com/en-us/dotnet/csharp/tutorials/string-interpolation">string interpolation</a> when possible.</p>
+<p>Instead of</p>
+<pre tabindex="0"><code class="language-csharp">
+string str = string.Format("Hello {0} {1}!", firstName, lastName);
+</code></pre>
+<p>use</p>
+<pre tabindex="0"><code class="language-csharp">
+string str = $"Hello {firstName} {lastName}!";
+</code></pre>
+<p>With string interpolation:</p>
+<ul>
+  <li>the arguments are validated at compilation time rather than runtime</li>
+  <li>modern code editors provide auto-completion when typing the interpolation expression</li>
+</ul>
+<h3>Code examples</h3>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant"><code class="language-csharp">
+s = string.Format("{0}", arg0, arg1); // Noncompliant, arg1 is declared but not used.
+s = string.Format("{0} {2}", arg0, arg1, arg2); // Noncompliant, the format item with index 1 is missing, so arg1 will not be used.
+s = string.Format("foo"); // Noncompliant; there is no need to use "string.Format" here.
+</code></pre>
+<h4>Compliant solution</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant"><code class="language-csharp">
+s = string.Format("{0}", arg0);
+s = string.Format("{0} {1}", arg0, arg2);
+s = "foo";
+</code></pre>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

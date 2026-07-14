@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S6561 - Avoid using &quot;DateTime.Now&quot; for benchmarking or timing operations (VB.NET)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S6561 &mdash; Avoid using &quot;DateTime.Now&quot; for benchmarking or timing operations</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>VB.NET</dd></div>
+<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+
+</dl>
+</header>
+<main>
+<p>The rule targets the use of <code>DateTime.Now</code> call followed by some arithmetic operation.</p>
+<h2>Why is this an issue?</h2>
+<p>Using <code>DateTime.Now</code> calls within a subtraction operation to measure elapsed time is not recommended. This property is subject to
+changes such as daylight savings transitions, which can invalidate the calculation if the change occurs during the benchmark session, or when updating
+a timer. Moreover, <code>DateTime.Now</code> is dependent on the system clock, which may have low resolution on older systems (as low as 15
+milliseconds).</p>
+<h2>How to fix it</h2>
+<h3>Code examples</h3>
+<p>If the purpose is to benchmark something then, instead of the <code>DateTime.Now</code> property, it’s recommended to use <code>Stopwatch</code>,
+which is not affected by changes in time such as daylight savings (DST) and automatically checks for the existence of high-precision timers. As a
+bonus, the <code>StopWatch</code> class is also lightweight and computationally faster than <code>DateTime</code>.</p>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant"><code class="language-vbnet">
+Dim start = DateTime.Now ' First call, on March 26th 2:59 am
+' Method to be benchmarked
+
+Console.WriteLine($"{CInt((DateTime.Now - start).TotalMilliseconds)} ms") ' Second call happens 2 minutes later but `Now` is March 26th, 4:01 am as there's a shift to summer time
+</code></pre>
+<h4>Compliant solution</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant"><code class="language-vbnet">
+Dim stopWatch = Stopwatch.StartNew() ' Compliant
+' Method to be benchmarked
+stopWatch.Stop()
+
+Console.WriteLine($"{stopWatch.ElapsedMilliseconds} ms")
+</code></pre>
+<p>If, on the other hand, the goal is to refresh a timer prefer using the <code>DateTime.UtcNow</code> property, which guarantees reliable results
+when doing arithmetic operations during DST transitions.</p>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="2" data-diff-type="noncompliant"><code class="language-vbnet">
+If (Date.Now - lastRefresh).TotalMilliseconds &gt; MinRefreshInterval Then
+    lastRefresh = Date.Now
+    ' Refresh
+End If
+</code></pre>
+<h4>Compliant solution</h4>
+<pre tabindex="0" data-diff-id="2" data-diff-type="compliant"><code class="language-vbnet">
+If (Date.UtcNow - lastRefresh).TotalMilliseconds &gt; MinRefreshInterval Then
+    lastRefresh = Date.UtcNow
+    ' Refresh
+End If
+</code></pre>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.datetime?#datetime-resolution">DateTime resolution</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.datetime.now">DateTime.Now</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.stopwatch?">Stopwatch class documentation</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

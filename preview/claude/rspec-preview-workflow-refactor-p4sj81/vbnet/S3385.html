@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S3385 - &quot;Exit&quot; statements should not be used (VB.NET)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S3385 &mdash; &quot;Exit&quot; statements should not be used</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>VB.NET</dd></div>
+<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+<div><dt>Tags</dt><dd>brain-overload, bad-practice</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p><code>Exit Function</code>, <code>Exit Property</code>, and <code>Exit Sub</code> are all poor, less-readable substitutes for a simple
+<code>Return</code>, and if used with code that should return a value (<code>Exit Function</code> and in some cases <code>Exit Property</code>) they
+could result in a <code>NullReferenceException</code>.</p>
+<p>This rule raises an issue for all their usages.</p>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0"><code class="language-vbnet">
+Public Class Sample
+
+  Public Sub MySub(Condition As Boolean)
+    If Condition Then Exit Sub                  ' Noncompliant
+    ' ...
+  End Sub
+
+  Public Function MyFunction(Condition As Boolean) As Integer
+    If Condition Then
+        MyFunction = 42
+        Exit Function              ' Noncompliant
+    End If
+    ' ...
+  End Function
+
+End Class
+</code></pre>
+<h3>Compliant solution</h3>
+<pre tabindex="0"><code class="language-vbnet">
+Public Class Sample
+
+  Public Sub MySub(Condition As Boolean)
+    If Condition Then Return                  ' Noncompliant
+    ' ...
+  End Sub
+
+  Public Function MyFunction(Condition As Boolean) As Integer
+    If Condition Then Return 42
+    ' ...
+  End Function
+
+End Class
+</code></pre>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

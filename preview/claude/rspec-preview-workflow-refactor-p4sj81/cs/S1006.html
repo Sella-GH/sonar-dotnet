@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S1006 - Method overrides should not change parameter defaults (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S1006 &mdash; Method overrides should not change parameter defaults</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Severity</dt><dd>Critical</dd></div>
+<div><dt>Tags</dt><dd>pitfall</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p><a
+href="https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/named-and-optional-arguments#optional-arguments">Default
+arguments</a> are determined by the static type of the object.</p>
+<pre tabindex="0"><code class="language-csharp">
+class Base
+{
+    public virtual void Run(int distance = 42) { /* ... */ }
+}
+
+class Derived : Base
+{
+    public override void Run(int distance = 5) { /* ... */ }
+}
+
+Base x = new Base();
+x.Run(); // Here the default value of distance is 42
+Derived d = new Derived();
+d.Run(); // Here the default value of distance is 5
+Base b = new Derived();
+b.Run(); // Here the default value of distance is 42, not 5
+</code></pre>
+<p>If a default argument is different for a parameter in an overriding method, the value used in the call will be different when calls are made via
+the base or derived object, which may be contrary to developer expectations.</p>
+<p>Default parameter values in <a
+href="https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/interfaces/explicit-interface-implementation">explicit interface
+implementations</a> will be never used, because the static type of the object will always be the implemented interface. Thus, specifying default
+values in this case is confusing.</p>
+<pre tabindex="0"><code class="language-csharp">
+interface IRunner
+{
+    void Run(int distance = 42) { /* ... */ }
+}
+
+class Runner : IRunner
+{
+    void IRunner.Run(int distance = 5) { /* ... */ }
+}
+
+IRunner x = new Runner();
+x.Run(); // Here the default value of distance is 42
+Runner d = new Runner();
+d.Run(); // This will not compile as the Run method is only visible through the specified interface
+</code></pre>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant"><code class="language-csharp">
+using System;
+
+public class Base
+{
+    public virtual void Write(int i = 42)
+    {
+        Console.WriteLine(i);
+    }
+}
+
+public class Derived : Base
+{
+    public override void Write(int i = 5) // Noncompliant
+    {
+        Console.WriteLine(i);
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        var derived = new Derived();
+        derived.Write(); // writes 5
+        Print(derived); // writes 42; was that expected?
+    }
+
+    private static void Print(Base item)
+    {
+        item.Write();
+    }
+}
+</code></pre>
+<h3>Compliant solution</h3>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant"><code class="language-csharp">
+using System;
+
+public class Base
+{
+    public virtual void Write(int i = 42)
+    {
+        Console.WriteLine(i);
+    }
+}
+
+public class Derived : Base
+{
+    public override void Write(int i = 42)
+    {
+        Console.WriteLine(i);
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        var derived = new Derived();
+        derived.Write(); // writes 42
+        Print(derived);  // writes 42
+    }
+
+    private static void Print(Base item)
+    {
+        item.Write();
+    }
+}
+</code></pre>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li><a
+  href="https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/named-and-optional-arguments#optional-arguments">Optional arguments</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/interfaces/explicit-interface-implementation">Explicit Interface
+  Implementation</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

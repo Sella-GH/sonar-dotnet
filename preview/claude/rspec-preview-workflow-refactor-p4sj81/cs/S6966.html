@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S6966 - Awaitable method should be used (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S6966 &mdash; Awaitable method should be used</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+<div><dt>Tags</dt><dd>async-await</dd></div>
+</dl>
+</header>
+<main>
+<p>In an <code>async</code> method, any blocking operations should be avoided.</p>
+<h2>Why is this an issue?</h2>
+<p>Using a synchronous method instead of its <a href="https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/">asynchronous</a>
+counterpart in an <code>async</code> method blocks the execution and is considered bad practice for several reasons:</p>
+<dl>
+  <dt>Resource Utilization</dt>
+  <dd>
+    <p>Each thread consumes system resources, such as memory. When a thread is blocked, it’s not doing any useful work, but it’s still consuming these
+    resources. This can lead to inefficient use of system resources.</p>
+  </dd>
+  <dt>Scalability</dt>
+  <dd>
+    <p>Blocking threads can limit the scalability of your application. In a high-load scenario where many operations are happening concurrently, each
+    blocked thread represents a missed opportunity to do useful work. This can prevent your application from effectively handling increased load.</p>
+  </dd>
+  <dt>Performance</dt>
+  <dd>
+    <p>Blocking threads can degrade the performance of your application. If all threads in the thread pool become blocked, new tasks can’t start
+    executing until an existing task completes and frees up a thread. This can lead to delays and poor responsiveness.</p>
+  </dd>
+</dl>
+<p>Instead of blocking, it’s recommended to use the <a
+href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/await"><code>async</code> operator</a> with async methods. This
+allows the system to release the current thread back to the thread pool until the awaited task is complete, improving scalability and
+responsiveness.</p>
+<h2>How to fix it</h2>
+<h3>Code examples</h3>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant"><code class="language-csharp">
+public async Task Examples(Stream stream, DbSet&lt;Person&gt; dbSet)
+{
+    stream.Read(array, 0, 1024);            // Noncompliant
+    File.ReadAllLines("path");              // Noncompliant
+    dbSet.ToList();                         // Noncompliant in Entity Framework Core queries
+    dbSet.FirstOrDefault(x =&gt; x.Age &gt;= 18); // Noncompliant in Entity Framework Core queries
+}
+</code></pre>
+<h4>Compliant solution</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant"><code class="language-csharp">
+public async Task Examples(Stream stream, DbSet&lt;Person&gt; dbSet)
+{
+    await stream.ReadAsync(array, 0, 1024);
+    await File.ReadAllLinesAsync("path");
+    await dbSet.ToListAsync();
+    await dbSet.FirstOrDefaultAsync(x =&gt; x.Age &gt;= 18);
+}
+</code></pre>
+<h2>Exceptions</h2>
+<p>The following <code>DbDataReader</code> methods (and their overrides in subtypes) are excluded from this rule:</p>
+<p><code>IsDBNull</code>, <code>GetFieldValue&lt;T&gt;</code>, <code>GetValue</code>, <code>GetBytes</code>, <code>GetChars</code>,
+<code>GetStream</code>, <code>GetTextReader</code></p>
+<p>When <a href="https://learn.microsoft.com/en-us/dotnet/api/system.data.commandbehavior"><code>CommandBehavior.SequentialAccess</code></a> is not
+specified (the default), <code>ReadAsync</code> buffers the entire row into memory before returning. All subsequent column reads are pure in-memory
+operations — no I/O occurs — so using their async counterparts adds <code>Task</code> allocation overhead without any benefit.</p>
+<p><a href="https://learn.microsoft.com/en-us/dotnet/api/system.data.common.dbdatareader">Microsoft explicitly recommends</a> this pattern:</p>
+<blockquote>
+  <p>Always call NextResultAsync, ReadAsync, and either call GetFieldValue for default command behavior or GetFieldValueAsync for sequential
+  access.</p>
+</blockquote>
+ — Microsoft Learn — DbDataReader
+<pre tabindex="0"><code class="language-csharp">
+while (await reader.ReadAsync())            // Compliant: ReadAsync is still preferred
+{
+    if (!reader.IsDBNull(ordinal))          // Compliant exception: synchronous column read is preferred in default mode
+        return reader.GetFieldValue&lt;string&gt;(ordinal); // Compliant exception
+}
+</code></pre>
+<p>Note: <code>Read</code> is not exempt — <code>ReadAsync</code> should still be used when iterating rows.</p>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/async">async (C# Reference)</a></li>
+  <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/await">await operator - asynchronously
+  await for a task to complete</a></li>
+</ul>
+<h3>Articles &amp; blog posts</h3>
+<ul>
+  <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/#dont-block-await-instead">Asynchronous
+  programming with async and await - Don’t block, await instead</a></li>
+  <li>Microsoft Learn - <a
+  href="https://learn.microsoft.com/en-us/archive/msdn-magazine/2013/march/async-await-best-practices-in-asynchronous-programming">Async/Await - Best
+  Practices in Asynchronous Programming</a></li>
+  <li>Microsoft Developer Blog - <a href="https://devblogs.microsoft.com/pfxteam/asyncawait-faq/">Async/Await FAQ</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

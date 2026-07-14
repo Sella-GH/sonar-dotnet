@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S3011 - Reflection should not be used to increase accessibility of classes, methods, or fields (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S3011 &mdash; Reflection should not be used to increase accessibility of classes, methods, or fields</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>Altering or bypassing the accessibility of classes, methods, or fields through reflection violates the encapsulation principle. This can break the
+internal contracts of the accessed target and lead to maintainability issues and runtime errors.</p>
+<p>This rule raises an issue when reflection is used to change the visibility of a class, method or field, and when it is used to directly update a
+field value.</p>
+<pre tabindex="0"><code class="language-csharp">
+using System.Reflection;
+
+Type dynClass = Type.GetType("MyInternalClass");
+// Noncompliant. Using BindingFlags.NonPublic will return non-public members
+BindingFlags bindingAttr = BindingFlags.NonPublic | BindingFlags.Static;
+MethodInfo dynMethod = dynClass.GetMethod("mymethod", bindingAttr);
+object result = dynMethod.Invoke(dynClass, null);
+</code></pre>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li><a href="https://en.wikipedia.org/wiki/Encapsulation_(computer_programming)">Wikipedia definition of Encapsulation</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S2275 - Composite format strings should not lead to unexpected behavior at runtime (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S2275 &mdash; Composite format strings should not lead to unexpected behavior at runtime</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>BUG</dd></div>
+<div><dt>Severity</dt><dd>Blocker</dd></div>
+
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>Composite format strings in C# are evaluated at runtime, which means they are not verified by the compiler. Introducing an ill-formed format item,
+or indexing mismatch can lead to unexpected behaviors or runtime errors. The purpose of this rule is to perform static validation on composite format
+strings used in various string formatting functions to ensure their correct usage. This rule validates the proper behavior of composite formats when
+invoking the following methods:</p>
+<ul>
+  <li><code>String.Format</code></li>
+  <li><code>StringBuilder.AppendFormat</code></li>
+  <li><code>Console.Write</code></li>
+  <li><code>Console.WriteLine</code></li>
+  <li><code>TextWriter.Write</code></li>
+  <li><code>TextWriter.WriteLine</code></li>
+  <li><code>Debug.WriteLine(String, Object[])</code></li>
+  <li><code>Trace.TraceError(String, Object[])</code></li>
+  <li><code>Trace.TraceInformation(String, Object[])</code></li>
+  <li><code>Trace.TraceWarning(String, Object[])</code></li>
+  <li><code>TraceSource.TraceInformation(String, Object[])</code></li>
+</ul>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant"><code class="language-csharp">
+s = string.Format("[0}", arg0); // Noncompliant: square bracket '[' instead of curly bracket '{'
+s = string.Format("{{0}", arg0); // Noncompliant: double starting curly brackets '{{'
+s = string.Format("{0}}", arg0); // Noncompliant: double ending curly brackets '}}'
+s = string.Format("{-1}", arg0); // Noncompliant: invalid index for the format item, must be &gt;= 0
+s = string.Format("{0} {1}", arg0); // Noncompliant: two format items in the string but only one argument provided
+</code></pre>
+<h3>Compliant solution</h3>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant"><code class="language-csharp">
+s = string.Format("{0}", 42); // Compliant
+s = string.Format("{0,10}", 42); // Compliant
+s = string.Format("{0,-10}", 42); // Compliant
+s = string.Format("{0:0000}", 42); // Compliant
+s = string.Format("{2}-{0}-{1}", 1, 2, 3); // Compliant
+s = string.Format("no format"); // Compliant
+</code></pre>
+<h3>Exceptions</h3>
+<p>The rule does not perform any checks on the format specifier, if present (defined after the <code>:</code>). Moreover, no issues are raised in the
+following cases:</p>
+<ul>
+  <li>the format string is not a <code>const</code>.
+    <pre tabindex="0"><code class="language-csharp">
+var pattern = "{0} {1} {2}";
+var res = string.Format(pattern, 1, 2); // Compliant, non-constant string are not recognized
+</code></pre></li>
+  <li>the argument is not an inline creation array.
+    <pre tabindex="0"><code class="language-csharp">
+var array = new int[] {};
+var res = string.Format("{0} {1}", array); // Compliant the rule does not check the size of the array
+</code></pre></li>
+</ul>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/standard/base-types/composite-formatting">Composite formatting</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.string.format">String.Format</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.text.stringbuilder.appendformat">StringBuilder.AppendFormat</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.console.write">Console.Write</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.console.writeline">Console.WriteLine</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.io.textwriter.write">TextWriter.Write</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.io.textwriter.writeline">TextWriter.WriteLine</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.debug.writeline">Debug.WriteLine</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.trace.traceerror">Trace.TraceError</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.trace.traceinformation">Trace.TraceInformation</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.trace.tracewarning">Trace.TraceWarning</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.tracesource.traceinformation">TraceSource.TraceInformation</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/standard/base-types/formatting-types">Standard format strings</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

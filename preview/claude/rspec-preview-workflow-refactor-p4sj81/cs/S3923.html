@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S3923 - All branches in a conditional structure should not have exactly the same implementation (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S3923 &mdash; All branches in a conditional structure should not have exactly the same implementation</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>BUG</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>Having all branches of a <code>switch</code> or <code>if</code> chain with the same implementation indicates a problem.</p>
+<p>In the following code:</p>
+<pre tabindex="0"><code class="language-csharp">
+if (b == 0)  // Noncompliant
+{
+    DoTheThing();
+}
+else
+{
+    DoTheThing();
+}
+
+int b = a &gt; 12 ? 4 : 4;  // Noncompliant
+
+switch (i) // Noncompliant
+{
+    case 1:
+        DoSomething();
+        break;
+    case 2:
+        DoSomething();
+        break;
+    case 3:
+        DoSomething();
+        break;
+    default:
+        DoSomething();
+}
+</code></pre>
+<p>Either there is a copy-paste error that needs fixing or an unnecessary <code>switch</code> or <code>if</code> chain that should be removed.</p>
+<h3>Exceptions</h3>
+<p>This rule does not apply to <code>if</code> chains without <code>else</code>, nor to <code>switch</code> without a <code>default</code> clause.</p>
+<pre tabindex="0"><code class="language-csharp">
+if (b == 0)    //no issue, this could have been done on purpose to make the code more readable
+{
+    DoSomething();
+}
+else if (b == 1)
+{
+    DoSomething();
+}
+</code></pre>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

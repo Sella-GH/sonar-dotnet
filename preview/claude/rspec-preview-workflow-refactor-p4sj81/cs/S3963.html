@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S3963 - &quot;static&quot; fields should be initialized inline (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S3963 &mdash; &quot;static&quot; fields should be initialized inline</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Severity</dt><dd>Minor</dd></div>
+
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>When a <code>static</code> constructor serves no other purpose that initializing <code>static</code> fields, it comes with an unnecessary
+performance cost because the compiler generates a check before each <code>static</code> method or instance constructor invocation.</p>
+<p>Instead, inline initialization is highly recommended.</p>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0"><code class="language-csharp">
+namespace myLib
+{
+  public class Foo
+  {
+    static int i;
+    static string s;
+
+    static Foo() // Noncompliant
+    {
+      i = 3;
+      ResourceManager sm =  new ResourceManager("strings", Assembly.GetExecutingAssembly());
+      s = sm.GetString("mystring");
+    }
+  }
+}
+</code></pre>
+<h3>Compliant solution</h3>
+<pre tabindex="0"><code class="language-csharp">
+namespace myLib
+{
+  public class Foo
+  {
+    static int i =3;
+    static string s = InitString();
+
+    static string InitString()
+    {
+      ResourceManager sm = new ResourceManager("strings", Assembly.GetExecutingAssembly());
+      return sm.GetString("mystring");
+    }
+  }
+}
+</code></pre>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

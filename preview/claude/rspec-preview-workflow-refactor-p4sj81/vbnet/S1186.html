@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S1186 - Methods should not be empty (VB.NET)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S1186 &mdash; Methods should not be empty</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>VB.NET</dd></div>
+<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Severity</dt><dd>Critical</dd></div>
+<div><dt>Tags</dt><dd>suspicious</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>An empty method is generally considered bad practice and can lead to confusion, readability, and maintenance issues. Empty methods bring no
+functionality and are misleading to others as they might think the method implementation fulfills a specific and identified requirement.</p>
+<p>There are several reasons for a method not to have a body:</p>
+<ul>
+  <li>It is an unintentional omission, and should be fixed to prevent an unexpected behavior in production.</li>
+  <li>It is not yet, or never will be, supported. In this case an exception should be thrown.</li>
+  <li>The method is an intentionally-blank override. In this case a nested comment should explain the reason for the blank override.</li>
+</ul>
+<h3>Exceptions</h3>
+<p>The following empty methods are considered compliant:</p>
+<ul>
+  <li>empty <code>Overridable</code> methods, as the implementation might not be required in the base class</li>
+  <li>empty methods that override a <code>MustOverride</code> method as the implementation is mandatory for child class</li>
+  <li>empty overrides in test assemblies for mocking purposes</li>
+</ul>
+<h2>How to fix it</h2>
+<h3>Code examples</h3>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant"><code class="language-vbnet">
+Sub ShouldNotBeEmpty()  ' Noncompliant - method is empty
+End Sub
+
+Sub NotImplementedYet()  ' Noncompliant - method is empty
+End Sub
+
+Sub WillNeverBeImplemented()  ' Noncompliant - method is empty
+End Sub
+
+Sub EmptyOnPurpose()  ' Noncompliant - method is empty
+End Sub
+</code></pre>
+<h4>Compliant solution</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant"><code class="language-vbnet">
+Sub ShouldNotBeEmpty()
+    DoSomething()
+End Sub
+
+Sub NotImplementedYet()
+    Throw New NotImplementedException
+End Sub
+
+Sub WillNeverBeImplemented()
+    Throw New NotSupportedException
+End Sub
+
+Sub EmptyOnPurpose()
+    ' Do nothing because of X
+End Sub
+</code></pre>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

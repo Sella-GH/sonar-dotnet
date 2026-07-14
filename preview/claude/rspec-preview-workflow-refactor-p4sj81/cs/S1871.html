@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S1871 - Two branches in a conditional structure should not have exactly the same implementation (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S1871 &mdash; Two branches in a conditional structure should not have exactly the same implementation</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+<div><dt>Tags</dt><dd>design, suspicious</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>When the same code is duplicated in two or more separate branches of a conditional, it can make the code harder to understand, maintain, and can
+potentially introduce bugs if one instance of the code is changed but others are not.</p>
+<p>Having two <code>cases</code> in a <code>switch</code> statement or two branches in an <code>if</code> chain with the same implementation is at
+best duplicate code, and at worst a coding error.</p>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant"><code class="language-csharp">
+if (a &gt;= 0 &amp;&amp; a &lt; 10)
+{
+  DoFirst();
+  DoTheThing();
+}
+else if (a &gt;= 10 &amp;&amp; a &lt; 20)
+{
+  DoTheOtherThing();
+}
+else if (a &gt;= 20 &amp;&amp; a &lt; 50) // Noncompliant; duplicates first condition
+{
+  DoFirst();
+  DoTheThing();
+}
+</code></pre>
+<pre tabindex="0" data-diff-id="2" data-diff-type="noncompliant"><code class="language-csharp">
+switch (i)
+{
+  case 1:
+    DoFirst();
+    DoSomething();
+    break;
+  case 2:
+    DoSomethingDifferent();
+    break;
+  case 3:  // Noncompliant; duplicates case 1's implementation
+    DoFirst();
+    DoSomething();
+    break;
+  default:
+    DoTheRest();
+}
+</code></pre>
+<p>If the same logic is truly needed for both instances, then:</p>
+<ul>
+  <li>in an <code>if</code> chain they should be combined</li>
+</ul>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant"><code class="language-csharp">
+if ((a &gt;= 0 &amp;&amp; a &lt; 10) || (a &gt;= 20 &amp;&amp; a &lt; 50))
+{
+  DoFirst();
+  DoTheThing();
+}
+else if (a &gt;= 10 &amp;&amp; a &lt; 20)
+{
+  DoTheOtherThing();
+}
+</code></pre>
+<ul>
+  <li>for a <code>switch</code>, one should fall through to the other</li>
+</ul>
+<pre tabindex="0" data-diff-id="2" data-diff-type="compliant"><code class="language-csharp">
+switch (i)
+{
+  case 1:
+  case 3:
+    DoFirst();
+    DoSomething();
+    break;
+  case 2:
+    DoSomethingDifferent();
+    break;
+  default:
+    DoTheRest();
+}
+</code></pre>
+<h3>Exceptions</h3>
+<p>The rule does not raise an issue for blocks in an <code>if</code> chain that contain a single line of code. The same applies to blocks in a
+<code>switch</code> statement that contain a single line of code with or without a following <code>break</code>.</p>
+<pre tabindex="0"><code class="language-csharp">
+if (a &gt;= 0 &amp;&amp; a &lt; 10)
+{
+  DoTheThing();
+}
+else if (a &gt;= 10 &amp;&amp; a &lt; 20)
+{
+  DoTheOtherThing();
+}
+else if (a &gt;= 20 &amp;&amp; a &lt; 50)    //no issue, usually this is done on purpose to increase the readability
+{
+  DoTheThing();
+}
+</code></pre>
+<p>However, this exception does not apply to <code>if</code> chains without an <code>else</code> statement or to a <code>switch</code> statement
+without a <code>default</code> clause when all branches have the same single line of code.</p>
+<pre tabindex="0"><code class="language-csharp">
+if (a == 1)
+{
+  DoSomething();  // Noncompliant, this might have been done on purpose but probably not
+}
+else if (a == 2)
+{
+  DoSomething();
+}
+</code></pre>
+<h2>Resources</h2>
+<h3>Related rules</h3>
+<ul>
+  <li>{rule:csharpsquid:S3923} - All branches in a conditional structure should not have exactly the same implementation</li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

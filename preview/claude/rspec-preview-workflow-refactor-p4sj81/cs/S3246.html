@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S3246 - Generic type parameters should be co/contravariant when possible (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S3246 &mdash; Generic type parameters should be co/contravariant when possible</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+<div><dt>Tags</dt><dd>api-design</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>In the interests of making code as usable as possible, interfaces and delegates with generic parameters should use the <code>out</code> and
+<code>in</code> modifiers when possible to make the interfaces and delegates covariant and contravariant, respectively.</p>
+<p>The <code>out</code> keyword can be used when the type parameter is used only as a return type in the interface or delegate. Doing so makes the
+parameter covariant, and allows interface and delegate instances created with a sub-type to be used as instances created with a base type. The most
+notable example of this is <code>IEnumerable&lt;out T&gt;</code>, which allows the assignment of an <code>IEnumerable&lt;string&gt;</code> instance to
+an <code>IEnumerable&lt;object&gt;</code> variable, for instance.</p>
+<p>The <code>in</code> keyword can be used when the type parameter is used only as a method parameter in the interface or a parameter in the delegate.
+Doing so makes the parameter contravariant, and allows interface and delegate instances created with a base type to be used as instances created with
+a sub-type. I.e. this is the inversion of covariance. The most notable example of this is the <code>Action&lt;in T&gt;</code> delegate, which allows
+the assignment of an <code>Action&lt;object&gt;</code> instance to a <code>Action&lt;string&gt;</code> variable, for instance.</p>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0"><code class="language-csharp">
+interface IConsumer&lt;T&gt;  // Noncompliant
+{
+    bool Eat(T fruit);
+}
+</code></pre>
+<h3>Compliant solution</h3>
+<pre tabindex="0"><code class="language-csharp">
+interface IConsumer&lt;in T&gt;
+{
+    bool Eat(T fruit);
+}
+</code></pre>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>
