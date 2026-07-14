@@ -30,7 +30,7 @@ fi
 if [ -z "$subpath" ]; then
   # Site root (master): only remove the known generated top-level paths.
   # Never rm -rf the whole cache dir - that would also wipe .git and preview/.
-  rm -rf "$cache_dir/index.html" "$cache_dir/style.css" "$cache_dir/vendor" "$cache_dir/cs" "$cache_dir/vbnet"
+  rm -rf "$cache_dir/index.html" "$cache_dir/style.css" "$cache_dir/theme.js" "$cache_dir/vendor" "$cache_dir/cs" "$cache_dir/vbnet"
   target="$cache_dir"
 else
   target="$cache_dir/$subpath"
@@ -77,9 +77,13 @@ done
   echo '<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='"'"'http://www.w3.org/2000/svg'"'"' viewBox='"'"'0 0 16 16'"'"'%3E%3Crect width='"'"'16'"'"' height='"'"'16'"'"' rx='"'"'3'"'"' fill='"'"'%23c0392b'"'"'/%3E%3Ctext x='"'"'8'"'"' y='"'"'12'"'"' font-size='"'"'10'"'"' font-weight='"'"'bold'"'"' text-anchor='"'"'middle'"'"' fill='"'"'%23ffffff'"'"'%3ES%3C/text%3E%3C/svg%3E">'
   echo '<title>RSpec preview branches</title>'
   echo '<link rel="stylesheet" href="../style.css">'
+  echo '<script src="../theme.js"></script>'
   echo '</head>'
   echo '<body>'
+  echo '<div class="header-row">'
   echo '<p><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to main site</a></p>'
+  echo '<button type="button" id="theme-toggle">Theme: Auto</button>'
+  echo '</div>'
   echo '<h1>Active branch previews</h1>'
   if [ "${#branches[@]}" -eq 0 ]; then
     echo '<p>No active branch previews.</p>'

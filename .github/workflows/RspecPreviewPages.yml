@@ -49,12 +49,29 @@ jobs:
           SUMS
           cat hljs-tmp/highlight.min.js hljs-tmp/vbnet.min.js > _site/vendor/highlight.js
           {
+            # Light theme is the default; dark applies under the OS
+            # preference (auto mode) and is repeated scoped to
+            # :root[data-theme="dark"] so the on-page toggle can force it
+            # regardless of OS preference. Same pattern, mirrored, for the
+            # light-only tweak below.
             cat hljs-tmp/github.min.css
             echo '@media (prefers-color-scheme: dark) {'
+            echo ':root:not([data-theme="light"]) {'
             cat hljs-tmp/github-dark.min.css
             echo '}'
-            echo 'pre code.hljs { padding: 0; background: transparent; overflow-x: visible; }'
-            echo '@media (prefers-color-scheme: light) { .hljs-built_in, .hljs-symbol { color: #b35900; } }'
+            echo '}'
+            echo ':root[data-theme="dark"] {'
+            cat hljs-tmp/github-dark.min.css
+            echo '}'
+            # !important: nesting the dark theme under :root[data-theme="dark"] /
+            # :root:not(...) raises .hljs{background:...}'s specificity enough
+            # to beat this reset otherwise, leaking the vendor theme's own
+            # background through instead of the page's pre background.
+            echo ':root pre code.hljs { padding: 0; background: transparent !important; overflow-x: visible; }'
+            echo '@media (prefers-color-scheme: light) {'
+            echo ':root:not([data-theme="dark"]) { .hljs-built_in, .hljs-symbol { color: #b35900; } }'
+            echo '}'
+            echo ':root[data-theme="light"] { .hljs-built_in, .hljs-symbol { color: #b35900; } }'
           } > _site/vendor/hljs.css
           rm -rf hljs-tmp
 
@@ -90,6 +107,7 @@ jobs:
           INDEX=_site/index.html
 
           cp "$TEMPLATES/style.css" _site/style.css
+          cp "$TEMPLATES/theme.js" _site/theme.js
           BRANCH_PREVIEWS_LINK="$branch_previews_link" PREVIEW_BANNER="$preview_banner" \
             envsubst '$BRANCH_PREVIEWS_LINK $PREVIEW_BANNER' \
             < "$TEMPLATES/index-head.html" > "$INDEX"
