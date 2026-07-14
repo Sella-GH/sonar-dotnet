@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S131: &quot;Select&quot; statements should end with a &quot;Case Else&quot; clause (VB.NET) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S131 - &quot;Select&quot; statements should end with a &quot;Case Else&quot; clause (VB.NET)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S131 &mdash; &quot;Select&quot; statements should end with a &quot;Case Else&quot; clause</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>VB.NET</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
+<div><dt>Severity</dt><dd>Critical</dd></div>
+<div><dt>Tags</dt><dd>cwe</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>The requirement for a final <code>Case Else</code> clause is defensive programming.</p>
+<p>This clause should either take appropriate action or contain a suitable comment as to why no action is taken.</p>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0"><code class="language-vbnet">
+Select Case param ' Noncompliant - Case Else clause is missing
+  Case 0
+    DoSomething()
+  Case 1
+    DoSomethingElse()
+End Select
+</code></pre>
+<h3>Compliant solution</h3>
+<pre tabindex="0"><code class="language-vbnet">
+Select Case param
+  Case 0
+    DoSomething()
+  Case 1
+    DoSomethingElse()
+  Case Else ' Compliant
+    DoSomethingElse()
+End Select
+</code></pre>
+<h2>Resources</h2>
+<ul>
+  <li>CWE - <a href="https://cwe.mitre.org/data/definitions/478">CWE-478 - Missing Default Case in Switch Statement</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

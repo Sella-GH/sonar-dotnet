@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S3443: Type should not be examined on &quot;System.Type&quot; instances (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S3443 - Type should not be examined on &quot;System.Type&quot; instances (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S3443 &mdash; Type should not be examined on &quot;System.Type&quot; instances</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
+<div><dt>Severity</dt><dd>Blocker</dd></div>
+<div><dt>Tags</dt><dd>suspicious</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>Calling <code>GetType</code> on a <code>Type</code> variable will always return the <code>System.Type</code> representation, which is equivalent to
+<code>typeof(System.Type)</code>. This also applies to passing a <code>Type</code> argument to <code>IsInstanceOfType</code> which always returns
+<code>false</code>.</p>
+<p>In both cases, the results are entirely predictable and should be avoided.</p>
+<h3>Exceptions</h3>
+<p>Calling <code>GetType</code> on <code>System.Type</code> is considered compliant to get an instance of <code>System.RuntimeType</code>, as
+demonstrated in the following example:</p>
+<pre tabindex="0"><code class="language-csharp">
+typeof(Type).GetType(); // Can be used by convention to get an instance of 'System.RuntimeType'
+</code></pre>
+<h2>How to fix it</h2>
+<p>Make sure the usage of <code>GetType</code> or <code>IsInstanceOfType</code> is invoked with the correct variable or argument type.</p>
+<h3>Code examples</h3>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+void ExamineSystemType(string str)
+{
+    Type stringType = str.GetType();
+    Type runtimeType = stringType.GetType(); // Noncompliant
+
+    if (stringType.IsInstanceOfType(typeof(string))) // Noncompliant; will always return false
+    { /* ... */ }
+}
+</code></pre>
+<h4>Compliant solution</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+void ExamineSystemType(string str)
+{
+    Type stringType = str.GetType();
+
+    if (stringType.IsInstanceOfType(str)) // Compliant
+    { /* ... */ }
+}
+</code></pre>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.type">"Type" class</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.object.gettype">"GetType" Method</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.type.isinstanceoftype">"IsInstanceOfType" Method</a></li>
+</ul>
+<h3>Articles &amp; blog posts</h3>
+<ul>
+  <li><a href="https://stackoverflow.com/a/5737947">Difference between "System.Type" and "System.RuntimeType"</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

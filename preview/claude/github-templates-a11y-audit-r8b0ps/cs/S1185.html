@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S1185: Overriding members should do more than simply call the same member in the base class (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S1185 - Overriding members should do more than simply call the same member in the base class (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S1185 &mdash; Overriding members should do more than simply call the same member in the base class</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
+<div><dt>Severity</dt><dd>Minor</dd></div>
+<div><dt>Tags</dt><dd>redundant, clumsy</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>Overriding a method just to call the same method from the base class without performing any other actions is useless and misleading. The only time
+this is justified is in <code>sealed</code> overriding methods, where the effect is to lock in the parent class behavior. This rule ignores overrides
+of <code>Equals</code> and <code>GetHashCode</code>.</p>
+<p>NOTE: In some cases it might be dangerous to add or remove empty overrides, as they might be breaking changes.</p>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0"><code class="language-csharp">
+public override void Method() // Noncompliant
+{
+  base.Method();
+}
+</code></pre>
+<h3>Compliant solution</h3>
+<pre tabindex="0"><code class="language-csharp">
+public override void Method()
+{
+  //do something else
+}
+</code></pre>
+<h3>Exceptions</h3>
+<p>If there is an attribute in any level of the overriding chain, then the overridden member is ignored.</p>
+<pre tabindex="0"><code class="language-csharp">
+public class Base
+{
+  [Required]
+  public virtual string Name { get; set; }
+}
+
+public class Derived : Base
+{
+  public override string Name
+  {
+    get
+    {
+      return base.Name;
+    }
+    set
+    {
+      base.Name = value;
+    }
+  }
+}
+</code></pre>
+<p>If there is a documentation comment on the overriding method, it will be ignored:</p>
+<pre tabindex="0"><code class="language-csharp">
+public class Foo : Bar
+{
+    /// &lt;summary&gt;
+    /// Keep this method for backwards compatibility.
+    /// &lt;/summary&gt;
+    public override void DoSomething()
+    {
+        base.DoSomething();
+    }
+}
+</code></pre>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

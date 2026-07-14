@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S2996: &quot;ThreadStatic&quot; fields should not be initialized (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S2996 - &quot;ThreadStatic&quot; fields should not be initialized (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S2996 &mdash; &quot;ThreadStatic&quot; fields should not be initialized</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Bug</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+<div><dt>Tags</dt><dd>multi-threading</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>When an object has a field annotated with <code>ThreadStatic</code>, that field is shared within a given thread, but unique across threads. Since a
+class' static initializer is only invoked for the first thread created, it also means that only the first thread will have the expected initial
+values.</p>
+<p>Instead, allow such fields to be initialized to their default values or make the initialization lazy.</p>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0"><code class="language-csharp">
+public class Foo
+{
+  [ThreadStatic]
+  public static object PerThreadObject = new object(); // Noncompliant. Will be null in all the threads except the first one.
+}
+</code></pre>
+<h3>Compliant solution</h3>
+<pre tabindex="0"><code class="language-csharp">
+public class Foo
+{
+  [ThreadStatic]
+  public static object _perThreadObject;
+  public static object PerThreadObject
+  {
+    get
+    {
+      if (_perThreadObject == null)
+      {
+        _perThreadObject = new object();
+      }
+      return _perThreadObject;
+    }
+  }
+}
+</code></pre>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S4061: &quot;params&quot; should be used instead of &quot;varargs&quot; (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S4061 - &quot;params&quot; should be used instead of &quot;varargs&quot; (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S4061 &mdash; &quot;params&quot; should be used instead of &quot;varargs&quot;</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
+<div><dt>Severity</dt><dd>Minor</dd></div>
+
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>A method using the <code>VarArgs</code> calling convention is not Common Language Specification (CLS) compliant and might not be accessible across
+programming languages, while the <code>params</code> keyword works the same way and is CLS compliant.</p>
+<p>This rule raises an issue when a <code>public</code> or <code>protected</code> type contains a <code>public</code> or <code>protected</code> method
+that uses the <code>VarArgs</code> calling convention.</p>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0"><code class="language-csharp">
+using System;
+
+namespace MyLibrary
+{
+    public class Foo
+    {
+        public void Bar(__arglist) // Noncompliant
+        {
+            ArgIterator argumentIterator = new ArgIterator(__arglist);
+            for(int i = 0; i &lt; argumentIterator.GetRemainingCount(); i++)
+            {
+                Console.WriteLine(
+                    __refvalue(argumentIterator.GetNextArg(), string));
+            }
+        }
+    }
+}
+</code></pre>
+<h3>Compliant solution</h3>
+<pre tabindex="0"><code class="language-csharp">
+using System;
+
+[assembly: CLSCompliant(true)]
+namespace MyLibrary
+{
+    public class Foo
+    {
+        public void Bar(params string[] wordList)
+        {
+            for(int i = 0; i &lt; wordList.Length; i++)
+            {
+                Console.WriteLine(wordList[i]);
+            }
+        }
+    }
+}
+</code></pre>
+<h3>Exceptions</h3>
+<p>Interop methods using <code>VarArgs</code> calling convention do not raise an issue.</p>
+<pre tabindex="0"><code class="language-csharp">
+[DllImport("msvcrt40.dll")]
+public static extern int printf(string format, __arglist); // Compliant
+</code></pre>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

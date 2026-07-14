@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S3903: Types should be defined in named namespaces (VB.NET) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S3903 - Types should be defined in named namespaces (VB.NET)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S3903 &mdash; Types should be defined in named namespaces</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>VB.NET</dd></div>
+<div><dt>Type</dt><dd>Bug</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>Types are declared in namespaces in order to prevent name collisions and as a way to organize them into the object hierarchy. Types that are
+defined outside any named namespace are in a global namespace that cannot be referenced in code.</p>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0"><code class="language-vbnet">
+Public Class Foo
+End Class
+
+Public Structure Bar
+End Structure
+</code></pre>
+<h3>Compliant solution</h3>
+<pre tabindex="0"><code class="language-vbnet">
+Namespace SomeSpace
+    Public Class Foo
+    End Class
+
+    Public Structure Bar
+    End Structure
+End Namespace
+</code></pre>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

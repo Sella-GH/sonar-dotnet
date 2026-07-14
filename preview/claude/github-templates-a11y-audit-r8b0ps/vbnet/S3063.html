@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S3063: &quot;StringBuilder&quot; data should be used (VB.NET) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S3063 - &quot;StringBuilder&quot; data should be used (VB.NET)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S3063 &mdash; &quot;StringBuilder&quot; data should be used</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>VB.NET</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+<div><dt>Tags</dt><dd>performance</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p><code>StringBuilder</code> instances that never build a <code>string</code> clutter the code and worse are a drag on performance. Either they
+should be removed, or the missing <code>ToString()</code> call should be added.</p>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0"><code class="language-vbnet">
+Public Sub DoSomething(ByVal strings As List(Of String))
+    Dim sb As StringBuilder = New StringBuilder() ' Noncompliant
+    sb.Append("Got: ")
+
+    For Each str As String In strings
+        sb.Append(str).Append(", ")
+    Next
+End Sub
+</code></pre>
+<h3>Compliant solution</h3>
+<pre tabindex="0"><code class="language-vbnet">
+Public Sub DoSomething(ByVal strings As List(Of String))
+    For Each str As String In strings
+    Next
+End Sub
+</code></pre>
+<p>or</p>
+<pre tabindex="0"><code class="language-vbnet">
+Public Sub DoSomething(ByVal strings As List(Of String))
+    Dim sb As StringBuilder = New StringBuilder()
+    sb.Append("Got: ")
+
+    For Each str As String In strings
+        sb.Append(str).Append(", ")
+    Next
+
+    My.Application.Log.WriteEntry(sb.ToString())
+End Sub
+</code></pre>
+<h3>Exceptions</h3>
+<p>No issue is reported when <code>StringBuilder</code> is:</p>
+<ul>
+  <li>Accessed through <code>sb.CopyTo()</code>, <code>sb.GetChunks()</code>, <code>sb.Length</code>, or <code>sb(index)</code>.</li>
+  <li>Passed as a method argument, on the grounds that it will likely be accessed through a <code>ToString()</code> invocation there.</li>
+  <li>Passed in as a parameter to the current method, on the grounds that the callee will materialize the string.</li>
+  <li>Retrieved by a custom function (<code>Dim sb As StringBuilder = GetStringBuilder()</code>).</li>
+  <li>Returned by the method.</li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

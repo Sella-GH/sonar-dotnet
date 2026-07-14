@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S2925: &quot;Thread.Sleep&quot; should not be used in tests (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S2925 - &quot;Thread.Sleep&quot; should not be used in tests (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S2925 &mdash; &quot;Thread.Sleep&quot; should not be used in tests</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+<div><dt>Tags</dt><dd>tests, bad-practice</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>Using <code>Thread.Sleep</code> in a test might introduce unpredictable and inconsistent results depending on the environment. Furthermore, it will
+block the <a href="https://en.wikipedia.org/wiki/Thread_(computing)">thread</a>, which means the system resources are not being fully used.</p>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+[TestMethod]
+public void SomeTest()
+{
+    Thread.Sleep(500); // Noncompliant
+    // assertions...
+}
+</code></pre>
+<p>An alternative is a task-based asynchronous approach, using <a
+href="https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/">async and await</a>.</p>
+<p>More specifically the <a href="https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.delay">Task.Delay</a> method should be
+used, because of the following advantages:</p>
+<ul>
+  <li>It is <strong>asynchronous</strong>: The thread will not be blocked, but instead will be reused by other operations</li>
+  <li>It is more <strong>precise</strong> in timing the delay than <code>Thread.Sleep</code></li>
+  <li>It can be <strong>canceled and continued</strong>, which gives more flexibility and control in the timing of your code</li>
+</ul>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+[TestMethod]
+public async Task SomeTest()
+{
+    await Task.Delay(500);
+    // assertions...
+}
+</code></pre>
+<p>Another scenario is when some data might need to be mocked using <a href="https://github.com/moq/moq4">Moq</a>, and a delay needs to be
+introduced:</p>
+<pre tabindex="0" data-diff-id="2" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+[TestMethod]
+public void UserService_Test()
+{
+    var userService = new Mock&lt;UserService&gt;();
+    var expected = new User();
+
+    userService
+        .Setup(m =&gt; m.GetUserById(42))
+        .Returns(() =&gt;
+        {
+            Thread.Sleep(500); // Noncompliant
+            return Task.FromResult(expected);
+        });
+
+    // assertions...
+}
+</code></pre>
+<p>An alternative to <code>Thread.Sleep</code> while mocking with <code>Moq</code> is to use <code>ReturnsAsync</code> and pass the amount of time to
+delay there:</p>
+<pre tabindex="0" data-diff-id="2" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+[TestMethod]
+public void UserService_Test()
+{
+    var userService = new Mock&lt;UserService&gt;();
+    var expected = new User();
+
+    userService
+        .Setup(m =&gt; m.GetUserById(42))
+        .ReturnsAsync(expected, TimeSpan.FromMilliseconds(500));
+
+    // assertions...
+}
+</code></pre>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.threading.thread.sleep">Thread.Sleep method</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.delay">Task.Delay method</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/">Asynchronous programming with async and await</a></li>
+  <li><a href="https://github.com/moq/moq4">Moq mocking library</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

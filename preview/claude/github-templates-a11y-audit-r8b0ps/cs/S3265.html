@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S3265: Non-flags enums should not be used in bitwise operations (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S3265 - Non-flags enums should not be used in bitwise operations (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S3265 &mdash; Non-flags enums should not be used in bitwise operations</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
+<div><dt>Severity</dt><dd>Critical</dd></div>
+<div><dt>Tags</dt><dd>convention</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p><a href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/enum">Enumerations</a> are commonly used to identify
+distinct elements from a set of values.</p>
+<p>However, they can also serve as <a href="https://en.wikipedia.org/wiki/Bit_field">bit flags</a>, enabling bitwise operations to combine multiple
+elements within a single value.</p>
+<pre tabindex="0"><code class="language-csharp">
+// Saturday = 0b00100000, Sunday = 0b01000000, weekend = 0b01100000
+var weekend = Days.Saturday | Days.Sunday;  // Combining elements
+</code></pre>
+<p>When enumerations are used as bit flags, it is considered <a
+href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/enum#enumeration-types-as-bit-flags">good practice</a> to
+annotate the enum type with the <a href="https://learn.microsoft.com/en-us/dotnet/api/system.flagsattribute">FlagsAttribute</a>:</p>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+enum Permissions
+{
+  None = 0,
+  Read = 1,
+  Write = 2,
+  Execute = 4
+}
+
+// ...
+
+var x = Permissions.Read | Permissions.Write;  // Noncompliant: enum is not annotated with [Flags]
+</code></pre>
+<p>The <code>FlagsAttribute</code> explicitly marks an enumeration as bit flags, making it clear that it uses bit fields and is intended to be used as
+flags.</p>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+[Flags]
+enum Permissions
+{
+  None = 0,
+  Read = 1,
+  Write = 2,
+  Execute = 4
+}
+
+// ...
+
+var x = Permissions.Read | Permissions.Write;  // Compliant: enum is annotated with [Flags]
+</code></pre>
+<p>Additionally, adding the <code>FlagsAttribute</code> to the enumeration enable a <a
+href="https://learn.microsoft.com/en-us/dotnet/api/system.flagsattribute#examples">better string representation</a> when using the <a
+href="https://learn.microsoft.com/en-us/dotnet/api/system.enum.tostring">Enum.ToString</a> method.</p>
+<h3>Exception</h3>
+<p>This rule will not raise for <a
+href="https://learn.microsoft.com/en-us/dotnet/api/system.runtime.compilerservices.methodimplattribute?view=net-10.0">MethodImplAttribute</a> because,
+despite not having the <code>FlagsAttribute</code>, it is often used in a similar fashion.</p>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/enum">Enumeration in C#</a>
+    <ul>
+      <li><a href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/enum#enumeration-types-as-bit-flags">Enumeration
+      types as bit flags</a></li>
+    </ul></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.flagsattribute">FlagsAttribute class</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.enum.tostring">Enum.ToString method</a></li>
+  <li><a href="https://en.wikipedia.org/wiki/Bit_field">Bit field - Wikipedia</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

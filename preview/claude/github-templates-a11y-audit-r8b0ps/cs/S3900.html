@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S3900: Arguments of public methods should be validated against null (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S3900 - Arguments of public methods should be validated against null (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S3900 &mdash; Arguments of public methods should be validated against null</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+<div><dt>Tags</dt><dd>convention, symbolic-execution</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>Methods declared as <code>public</code>, <code>protected</code>, or <code>protected internal</code> can be accessed from other assemblies, which
+means you should validate parameters to be within the expected constraints. In general, checking against <code>null</code> is recommended in defensive
+programming.</p>
+<p>This rule raises an issue when a parameter of a publicly accessible method is not validated against <code>null</code> before being
+dereferenced.</p>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0"><code class="language-csharp">
+public class MyClass
+{
+    private MyOtherClass other;
+
+    public void Foo(MyOtherClass other)
+    {
+        this.other = other.Clone(); // Noncompliant
+    }
+
+    protected void Bar(MyOtherClass other)
+    {
+        this.other = other.Clone(); // Noncompliant
+    }
+}
+</code></pre>
+<h3>Compliant solution</h3>
+<pre tabindex="0"><code class="language-csharp">
+public class MyClass
+{
+    private MyOtherClass other;
+
+    public void Foo(MyOtherClass other)
+    {
+        if (other != null)
+        {
+            this.other = other.Clone();
+        }
+    }
+
+    protected void Bar(MyOtherClass other)
+    {
+        if (other != null)
+        {
+            this.other = other.Clone();
+        }
+    }
+
+    public void Baz(MyOtherClass other)
+    {
+        ArgumentNullException.ThrowIfNull(other);
+
+        this.other = other.Clone();
+    }
+
+    public void Qux(MyOtherClass other)
+    {
+        this.other = other; // Compliant: "other" is not being dereferenced
+    }
+
+    private void Xyzzy(MyOtherClass other)
+    {
+        this.other = other.Clone(); // Compliant: method is not publicly accessible
+    }
+}
+</code></pre>
+<h3>Exceptions</h3>
+<ul>
+  <li>Arguments validated for <code>null</code> via helper methods should be annotated with the <a
+  href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/attributes/nullable-analysis#postconditions-maybenull-and-notnull"><code>[NotNull</code></a>] attribute.</li>
+  <li>Method parameters marked with the <code>[NotNull]</code> <a
+  href="https://www.jetbrains.com/help/resharper/Reference__Code_Annotation_Attributes.html#ItemNotNullAttribute">Resharper code annotation
+  attribute</a> are supported as well.</li>
+  <li>To create a custom null validation method declare an attribute with name <code>ValidatedNotNullAttribute</code> and mark the parameter that is
+  validated for null in your method declaration with it:</li>
+</ul>
+<pre tabindex="0"><code class="language-csharp">
+using System;
+
+[AttributeUsage(AttributeTargets.Parameter, Inherited=false)]
+public sealed class ValidatedNotNullAttribute : Attribute { }
+
+public static class Guard
+{
+    public static void NotNull&lt;T&gt;([ValidatedNotNullAttribute] T value, [CallerArgumentExpression("value")] string name = "") where T : class
+    {
+        if (value == null)
+            throw new ArgumentNullException(name);
+    }
+}
+
+public static class Utils
+{
+    public static string ToUpper(string value)
+    {
+        Guard.NotNull(value);
+
+        return value.ToUpper(); // Compliant
+    }
+}
+</code></pre>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

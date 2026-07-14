@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S2148: Underscores should be used to make large numbers readable (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S2148 - Underscores should be used to make large numbers readable (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S2148 &mdash; Underscores should be used to make large numbers readable</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
+<div><dt>Severity</dt><dd>Minor</dd></div>
+<div><dt>Tags</dt><dd>convention</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>Beginning with C# 7, it is possible to add underscores ('_') to numeric literals to enhance readability. The addition of underscores in this manner
+has no semantic meaning, but makes it easier for maintainers to understand the code.</p>
+<p>The number of digits to the left of a decimal point needed to trigger this rule varies by base.</p>
+<div class="table-scroll" role="region" aria-label="Scrollable table" tabindex="0"><table>
+  <colgroup>
+    <col style="width: 50%;">
+    <col style="width: 50%;">
+  </colgroup>
+  <thead>
+    <tr>
+      <th>Base</th>
+      <th>Minimum digits</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <p>binary</p>
+      </td>
+      <td>
+        <p>9</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>decimal</p>
+      </td>
+      <td>
+        <p>6</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>hexadecimal</p>
+      </td>
+      <td>
+        <p>9</p>
+      </td>
+    </tr>
+  </tbody>
+</table></div>
+<p>It is only the presence of underscores, not their spacing that is scrutinized by this rule.</p>
+<p><strong>Note</strong> that this rule is automatically disabled when the project’s <code>C# version</code> is lower than <code>7</code>.</p>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0"><code class="language-csharp">
+int i = 10000000;  // Noncompliant; is this 10 million or 100 million?
+int  j = 0b01101001010011011110010101011110;  // Noncompliant
+long l = 0x7fffffffffffffffL;  // Noncompliant
+</code></pre>
+<h3>Compliant solution</h3>
+<pre tabindex="0"><code class="language-csharp">
+int i = 10_000_000;
+int  j = 0b01101001_01001101_11100101_01011110;
+long l = 0x7fff_ffff_ffff_ffffL;
+</code></pre>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

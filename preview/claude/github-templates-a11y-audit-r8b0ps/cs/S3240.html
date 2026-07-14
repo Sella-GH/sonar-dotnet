@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S3240: The simplest possible condition syntax should be used (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S3240 - The simplest possible condition syntax should be used (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S3240 &mdash; The simplest possible condition syntax should be used</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
+<div><dt>Severity</dt><dd>Minor</dd></div>
+<div><dt>Tags</dt><dd>clumsy</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>In the interests of keeping code clean, the simplest possible conditional syntax should be used. That means</p>
+<ul>
+  <li>using the <code>??=</code> operator for a self-assign-if-not-null operation,</li>
+  <li>using the <code>??</code> operator for an assign-if-not-null operation, and</li>
+  <li>using the ternary operator <code>?:</code> for assignment to a single variable.</li>
+</ul>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0"><code class="language-csharp">
+object a = null, b = null, x;
+
+if (a != null) // Noncompliant; needlessly verbose
+{
+  x = a;
+}
+else
+{
+  x = b;
+}
+
+x = a != null ? a : b; // Noncompliant; better but could still be simplified
+
+x = (a == null) ? new object() : a; // Noncompliant
+
+if (condition) // Noncompliant
+{
+  x = a;
+}
+else
+{
+  x = b;
+}
+
+if (a == null)  // Noncompliant
+    a = new object();
+
+var y = null ?? new object(); // Noncompliant
+
+a = a ?? new object();  // Noncompliant for C# 8
+</code></pre>
+<h3>Compliant solution</h3>
+<pre tabindex="0"><code class="language-csharp">
+object x;
+
+x = a ?? b;
+x = a ?? b;
+x = a ?? new object();
+x = condition ? a : b;
+a ??= new object();
+var y = new object();
+a ??= new object();
+</code></pre>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S4347: Secure random number generators should not output predictable values (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S4347 - Secure random number generators should not output predictable values (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S4347 &mdash; Secure random number generators should not output predictable values</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Vulnerability</dd></div>
+<div><dt>Severity</dt><dd>Critical</dd></div>
+<div><dt>Tags</dt><dd>cwe, pitfall, symbolic-execution</dd></div>
+</dl>
+</header>
+<main>
+<p>Cryptographic operations often rely on unpredictable random numbers to enhance security. These random numbers are created by cryptographically
+secure pseudo-random number generators (CSPRNG). It is important not to use a predictable seed with these random number generators otherwise the
+random numbers will also become predictable.</p>
+<h2>Why is this an issue?</h2>
+<p>Random number generators are often used to generate random values for cryptographic algorithms. When a random number generator is used for
+cryptographic purposes, the generated numbers must be as random and unpredictable as possible. When the random number generator is improperly seeded
+with a constant or a predictable value, its output will also be predictable.</p>
+<p>This can have severe security implications for cryptographic operations that rely on the randomness of the generated numbers. By using a
+predictable seed, an attacker can potentially guess or deduce the generated numbers, compromising the security of whatever cryptographic algorithm
+relies on the random number generator.</p>
+<h3>What is the potential impact?</h3>
+<p>It is crucial to understand that the strength of cryptographic algorithms heavily relies on the quality of the random numbers used. By improperly
+seeding a CSPRNG, we introduce a significant weakness that can be exploited by attackers.</p>
+<h4>Insecure cryptographic keys</h4>
+<p>One of the primary use cases for CSPRNGs is generating cryptographic keys. If an attacker can predict the seed used to initialize the random number
+generator, they may be able to derive the same keys. Depending on the use case, this can lead to multiple severe outcomes, such as:</p>
+<ul>
+  <li>Being able to decrypt sensitive documents, leading to privacy breaches or identity theft.</li>
+  <li>Gaining access to a private key used for signing, allowing an attacker to forge digital signatures and impersonate legitimate entities.</li>
+  <li>Bypassing authentication mechanisms that rely on public-key infrastructure (PKI), which can be abused to gain unauthorized access to systems or
+  networks.</li>
+</ul>
+<h4>Session hijacking and man-in-the-middle attack</h4>
+<p>Another scenario where this vulnerability can be exploited is in the generation of session tokens or nonces for secure communication protocols. If
+an attacker can predict the seed used to generate these tokens, they can impersonate legitimate users or intercept sensitive information.</p>
+<h2>How to fix it in BouncyCastle</h2>
+<p>BouncyCastle provides several random number generators implementations. Most of these will automatically create unpredictable output.</p>
+<p>The remaining random number generators require seeding with an unpredictable value before they will produce unpredictable outputs. These should be
+seeded with at least 16 bytes of random data to ensure unpredictable output and that the random seed cannot be guessed using a brute-force attack.</p>
+<h3>Code examples</h3>
+<h4>Noncompliant code example</h4>
+<p><code>SecureRandom</code> instances created with <code>GetInstance()</code> are seeded by default. Disabling seeding results in predictable
+output.</p>
+<pre tabindex="0" data-diff-id="101" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+using Org.BouncyCastle.Security;
+
+byte[] random = new byte[8];
+
+SecureRandom sr = SecureRandom.GetInstance("SHA256PRNG", false);
+sr.NextBytes(random); // Noncompliant
+</code></pre>
+<p><code>DigestRandomGenerator</code> and <code>VmpcRandomGenerator</code> instances require seeding before use. Predictable seed values will result
+in predictable outputs.</p>
+<pre tabindex="0" data-diff-id="102" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+using Org.BouncyCastle.Crypto.Digest;
+using Org.BouncyCastle.Crypto.Prng;
+
+byte[] random = new byte[8];
+
+IRandomGenerator digest = new DigestRandomGenerator(new Sha256Digest());
+digest.AddSeedMaterial(Encoding.UTF8.GetBytes("predictable seed value"));
+digest.NextBytes(random); // Noncompliant
+
+IRandomGenerator vmpc = new VmpcRandomGenerator();
+vmpc.AddSeedMaterial(Convert.FromBase64String("2hq9pkyqLQJkrYTrEv1eNw=="));
+vmpc.NextBytes(random); // Noncompliant
+</code></pre>
+<p>When a <code>SecureRandom</code> is created using an unseeded <code>DigestRandomGenerator</code> and <code>VmpcRandomGenerator</code> instance, the
+<code>SecureRandom</code> will create predictable outputs.</p>
+<pre tabindex="0" data-diff-id="103" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+using Org.BouncyCastle.Crypto.Digest;
+using Org.BouncyCastle.Crypto.Prng;
+using Org.BouncyCastle.Security;
+
+byte[] random = new byte[8];
+
+IRandomGenerator digest = new DigestRandomGenerator(new Sha256Digest());
+SecureRandom sr = new SecureRandom(digest);
+sr.NextBytes(random); // Noncompliant
+</code></pre>
+<h4>Compliant solution</h4>
+<p>Allow <code>SecureRandom.GetInstance()</code> to automatically seed new <code>SecureRandom</code> instances.</p>
+<pre tabindex="0" data-diff-id="101" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+using Org.BouncyCastle.Security;
+
+byte[] random = new byte[8];
+
+SecureRandom sr = SecureRandom.GetInstance("SHA256PRNG");
+sr.NextBytes(random);
+</code></pre>
+<p>Use unpredictable values to seed <code>DigestRandomGenerator</code> and <code>VmpcRandomGenerator</code> instances. The
+<code>SecureRandom.GenerateSeed()</code> method is designed for this purpose.</p>
+<pre tabindex="0" data-diff-id="102" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+using Org.BouncyCastle.Crypto.Digest;
+using Org.BouncyCastle.Crypto.Prng;
+using Org.BouncyCastle.Security;
+
+byte[] random = new byte[8];
+
+IRandomGenerator digest = new DigestRandomGenerator(new Sha256Digest());
+digest.AddSeedMaterial(SecureRandom.GenerateSeed(16));
+digest.NextBytes(random);
+
+IRandomGenerator vmpc = new VmpcRandomGenerator();
+vmpc.AddSeedMaterial(SecureRandom.GenerateSeed(16));
+vmpc.NextBytes(random);
+</code></pre>
+<p>An overload of the <code>SecureRandom</code> constructor will automatically seed the underlying <code>IRandomGenerator</code> with an unpredictable
+value.</p>
+<pre tabindex="0" data-diff-id="103" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+using Org.BouncyCastle.Crypto.Digest;
+using Org.BouncyCastle.Crypto.Prng;
+using Org.BouncyCastle.Security;
+
+byte[] random = new byte[8];
+
+IRandomGenerator digest = new DigestRandomGenerator(new Sha256Digest());
+SecureRandom sr = new SecureRandom(digest, 16);
+sr.NextBytes(random);
+</code></pre>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li>Bouncy Castle - <a href="https://downloads.bouncycastle.org/csharp/docs/BC-CSharpDotNet-UserGuide.pdf">The BouncyCastle.NET User Guide</a></li>
+</ul>
+<h3>Standards</h3>
+<ul>
+  <li>OWASP - <a href="https://owasp.org/Top10/A02_2021-Cryptographic_Failures/">Top 10 2021 Category A2 - Cryptographic Failures</a></li>
+  <li>OWASP - <a href="https://owasp.org/www-project-top-ten/2017/A6_2017-Security_Misconfiguration">Top 10 2017 Category A6 - Security
+  Misconfiguration</a></li>
+  <li>CWE - <a href="https://cwe.mitre.org/data/definitions/330">CWE-330 - Use of Insufficiently Random Values</a></li>
+  <li>CWE - <a href="https://cwe.mitre.org/data/definitions/332">CWE-332 - Insufficient Entropy in PRNG</a></li>
+  <li>CWE - <a href="https://cwe.mitre.org/data/definitions/336">CWE-336 - Same Seed in Pseudo-Random Number Generator (PRNG)</a></li>
+  <li>CWE - <a href="https://cwe.mitre.org/data/definitions/337">CWE-337 - Predictable Seed in Pseudo-Random Number Generator (PRNG)</a></li>
+  <li><a
+  href="https://cmu-sei.github.io/secure-coding-standards/sei-cert-oracle-coding-standard-for-java/recommendations/miscellaneous-msc/msc63-j">CERT,
+  MSC63J.</a> - Ensure that SecureRandom is properly seeded</li>
+</ul>
+<h2>Implementation Specification</h2>
+<p>(visible only on this page)</p>
+<h3>Message</h3>
+<p>When the random number generator’s output <strong>is not</strong> predictable by default:</p>
+<blockquote>
+  <p>Change this seed value to something unpredictable, or remove the seed.</p>
+</blockquote>
+<p>When the random number generator’s output <strong>is</strong> predictable by default:</p>
+<blockquote>
+  <p>Set an unpredictable seed before generating random values.</p>
+</blockquote>
+<h3>Highlighting</h3>
+<p>When the random number generator’s output <strong>is not</strong> predictable by default:</p>
+<ul>
+  <li>The most recent function call that sets a seed. For example:
+    <ul>
+      <li>The factory method that returns the RNG, where the seed is passed as a parameter.</li>
+      <li>The RNG constructor, where the seed is a parameter.</li>
+      <li>The function call on the RNG that sets the seed.</li>
+    </ul></li>
+</ul>
+<p>When the random number generator’s output <strong>is</strong> predictable by default:</p>
+<ul>
+  <li>The function call on the RNG that returns a random value.</li>
+</ul>
+<p>If the factory method or constructor is not already highlighted, it should become a secondary highlight.</p>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

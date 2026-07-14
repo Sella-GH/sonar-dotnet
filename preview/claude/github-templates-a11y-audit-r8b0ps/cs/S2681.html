@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S2681: Multiline blocks should be enclosed in curly braces (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S2681 - Multiline blocks should be enclosed in curly braces (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S2681 &mdash; Multiline blocks should be enclosed in curly braces</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+<div><dt>Tags</dt><dd>cwe</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>Having inconsistent indentation and omitting curly braces from a control structure, such as an <code>if</code> statement or <code>for</code> loop,
+is misleading and can induce bugs.</p>
+<p>This rule raises an issue when the indentation of the lines after a control structure indicates an intent to include those lines in the block, but
+the omission of curly braces means the lines will be unconditionally executed once.</p>
+<p>The following patterns are recognized:</p>
+<pre tabindex="0"><code class="language-csharp">
+if (condition)
+  FirstActionInBlock();
+  SecondAction();  // Noncompliant: SecondAction is executed unconditionally
+ThirdAction();
+</code></pre>
+<pre tabindex="0"><code class="language-csharp">
+if(condition) FirstActionInBlock(); SecondAction();  // Noncompliant: SecondAction is executed unconditionally
+</code></pre>
+<pre tabindex="0"><code class="language-csharp">
+if (condition) FirstActionInBlock();
+  SecondAction();  // Noncompliant: SecondAction is executed unconditionally
+</code></pre>
+<pre tabindex="0"><code class="language-csharp">
+string str = null;
+for (int i = 0; i &lt; array.Length; i++)
+  str = array[i];
+  DoTheThing(str);  // Noncompliant: executed only on the last element
+</code></pre>
+<p>Note that this rule considers tab characters to be equivalent to 1 space. When mixing spaces and tabs, a code may look fine in one editor but be
+confusing in another configured differently.</p>
+<h2>Resources</h2>
+<ul>
+  <li>CWE - <a href="https://cwe.mitre.org/data/definitions/483">CWE-483 - Incorrect Block Delimitation</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

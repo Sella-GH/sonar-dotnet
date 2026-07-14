@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S2339: Public constant members should not be used (VB.NET) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S2339 - Public constant members should not be used (VB.NET)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S2339 &mdash; Public constant members should not be used</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>VB.NET</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
+<div><dt>Severity</dt><dd>Critical</dd></div>
+<div><dt>Tags</dt><dd>pitfall</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>Constant members are copied at compile time to the call sites, instead of being fetched at runtime.</p>
+<p>As an example, say you have a library with a constant <code>Version</code> member set to <code>1.0</code>, and a client application linked to it.
+This library is then updated and <code>Version</code> is set to <code>2.0</code>. Unfortunately, even after the old DLL is replaced by the new one,
+<code>Version</code> will still be <code>1.0</code> for the client application. In order to see <code>2.0</code>, the client application would need to
+be rebuilt against the new version of the library.</p>
+<p>This means that you should use constants to hold values that by definition will never change, such as <code>Zero</code>. In practice, those cases
+are uncommon, and therefore it is generally better to avoid constant members.</p>
+<p>This rule only reports issues on public constant fields, which can be reached from outside the defining assembly.</p>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0"><code class="language-vbnet">
+Public Class Foo
+    Public Const Version = 1.0           ' Noncompliant
+End Class
+</code></pre>
+<h3>Compliant solution</h3>
+<pre tabindex="0"><code class="language-vbnet">
+Public Class Foo
+    Public Shared ReadOnly Property Version = 1.0 ' Compliant
+End Class
+</code></pre>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

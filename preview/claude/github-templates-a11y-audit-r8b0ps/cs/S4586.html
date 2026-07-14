@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S4586: Non-async &quot;Task/Task&lt;T&gt;&quot; methods should not return null (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S4586 - Non-async &quot;Task/Task&lt;T&gt;&quot; methods should not return null (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S4586 &mdash; Non-async &quot;Task/Task&lt;T&gt;&quot; methods should not return null</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Bug</dd></div>
+<div><dt>Severity</dt><dd>Critical</dd></div>
+<div><dt>Tags</dt><dd>async-await</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>Returning <code>null</code> from a non-<code>async</code> <code>Task</code>/<code>Task&lt;TResult&gt;</code> method will cause a
+<code>NullReferenceException</code> at runtime if the method is awaited. This problem can be avoided by returning <a
+href="https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.completedtask"><code>Task.CompletedTask</code></a> or <a
+href="https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.fromresult"><code>Task.FromResult&lt;TResult&gt;(null)</code></a>
+respectively.</p>
+<pre tabindex="0"><code class="language-csharp">
+public Task DoFooAsync()
+{
+    return null;               // Noncompliant: Causes a NullReferenceException if awaited.
+}
+
+public async Task Main()
+{
+    await DoFooAsync();        // NullReferenceException
+}
+</code></pre>
+<h2>How to fix it</h2>
+<p>Instead of <code>null</code> <a
+href="https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.completedtask"><code>Task.CompletedTask</code></a> or <a
+href="https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.fromresult"><code>Task.FromResult&lt;TResult&gt;(null)</code></a>
+should be returned.</p>
+<h3>Code examples</h3>
+<p>A <code>Task</code> returning method can be fixed like so:</p>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+public Task DoFooAsync()
+{
+    return null;               // Noncompliant: Causes a NullReferenceException if awaited.
+}
+</code></pre>
+<h4>Compliant solution</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+public Task DoFooAsync()
+{
+    return Task.CompletedTask; // Compliant: Method can be awaited.
+}
+</code></pre>
+<p>A <code>Task&lt;TResult&gt;</code> returning method can be fixed like so:</p>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="2" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+public Task&lt;object&gt; GetFooAsync()
+{
+    return null;                          // Noncompliant: Causes a NullReferenceException if awaited.
+}
+</code></pre>
+<h4>Compliant solution</h4>
+<pre tabindex="0" data-diff-id="2" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+public Task&lt;object&gt; GetFooAsync()
+{
+    return Task.FromResult&lt;object&gt;(null); // Compliant: Method can be awaited.
+}
+</code></pre>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li>Microsoft Learn - <a
+  href="https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.completedtask"><code>Task.CompletedTask</code> Property</a></li>
+  <li>Microsoft Learn - <a
+  href="https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.fromresult"><code>Task.FromResult&lt;TResult&gt;(TResult)</code>
+  Method</a></li>
+</ul>
+<h3>Articles &amp; blog posts</h3>
+<ul>
+  <li>StackOverflow - Answer by Stephen Cleary for <a href="https://stackoverflow.com/a/45350108">Is it better to return an empty task or
+  null?</a></li>
+  <li>StackOverflow - Answer by Stephen Cleary for <a href="https://stackoverflow.com/a/27551261">Best way to handle null task inside async
+  method?</a></li>
+  <li>C# Language Design - <a href="https://github.com/dotnet/csharplang/issues/35">Proposal Champion "Null-conditional await"</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

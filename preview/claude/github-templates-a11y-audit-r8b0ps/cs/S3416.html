@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S3416: Loggers should be named for their enclosing types (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S3416 - Loggers should be named for their enclosing types (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S3416 &mdash; Loggers should be named for their enclosing types</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
+<div><dt>Severity</dt><dd>Minor</dd></div>
+<div><dt>Tags</dt><dd>confusing, logging</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>It is a well-established convention to name each logger after its enclosing type. This rule raises an issue when the convention is not
+respected.</p>
+<pre tabindex="0"><code class="language-csharp">
+class EnclosingType
+{
+    private readonly ILogger logger;
+
+    public EnclosingType(ILoggerFactory loggerFactory)
+    {
+        logger = loggerFactory.CreateLogger&lt;AnotherType&gt;();   // Noncompliant
+        logger = loggerFactory.CreateLogger&lt;EnclosingType&gt;(); // Compliant
+    }
+}
+</code></pre>
+<p>Not following such a convention can result in confusion and logging misconfiguration.</p>
+<p>For example, the person configuring the log may attempt to change the logging behavior for the <code>MyNamespace.EnclosingType</code> type, by
+overriding defaults for the logger named after that type.</p>
+<pre tabindex="0"><code class="language-csharp">
+{
+    "Logging": {
+        "LogLevel": {
+            "Default": "Error",
+            "MyNamespace.EnclosingType": "Debug"
+        }
+    }
+}
+</code></pre>
+<p>However, if the convention is not in place, the override would not affect logs from <code>MyNamespace.EnclosingType</code>, since they are made via
+a logger with a different name.</p>
+<p>Moreover, using the same logger name for multiple types prevents the granular configuration of each type’s logger, since there is no way to
+distinguish them in configuration.</p>
+<p>The rule targets the following logging frameworks: * <a href="https://learn.microsoft.com/en-us/dotnet/core/extensions/logging">Microsoft
+Extensions Logging</a> * <a href="https://logging.apache.org/log4net/">Apache log4net</a> * <a href="https://nlog-project.org/">NLog</a></p>
+<h3>Exceptions</h3>
+<p>The rule doesn’t raise issues when custom handling of logging names is in place, and the logger name is not derived from a <code>Type</code>.</p>
+<pre tabindex="0"><code class="language-csharp">
+class EnclosingType
+{
+    private readonly ILogger logger;
+
+    EnclosingType(ILoggerFactory loggerFactory)
+    {
+        logger = loggerFactory.CreateLogger("My cross-type logging category");   // Compliant
+        logger = loggerFactory.CreateLogger(AComplexLogicToFindTheRightType());  // Compliant
+    }
+}
+</code></pre>
+<h2>How to fix it</h2>
+<p>When the logger name is defined by a generic type parameter:</p>
+<pre tabindex="0"><code class="language-csharp">
+class EnclosingType
+{
+    private readonly ILogger logger;
+
+    public EnclosingType(ILoggerFactory loggerFactory)
+    {
+        logger = loggerFactory.CreateLogger&lt;AnotherType&gt;();   // Noncompliant
+        logger = loggerFactory.CreateLogger&lt;EnclosingType&gt;(); // Compliant
+    }
+}
+</code></pre>
+<p>When the logger name is defined by an input parameter of type <code>Type</code>:</p>
+<pre tabindex="0"><code class="language-csharp">
+class EnclosingType
+{
+    private readonly ILogger logger;
+
+    public EnclosingType(ILoggerFactory loggerFactory)
+    {
+        logger = loggerFactory.CreateLogger(typeof(AnotherType));   // Noncompliant
+        logger = loggerFactory.CreateLogger(typeof(EnclosingType)); // Compliant
+        logger = loggerFactory.CreateLogger(GetType());             // Compliant
+    }
+}
+</code></pre>
+<p>When the logger name is a string, derived from a <code>Type</code>:</p>
+<pre tabindex="0"><code class="language-csharp">
+class EnclosingType
+{
+    private readonly ILogger logger;
+
+    public EnclosingType(ILoggerFactory loggerFactory)
+    {
+        logger = loggerFactory.CreateLogger(typeof(AnotherType).Name);       // Noncompliant
+        logger = loggerFactory.CreateLogger(typeof(AnotherType).FullName);   // Noncompliant
+        logger = loggerFactory.CreateLogger(nameof(AnotherType));            // Noncompliant
+        // Fix by referring to the right type
+        logger = loggerFactory.CreateLogger(typeof(EnclosingType).Name);     // Compliant
+        logger = loggerFactory.CreateLogger(typeof(EnclosingType).FullName); // Compliant
+        logger = loggerFactory.CreateLogger(nameof(EnclosingType));          // Compliant
+        // or by retrieving the right type dynamically
+        logger = loggerFactory.CreateLogger(GetType().FullName);             // Compliant
+    }
+}
+</code></pre>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/dotnet/core/diagnostics/logging-tracing">.NET logging and tracing</a></li>
+  <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/dotnet/core/extensions/logging?tabs=command-line#log-category">Logging in C# and
+  .NET - Log category</a></li>
+  <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/dotnet/core/extensions/logging?tabs=command-line#configure-logging">Logging in C#
+  and .NET - Configure logging</a></li>
+  <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.logging.ilogger-1">ILogger&lt;TCategoryName&gt;
+  Interface</a></li>
+  <li>Apache Logging - <a href="https://logging.apache.org/log4net/">Apache log4net</a></li>
+  <li>NLog - <a href="https://nlog-project.org/">Flexible &amp; free open-source logging for .NET</a></li>
+</ul>
+<h3>Articles &amp; blog posts</h3>
+<ul>
+  <li>Raygun Blog - <a href="https://raygun.com/blog/c-sharp-logging-best-practices/">C# logging: Best practices in 2023 with examples and
+  tools</a></li>
+  <li>Apache Logging - <a href="https://logging.apache.org/log4net/manual/configuration.html">Apache log4net Manual - Configuration</a></li>
+  <li>GitHub NLog repository - <a href="https://github.com/nlog/nlog/wiki/Tutorial#best-practices-for-using-nlog">Best practices for using
+  NLog</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

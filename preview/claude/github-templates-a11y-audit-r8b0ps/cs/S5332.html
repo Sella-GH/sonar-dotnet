@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S5332: Clear-text protocols should not be used (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S5332 - Clear-text protocols should not be used (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S5332 &mdash; Clear-text protocols should not be used</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Vulnerability</dd></div>
+<div><dt>Severity</dt><dd>Minor</dd></div>
+<div><dt>Tags</dt><dd>cwe, former-hotspot</dd></div>
+</dl>
+</header>
+<main>
+<p>Using clear-text protocols exposes data in transit to eavesdropping and man-in-the-middle attacks.</p>
+<h2>Why is this an issue?</h2>
+<p>An attacker who can observe network traffic — for example through a compromised network device, a position on the same network segment, or a cloud
+environment breach — can read, modify, or inject data sent over <code>ftp</code>, <code>telnet</code>, <code>http</code>, or unencrypted SMTP without
+detection. This is true even on internal or isolated networks, where insider threats or lateral movement after an initial compromise can expose
+unencrypted traffic. This rule raises an issue when a clear-text protocol scheme is used or when encryption is explicitly disabled for a network
+connection.</p>
+<h3>What is the potential impact?</h3>
+<h4>Sensitive data exposure</h4>
+<p>An attacker who can intercept network traffic can read all data transmitted over clear-text connections, including credentials, session tokens, API
+keys, or personal data.</p>
+<h4>Data tampering</h4>
+<p>Because clear-text protocols provide no integrity protection, an attacker in a man-in-the-middle position can silently modify data in transit —
+redirecting users to malicious endpoints, injecting malicious content into responses, or altering commands sent to remote services.</p>
+<h2>How to fix it</h2>
+<h3>Code examples</h3>
+<p>The following code uses a clear-text protocol or disables encryption for a network connection, leaving transmitted data exposed to
+interception.</p>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+var urlHttp = "http://example.com";                 // Noncompliant
+var urlFtp = "ftp://anonymous@example.com";         // Noncompliant
+var urlTelnet = "telnet://anonymous@example.com";   // Noncompliant
+</code></pre>
+<pre tabindex="0" data-diff-id="2" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+using var smtp = new SmtpClient("host", 25); // Noncompliant, EnableSsl is not set
+using var telnet = new MyTelnet.Client("host", port); // Noncompliant, Telnet is a clear-text protocol
+</code></pre>
+<h4>Compliant solution</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+var urlHttps = "https://example.com";
+var urlSftp = "sftp://anonymous@example.com";
+var urlSsh = "ssh://anonymous@example.com";
+</code></pre>
+<pre tabindex="0" data-diff-id="2" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+using var smtp = new SmtpClient("host", 25) { EnableSsl = true };
+using var ssh = new MySsh.Client("host", port);
+</code></pre>
+<h2>Exceptions</h2>
+<p>No issue is reported for the following cases:</p>
+<ul>
+  <li>URLs whose host resolves only within a private runtime environment and is not reachable from the public internet (including loopback and cloud
+  metadata hosts)</li>
+  <li>Well-known namespace URI authorities used in in XML, JSON-LD, RDF, or similar formats (for example, <code>www.w3.org</code>,
+  <code>schemas.android.com</code>, <code>schema.org</code>).</li>
+  <li>IANA-reserved documentation and test domains like <code>example.com</code>, <code>example.net</code>, <code>example.org</code> (RFC 6761). These
+  are almost always placeholders in source code, not real connection targets.</li>
+</ul>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li>AWS Documentation - <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html">Listeners for
+  your Application Load Balancers</a></li>
+  <li>AWS Documentation - <a
+  href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesis-stream-streamencryption.html">Stream Encryption</a></li>
+</ul>
+<h3>Articles &amp; blog posts</h3>
+<ul>
+  <li>Google - <a href="https://security.googleblog.com/2016/09/moving-towards-more-secure-web.html">Moving towards more secure web</a></li>
+  <li>Mozilla - <a href="https://blog.mozilla.org/security/2015/04/30/deprecating-non-secure-http/">Deprecating non secure http</a></li>
+</ul>
+<h3>Standards</h3>
+<ul>
+  <li>OWASP - <a href="https://owasp.org/www-project-top-ten/2017/A3_2017-Sensitive_Data_Exposure">Top 10 2017 Category A3 - Sensitive Data
+  Exposure</a></li>
+  <li>OWASP - <a href="https://owasp.org/Top10/A02_2021-Cryptographic_Failures/">Top 10 2021 Category A2 - Cryptographic Failures</a></li>
+  <li>CWE - <a href="https://cwe.mitre.org/data/definitions/200">CWE-200 - Exposure of Sensitive Information to an Unauthorized Actor</a></li>
+  <li>CWE - <a href="https://cwe.mitre.org/data/definitions/319">CWE-319 - Cleartext Transmission of Sensitive Information</a></li>
+  <li>STIG Viewer - <a href="https://stigviewer.com/stigs/application_security_and_development/2024-12-06/finding/V-222397">Application Security and
+  Development: V-222397</a> - The application must implement cryptographic mechanisms to protect the integrity of remote access sessions.</li>
+  <li>STIG Viewer - <a href="https://stigviewer.com/stigs/application_security_and_development/2024-12-06/finding/V-222534">Application Security and
+  Development: V-222534</a> - Service-Oriented Applications handling non-releasable data must authenticate endpoint devices via mutual SSL/TLS.</li>
+  <li>STIG Viewer - <a href="https://stigviewer.com/stigs/application_security_and_development/2024-12-06/finding/V-222562">Application Security and
+  Development: V-222562</a> - Applications used for non-local maintenance must implement cryptographic mechanisms to protect the integrity of
+  maintenance and diagnostic communications.</li>
+  <li>STIG Viewer - <a href="https://stigviewer.com/stigs/application_security_and_development/2024-12-06/finding/V-222563">Application Security and
+  Development: V-222563</a> - Applications used for non-local maintenance must implement cryptographic mechanisms to protect the confidentiality of
+  maintenance and diagnostic communications.</li>
+  <li>STIG Viewer - <a href="https://stigviewer.com/stigs/application_security_and_development/2024-12-06/finding/V-222577">Application Security and
+  Development: V-222577</a> - The application must not expose session IDs.</li>
+  <li>STIG Viewer - <a href="https://stigviewer.com/stigs/application_security_and_development/2024-12-06/finding/V-222596">Application Security and
+  Development: V-222596</a> - The application must protect the confidentiality and integrity of transmitted information.</li>
+  <li>STIG Viewer - <a href="https://stigviewer.com/stigs/application_security_and_development/2024-12-06/finding/V-222597">Application Security and
+  Development: V-222597</a> - The application must implement cryptographic mechanisms to prevent unauthorized disclosure of information and/or detect
+  changes to information during transmission.</li>
+  <li>STIG Viewer - <a href="https://stigviewer.com/stigs/application_security_and_development/2024-12-06/finding/V-222598">Application Security and
+  Development: V-222598</a> - The application must maintain the confidentiality and integrity of information during preparation for transmission.</li>
+  <li>STIG Viewer - <a href="https://stigviewer.com/stigs/application_security_and_development/2024-12-06/finding/V-222599">Application Security and
+  Development: V-222599</a> - The application must maintain the confidentiality and integrity of information during reception.</li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

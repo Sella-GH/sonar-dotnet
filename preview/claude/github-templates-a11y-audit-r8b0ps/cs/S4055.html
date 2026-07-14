@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S4055: Literals should not be passed as localized parameters (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S4055 - Literals should not be passed as localized parameters (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S4055 &mdash; Literals should not be passed as localized parameters</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+<div><dt>Tags</dt><dd>localisation, pitfall</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>String literals embedded in the source code will not be localized properly.</p>
+<p>This rule raises an issue when a literal string is passed as a parameter or property and one or more of the following cases is true:</p>
+<ul>
+  <li>The <code>LocalizableAttribute</code> attribute of the parameter or property is set to true.</li>
+  <li>The parameter or property name contains "Text", "Message", or "Caption".</li>
+  <li>The name of the string parameter that is passed to a <code>Console.Write</code> or <code>Console.WriteLine</code> method is either "value" or
+  "format".</li>
+</ul>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0"><code class="language-csharp">
+using System;
+using System.Globalization;
+using System.Reflection;
+using System.Windows.Forms;
+
+[assembly: NeutralResourcesLanguageAttribute("en-US")]
+namespace MyLibrary
+{
+    public class Foo
+    {
+        public void SetHour(int hour)
+        {
+            if (hour &lt; 0 || hour &gt; 23)
+            {
+                MessageBox.Show("The valid range is 0 - 23."); // Noncompliant
+            }
+        }
+    }
+}
+</code></pre>
+<h3>Compliant solution</h3>
+<pre tabindex="0"><code class="language-csharp">
+using System;
+using System.Globalization;
+using System.Reflection;
+using System.Resources;
+using System.Windows.Forms;
+
+
+
+[assembly: NeutralResourcesLanguageAttribute("en-US")]
+namespace MyLibrary
+{
+    public class Foo
+    {
+        ResourceManager rm;
+        public Foo()
+        {
+            rm = new ResourceManager("en-US", Assembly.GetExecutingAssembly());
+        }
+
+        public void SetHour(int hour)
+        {
+            if (hour &lt; 0 || hour &gt; 23)
+            {
+                MessageBox.Show(
+                rm.GetString("OutOfRangeMessage", CultureInfo.CurrentUICulture));
+            }
+        }
+    }
+}
+</code></pre>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

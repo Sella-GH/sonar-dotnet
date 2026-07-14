@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S4025: Child class fields should not differ from parent class fields only by capitalization (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S4025 - Child class fields should not differ from parent class fields only by capitalization (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S4025 &mdash; Child class fields should not differ from parent class fields only by capitalization</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
+<div><dt>Severity</dt><dd>Critical</dd></div>
+<div><dt>Tags</dt><dd>pitfall</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>Having a field in a child class with a name that differs from a parent class' field only by capitalization is sure to cause confusion. Such child
+class fields should be renamed.</p>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0"><code class="language-csharp">
+public class Fruit
+{
+  protected string plantingSeason;
+  //...
+}
+
+public class Raspberry : Fruit
+{
+  protected string plantingseason;  // Noncompliant
+  // ...
+}
+</code></pre>
+<h3>Compliant solution</h3>
+<pre tabindex="0"><code class="language-csharp">
+public class Fruit
+{
+  protected string plantingSeason;
+  //...
+}
+
+public class Raspberry : Fruit
+{
+  protected string whenToPlant;
+  // ...
+}
+</code></pre>
+<p>Or</p>
+<pre tabindex="0"><code class="language-csharp">
+public class Fruit
+{
+  protected string plantingSeason;
+  //...
+}
+
+public class Raspberry : Fruit
+{
+  // field removed; parent field will be used instead
+  // ...
+}
+</code></pre>
+<h3>Exceptions</h3>
+<p>This rule ignores same-name fields that are <code>static</code> in both the parent and child classes. It also ignores <code>private</code> parent
+class fields, but in all other such cases, the child class field should be renamed.</p>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

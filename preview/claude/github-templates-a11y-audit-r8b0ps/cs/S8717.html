@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S8717: Multiple &quot;[Key]&quot; attributes should not be used to define a composite key (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S8717 - Multiple &quot;[Key]&quot; attributes should not be used to define a composite key (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S8717 &mdash; Multiple &quot;[Key]&quot; attributes should not be used to define a composite key</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Bug</dd></div>
+<div><dt>Severity</dt><dd>Blocker</dd></div>
+<div><dt>Tags</dt><dd>entity-framework-core, entity-framework, orm, database</dd></div>
+</dl>
+</header>
+<main>
+<p>This rule raises an issue when an entity class declares more than one property annotated with the <code>Key</code> attribute in an attempt to
+define a composite primary key.</p>
+<h2>Why is this an issue?</h2>
+<p>Entity Framework Core does not interpret multiple <code>Key</code> attributes as a composite primary key. When an entity has two or more
+<code>Key</code>-decorated properties, EF Core throws an <code>InvalidOperationException</code> while building the model, the first time the
+<code>DbContext</code> is used.</p>
+<h3>What is the potential impact?</h3>
+<p>Because the model cannot be built, the application crashes the first time the <code>DbContext</code> is instantiated. This is not limited to the
+affected entity: nothing that depends on the context can run until the key is configured correctly.</p>
+<h2>How to fix it</h2>
+<p>Declare the composite key in a single place. Either apply the <code>PrimaryKey</code> attribute to the entity class, or configure the key with the
+Fluent API by overriding <code>OnModelCreating</code> and calling <code>HasKey</code>.</p>
+<h3>Code examples</h3>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+public class Student
+{
+    [Key]
+    public string LastName { get; set; }   // Noncompliant
+    [Key]
+    public string FirstName { get; set; }
+    public DateTime EnrollmentDate { get; set; }
+}
+</code></pre>
+<h4>Compliant solution</h4>
+<p>Apply the <code>PrimaryKey</code> attribute to the entity class:</p>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+[PrimaryKey(nameof(LastName), nameof(FirstName))]
+public class Student
+{
+    public string LastName { get; set; }
+    public string FirstName { get; set; }
+    public DateTime EnrollmentDate { get; set; }
+}
+</code></pre>
+<p>Alternatively, configure the key with the Fluent API in <code>OnModelCreating</code>:</p>
+<pre tabindex="0"><code class="language-csharp">
+public class Student
+{
+    public string LastName { get; set; }
+    public string FirstName { get; set; }
+    public DateTime EnrollmentDate { get; set; }
+}
+
+public class SchoolContext : DbContext
+{
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity&lt;Student&gt;()
+            .HasKey(s =&gt; new { s.LastName, s.FirstName });
+    }
+}
+</code></pre>
+<h3>Going the extra mile</h3>
+<p>In larger projects, move each entity’s Fluent API configuration out of <code>OnModelCreating</code> into a dedicated class that implements EF
+Core’s <code>IEntityTypeConfiguration&lt;TEntity&gt;</code>. Its <code>Configure(EntityTypeBuilder&lt;TEntity&gt; builder)</code> method receives the
+same builder you would use inline, so the composite key is still declared with <code>builder.HasKey(…​)</code>; you then register the class with
+<code>modelBuilder.ApplyConfiguration(…​)</code> in <code>OnModelCreating</code>. This keeps the entity free of mapping concerns and gathers its
+configuration in one focused place.</p>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/ef/core/modeling/keys">Entity Framework Core - Keys</a></li>
+  <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/ef/core/modeling">Entity Framework Core - Modeling</a></li>
+  <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/ef/core/modeling/#grouping-configuration">Entity Framework Core - Grouping
+  configuration (IEntityTypeConfiguration)</a></li>
+  <li>Microsoft Learn - <a
+  href="https://learn.microsoft.com/en-us/dotnet/api/system.componentmodel.dataannotations.keyattribute?view=net-10.0">KeyAttribute</a></li>
+  <li>Microsoft Learn - <a
+  href="https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.primarykeyattribute">PrimaryKeyAttribute</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

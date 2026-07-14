@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S3655: Empty nullable value should not be accessed (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S3655 - Empty nullable value should not be accessed (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S3655 &mdash; Empty nullable value should not be accessed</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Bug</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+<div><dt>Tags</dt><dd>cwe, symbolic-execution</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p><a href="https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1">Nullable value types</a> can hold either a value or <code>null</code>.</p>
+<p>The value held in the nullable type can be accessed with the <code>Value</code> property or by casting it to the underlying type. Still, both
+operations throw an <code>InvalidOperationException</code> when the value is <code>null</code>. A nullable type should always be tested before
+accessing the value to avoid raising exceptions.</p>
+<h2>How to fix it</h2>
+<h3>Code examples</h3>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+void Sample(bool condition)
+{
+    int? nullableValue = condition ? 42 : null;
+    Console.WriteLine(nullableValue.Value); // Noncompliant: InvalidOperationException is raised
+
+    int? nullableCast = condition ? 42 : null;
+    Console.WriteLine((int)nullableCast);   // Noncompliant: InvalidOperationException is raised
+}
+</code></pre>
+<h4>Compliant solution</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+void Sample(bool condition)
+{
+    int? nullableValue = condition ? 42 : null;
+    if (nullableValue.HasValue)
+    {
+      Console.WriteLine(nullableValue.Value);
+    }
+
+    int? nullableCast = condition ? 42 : null;
+    if (nullableCast is not null)
+    {
+      Console.WriteLine((int)nullableCast);
+    }
+}
+</code></pre>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1">Nullable&lt;T&gt;</a></li>
+  <li>CWE - <a href="https://cwe.mitre.org/data/definitions/476">CWE-476 - NULL Pointer Dereference</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

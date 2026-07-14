@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S927: Parameter names should match base declaration (VB.NET) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S927 - Parameter names should match base declaration (VB.NET)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S927 &mdash; Parameter names should match base declaration</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>VB.NET</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
+<div><dt>Severity</dt><dd>Critical</dd></div>
+<div><dt>Tags</dt><dd>suspicious</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>Parameters are part of the <a href="https://en.wikipedia.org/wiki/Type_signature#Method_signature">method signature</a> and its identity.</p>
+<p>Implementing a method from an interface, a base class, or a partial method and changing one of its parameters' names will confuse and impact the
+method’s readability.</p>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-vbnet">
+Interface IBankAccount
+    Sub AddMoney(money As Integer)
+End Interface
+
+Class BankAccount
+    Implements IBankAccount
+
+    Private Sub AddMoney(amount As Integer) ' Noncompliant: parameter's name differs from base
+        ' ...
+    End Sub
+End Class
+</code></pre>
+<p>To avoid any ambiguity in the code, a parameter’s name should match the initial declaration, whether its initial declaration is from an interface,
+a base class, or a partial method.</p>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-vbnet">
+Interface IBankAccount
+    Sub AddMoney(money As Integer)
+End Interface
+
+Class BankAccount
+    Implements IBankAccount
+
+    Private Sub AddMoney(money As Integer) ' Compliant: parameter's name match base name
+        ' ...
+    End Sub
+End Class
+</code></pre>
+<h3>Exceptions</h3>
+<p>The rule is ignored if both the parameter defined in the initial decalaration is a generic type and the implementing member’s declaration is a
+non-generic type.</p>
+<p>This allows the implementing member to be more specific and provide more information.</p>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li><a href="https://en.wikipedia.org/wiki/Type_signature#Method_signature">Method signatures - Wiki</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S5042: Expanding archive files should not be done without controlling resource consumption (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S5042 - Expanding archive files should not be done without controlling resource consumption (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S5042 &mdash; Expanding archive files should not be done without controlling resource consumption</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+<div><dt>Tags</dt><dd>cwe, former-hotspot</dd></div>
+</dl>
+</header>
+<main>
+<p>This rule is deprecated, and will eventually be removed.</p>
+<p>Successful Zip Bomb attacks occur when an application expands untrusted archive files without controlling the size of the expanded data, which can
+lead to denial of service. A Zip bomb is usually a malicious archive file of a few kilobytes of compressed data but turned into gigabytes of
+uncompressed data. To achieve this extreme <a href="https://en.wikipedia.org/wiki/Data_compression_ratio">compression ratio</a>, attackers will
+compress irrelevant data (eg: a long string of repeated bytes).</p>
+<h2>Why is this an issue?</h2>
+<p>Expanding archive files without controlling the size of the extracted data can lead to denial of service. A Zip bomb is a malicious archive of a
+few kilobytes of compressed data that expands into gigabytes of uncompressed data by compressing highly repetitive content. Applications that fail to
+validate the number of entries, total uncompressed size, or compression ratio of an archive are vulnerable to this attack.</p>
+<h3>What is the potential impact?</h3>
+<h4>Denial of service</h4>
+<p>An attacker who can supply a malicious archive can exhaust the server’s disk space, memory, or CPU by triggering unbounded decompression. This can
+make the application completely unavailable to legitimate users and may require manual intervention to recover the affected system.</p>
+<h2>How to fix it in .NET</h2>
+<p>Validate the number of entries, total uncompressed size, and compression ratio when extracting archive files.</p>
+<h3>Code examples</h3>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+using var zipToOpen = new FileStream(@"ZipBomb.zip", FileMode.Open);
+using var archive = new ZipArchive(zipToOpen, ZipArchiveMode.Read);
+foreach (ZipArchiveEntry entry in archive.Entries)
+{
+  entry.ExtractToFile("./output_onlyfortesting.txt", true); // Noncompliant
+}
+</code></pre>
+<h4>Compliant solution</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+int THRESHOLD_ENTRIES = 10000;
+long THRESHOLD_SIZE = 1000000000L; // 1 GB
+double THRESHOLD_RATIO = 10;
+long totalSizeArchive = 0;
+int totalEntryArchive = 0;
+
+using var zipToOpen = new FileStream(@"ZipBomb.zip", FileMode.Open);
+using var archive = new ZipArchive(zipToOpen, ZipArchiveMode.Read);
+foreach (ZipArchiveEntry entry in archive.Entries)
+{
+  totalEntryArchive ++;
+
+  using (Stream st = entry.Open())
+  {
+    byte[] buffer = new byte[1024];
+    int totalSizeEntry = 0;
+    int numBytesRead = 0;
+
+    do
+    {
+      numBytesRead = st.Read(buffer, 0, 1024);
+      totalSizeEntry += numBytesRead;
+      totalSizeArchive += numBytesRead;
+      double compressionRatio = totalSizeEntry / entry.CompressedLength;
+
+      if(compressionRatio &gt; THRESHOLD_RATIO) {
+        // ratio between compressed and uncompressed data is highly suspicious, looks like a Zip Bomb Attack
+        break;
+      }
+    }
+    while (numBytesRead &gt; 0);
+  }
+
+  if(totalSizeArchive &gt; THRESHOLD_SIZE) {
+      // the uncompressed data size is too much for the application resource capacity
+      break;
+  }
+
+  if(totalEntryArchive &gt; THRESHOLD_ENTRIES) {
+      // too much entries in this archive, can lead to inodes exhaustion of the system
+      break;
+  }
+}
+</code></pre>
+<h2>Resources</h2>
+<h3>Articles &amp; blog posts</h3>
+<ul>
+  <li><a href="https://www.bamsoftware.com/hacks/zipbomb/">bamsoftware.com</a> - A better Zip Bomb</li>
+</ul>
+<h3>Standards</h3>
+<ul>
+  <li>OWASP - <a href="https://owasp.org/Top10/A01_2021-Broken_Access_Control/">Top 10 2021 Category A1 - Broken Access Control</a></li>
+  <li>OWASP - <a href="https://owasp.org/Top10/A05_2021-Security_Misconfiguration/">Top 10 2021 Category A5 - Security Misconfiguration</a></li>
+  <li>OWASP - <a href="https://owasp.org/www-project-top-ten/2017/A5_2017-Broken_Access_Control">Top 10 2017 Category A5 - Broken Access
+  Control</a></li>
+  <li>OWASP - <a href="https://owasp.org/www-project-top-ten/2017/A6_2017-Security_Misconfiguration">Top 10 2017 Category A6 - Security
+  Misconfiguration</a></li>
+  <li>CWE - <a href="https://cwe.mitre.org/data/definitions/409">CWE-409 - Improper Handling of Highly Compressed Data (Data Amplification)</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

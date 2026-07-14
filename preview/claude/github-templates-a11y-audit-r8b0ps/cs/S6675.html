@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S6675: &quot;Trace.WriteLineIf&quot; should not be used with &quot;TraceSwitch&quot; levels (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S6675 - &quot;Trace.WriteLineIf&quot; should not be used with &quot;TraceSwitch&quot; levels (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S6675 &mdash; &quot;Trace.WriteLineIf&quot; should not be used with &quot;TraceSwitch&quot; levels</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
+<div><dt>Severity</dt><dd>Minor</dd></div>
+<div><dt>Tags</dt><dd>confusing, clumsy, logging</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>The <a href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.trace.writelineif"><code>Trace.WriteLineIf</code> Method</a> from the
+<a href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.trace"><code>System.Diagnostic.Trace</code></a> facility writes a trace if
+the condition passed as the first parameter is <code>true</code>.</p>
+<p><a href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.traceswitch"><code>TraceSwitch</code></a> allows trace control via
+<code>bool</code> properties for each relevant <a
+href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.tracelevel"><code>TraceLevel</code></a>, such as <a
+href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.traceswitch.traceerror"><code>TraceSwitch.TraceError</code></a>.</p>
+<p>Using <code>Trace.WriteLineIf</code> with such properties should be avoided since it can lead to misinterpretation and produce confusion.</p>
+<p>In particular, <code>Trace.WriteLineIf</code> may appear as equivalent to the level-specific tracing methods provided by <code>Trace</code>, such
+as <a href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.trace.traceerror"><code>Trace.Error</code></a>, but it is not.</p>
+<p>The difference is that <code>Trace.WriteLineIf(switch.TraceError, …​)</code> conditionally writes the trace, based on the switch, whereas
+<code>Trace.TraceError</code> always writes the trace, no matter whether <code>switch.TraceError</code> is <code>true</code> or
+<code>false</code>.</p>
+<p>Moreover, unlike <code>Trace.TraceError</code>, <code>Trace.WriteLineIf(switch.TraceError, …​)</code> would behave like
+<code>Trace.WriteLine(…​)</code> when <code>switch.TraceError</code> is <code>true</code>, writing unfiltered to the underlying trace listeners and
+not categorizing the log entry by level, as described more in detail in {rule:csharpsquid:S6670}.</p>
+<h2>How to fix it</h2>
+<p>The fix depends on the intent behind the use of <a
+href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.traceswitch"><code>TraceSwitch</code></a> levels with <a
+href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.trace.writelineif"><code>Trace.WriteLineIf</code></a>.</p>
+<p>If it is <strong>trace categorization</strong>, level-specific tracing methods, such as <a
+href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.trace.traceerror"><code>Trace.TraceError</code></a> or <a
+href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.trace.tracewarning"><code>Trace.TraceWarning</code></a>, should be used
+instead.</p>
+<p>If it is <strong>trace filtering</strong>, <a
+href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.tracesource"><code>TraceSource</code></a> should be used instead.</p>
+<p>If it is <strong>log filtering</strong>, <code>Trace</code> should be replaced by logging APIs, such as the <a
+href="https://learn.microsoft.com/en-us/dotnet/core/diagnostics/logging-tracing#net-logging-apis"><code>ILogger</code> API</a>.</p>
+<p>Modern logging APIs are also more suitable than <code>Trace</code> when <a
+href="https://learn.microsoft.com/en-us/dotnet/core/extensions/high-performance-logging">high-performance logging</a> is required.</p>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.trace.writelineif"><code>Trace.WriteLineIf</code>
+  Method</a></li>
+  <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.traceswitch"><code>TraceSwitch</code></a></li>
+  <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.tracesource"><code>TraceSource</code></a></li>
+  <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.trace.writeline"><code>Trace.WriteLine</code>
+  Method</a></li>
+  <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/dotnet/core/extensions/high-performance-logging">High-performance logging in
+  .NET</a></li>
+</ul>
+<h3>Articles &amp; blog posts</h3>
+<ul>
+  <li>StackOverflow - <a href="https://stackoverflow.com/a/5118040">Difference between Trace.WriteLineIf and Trace.Error</a></li>
+  <li>StackOverflow - <a href="https://stackoverflow.com/a/3691841">Difference between TraceSwitch and SourceSwitch</a></li>
+  <li>InfoSupport Blogs - <a href="https://blogs.infosupport.com/please-be-careful-when-using-trace-writelineif/">Please be careful when using
+  Trace.WriteLineIf()</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

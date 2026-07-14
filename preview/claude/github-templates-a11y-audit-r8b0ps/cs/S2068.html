@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S2068: Credentials should not be hard-coded (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S2068 - Credentials should not be hard-coded (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S2068 &mdash; Credentials should not be hard-coded</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Vulnerability</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+<div><dt>Tags</dt><dd>cwe, former-hotspot, secret</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>Hard-coding credentials in source code or binaries makes it easy for attackers to extract sensitive information, especially in distributed or
+open-source applications. This practice exposes your application to significant security risks.</p>
+<p>This rule flags instances of hard-coded credentials used in database and LDAP connections. It looks for hard-coded credentials in connection
+strings, and for variable names that match any of the patterns from the provided list.</p>
+<p>In the past, it has led to the following vulnerabilities:</p>
+<ul>
+  <li><a href="https://www.cve.org/CVERecord?id=CVE-2019-13466">CVE-2019-13466</a></li>
+  <li><a href="https://www.cve.org/CVERecord?id=CVE-2018-15389">CVE-2018-15389</a></li>
+</ul>
+<h3>Exceptions</h3>
+<ul>
+  <li>Issue is not raised when URI username and password are the same.</li>
+  <li>Issue is not raised when searched pattern is found in variable name and value.</li>
+</ul>
+<h2>How to fix it</h2>
+<p>Credentials should be stored in a configuration file that is not committed to the code repository, in a database, or managed by your cloud
+provider’s secrets management service. If a password is exposed in the source code, it must be changed immediately.</p>
+<h3>Code Examples</h3>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+string username = "admin";
+string password = "Admin123"; // Noncompliant
+string usernamePassword  = "user=admin&amp;password=Admin123"; // Noncompliant
+string url = "scheme://user:Admin123@domain.com"; // Noncompliant
+</code></pre>
+<h4>Compliant solution</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+string username = "admin";
+string password = GetEncryptedPassword();
+string usernamePassword = string.Format("user={0}&amp;password={1}", GetEncryptedUsername(), GetEncryptedPassword());
+string url = $"scheme://{username}:{password}@domain.com";
+
+string url2 = "http://guest:guest@domain.com"; // Compliant
+const string Password_Property = "custom.password"; // Compliant
+</code></pre>
+<h2>Resources</h2>
+<ul>
+  <li>OWASP - <a href="https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/">Top 10 2021 Category A7 - Identification and
+  Authentication Failures</a></li>
+  <li>OWASP - <a href="https://owasp.org/www-project-top-ten/2017/A2_2017-Broken_Authentication">Top 10 2017 Category A2 - Broken
+  Authentication</a></li>
+  <li>CWE - <a href="https://cwe.mitre.org/data/definitions/798">CWE-798 - Use of Hard-coded Credentials</a></li>
+  <li>CWE - <a href="https://cwe.mitre.org/data/definitions/259">CWE-259 - Use of Hard-coded Password</a></li>
+  <li>Derived from FindSecBugs rule <a href="https://h3xstream.github.io/find-sec-bugs/bugs.htm#HARD_CODE_PASSWORD">Hard Coded Password</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

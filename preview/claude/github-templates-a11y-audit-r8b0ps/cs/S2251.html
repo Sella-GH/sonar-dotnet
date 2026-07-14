@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S2251: A &quot;for&quot; loop update clause should move the counter in the right direction (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S2251 - A &quot;for&quot; loop update clause should move the counter in the right direction (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S2251 &mdash; A &quot;for&quot; loop update clause should move the counter in the right direction</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Bug</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>A <code>for</code> loop with a counter that moves in the wrong direction, away from the stop condition, is not an infinite loop. Because of <a
+href="https://en.wikipedia.org/wiki/Integer_overflow#:~:text=The%20most%20common%20result%20of%20an%20overflow%20is%20that%20the%20least%20significant%20representable%20digits%20of%20the%20result%20are%20stored%3B%20the%20result%20is%20said%20to%20wrap%20around%20the%20maximum">wraparound</a>,
+the loop will eventually reach its stop condition, but in doing so, it will probably run more times than anticipated, potentially causing unexpected
+behavior.</p>
+<h2>How to fix it</h2>
+<p>If your <a
+href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/iteration-statements#the-for-statement:~:text=The%20condition%20section%20that%20determines%20if%20the%20next%20iteration%20in%20the%20loop%20should%20be%20executed">stop
+condition</a> indicates a <strong>maximum</strong> value, the <a
+href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/iteration-statements#the-for-statement:~:text=The%20iterator%20section%20that%20defines%20what%20happens%20after%20each%20execution%20of%20the%20body%20of%20the%20loop">iterator</a>
+should <strong>increase</strong> towards it. Conversely, if your stop condition indicates a <strong>minimum</strong> value, the iterator should
+<strong>decrease</strong> towards it.</p>
+<h3>Code examples</h3>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+for (int i = 0; i &lt; maximum; i--)  // Noncompliant: runs until it underflows to int.MaxValue
+{
+    // ...
+}
+
+for (int i = maximum; i &gt;= maximum; i++)  // Noncompliant: runs until it overflows to int.MinValue
+{
+    // ...
+}
+</code></pre>
+<h4>Compliant solution</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+for (int i = 0; i &lt; maximum; i++) // Compliant: Increment towards the maximum value
+{
+}
+
+for (int i = maximum; i &gt;= 0; i--) // Compliant: Decrement towards the minimum value
+{
+    // ...
+}
+</code></pre>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li><a href="https://en.wikipedia.org/wiki/Integer_overflow">Integer overflow</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/iteration-statements#the-for-statement">The
+  <code>for</code> statement</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

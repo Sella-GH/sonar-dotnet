@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S6608: Prefer indexing instead of &quot;Enumerable&quot; methods on types implementing &quot;IList&quot; (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S6608 - Prefer indexing instead of &quot;Enumerable&quot; methods on types implementing &quot;IList&quot; (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S6608 &mdash; Prefer indexing instead of &quot;Enumerable&quot; methods on types implementing &quot;IList&quot;</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
+<div><dt>Severity</dt><dd>Minor</dd></div>
+<div><dt>Tags</dt><dd>performance</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>Indexes in C# provide direct access to an element at a specific position within an array or collection. When compared to <code>Enumerable</code>
+methods, indexing can be more efficient for certain scenarios, such as iterating over a large collection, due to avoiding the overhead of checking the
+underlying collection type before accessing it.</p>
+<p>This applies to types that implement one of these interfaces:</p>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.collections.ilist">IList</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ilist-1">IList&lt;T&gt;</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1">IReadonlyList&lt;T&gt;</a></li>
+</ul>
+<h3>What is the potential impact?</h3>
+<p>We measured a significant improvement in execution time. For more details see the <code>Benchmarks</code> section from the <code>More info</code>
+tab.</p>
+<h2>How to fix it</h2>
+<p>If the type you are using implements <code>IList</code>, <code>IList&lt;T&gt;</code> or <code>IReadonlyList&lt;T&gt;</code>, it implements
+<code>this[int index]</code>. This means calls to <code>First</code>, <code>Last</code>, or <code>ElementAt(index)</code> can be replaced with
+indexing at <code>0</code>, <code>Count-1</code> and <code>index</code> respectively.</p>
+<h3>Code examples</h3>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+int GetAt(List&lt;int&gt; data, int index)
+    =&gt; data.ElementAt(index);
+</code></pre>
+<pre tabindex="0" data-diff-id="2" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+int GetFirst(List&lt;int&gt; data)
+    =&gt; data.First();
+</code></pre>
+<pre tabindex="0" data-diff-id="3" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+int GetLast(List&lt;int&gt; data)
+    =&gt; data.Last();
+</code></pre>
+<h4>Compliant solution</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+int GetAt(List&lt;int&gt; data, int index)
+    =&gt; data[index];
+</code></pre>
+<pre tabindex="0" data-diff-id="2" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+int GetFirst(List&lt;int&gt; data)
+    =&gt; data[0];
+</code></pre>
+<pre tabindex="0" data-diff-id="3" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+int GetLast(List&lt;int&gt; data)
+    =&gt; data[data.Count-1];
+</code></pre>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.collections.ilist.item">IList.Item[Int32]</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ilist-1.item">IList&lt;T&gt;.Item[Int32]</a></li>
+  <li><a
+  href="https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1.item">IReadonlyList&lt;T&gt;.Item[Int32]</a></li>
+</ul>
+<h3>Benchmarks</h3>
+<div class="table-scroll" role="region" aria-label="Scrollable table" tabindex="0"><table>
+  <colgroup>
+    <col style="width: 25%;">
+    <col style="width: 25%;">
+    <col style="width: 25%;">
+    <col style="width: 25%;">
+  </colgroup>
+  <thead>
+    <tr>
+      <th>Method</th>
+      <th>Runtime</th>
+      <th>Mean</th>
+      <th>Standard Deviation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <p>ElementAt</p>
+      </td>
+      <td>
+        <p>3,403.4 ns</p>
+      </td>
+      <td>
+        <p>28.52 ns</p>
+      </td>
+      <td>
+        <p>26.67 ns</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Index</p>
+      </td>
+      <td>
+        <p>478.0 ns</p>
+      </td>
+      <td>
+        <p>6.93 ns</p>
+      </td>
+      <td>
+        <p>6.48 ns</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>First</p>
+      </td>
+      <td>
+        <p>6,160.0 ns</p>
+      </td>
+      <td>
+        <p>57.66 ns</p>
+      </td>
+      <td>
+        <p>53.93 ns</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>First_Index</p>
+      </td>
+      <td>
+        <p>485.7 ns</p>
+      </td>
+      <td>
+        <p>5.81 ns</p>
+      </td>
+      <td>
+        <p>5.15 ns</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Last</p>
+      </td>
+      <td>
+        <p>6,034.3 ns</p>
+      </td>
+      <td>
+        <p>20.34 ns</p>
+      </td>
+      <td>
+        <p>16.98 ns</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Last_Index</p>
+      </td>
+      <td>
+        <p>408.3 ns</p>
+      </td>
+      <td>
+        <p>2.54 ns</p>
+      </td>
+      <td>
+        <p>2.38 ns</p>
+      </td>
+    </tr>
+  </tbody>
+</table></div>
+<h4>Glossary</h4>
+<ul>
+  <li><a href="https://en.wikipedia.org/wiki/Arithmetic_mean">Mean</a></li>
+  <li><a href="https://en.wikipedia.org/wiki/Standard_deviation">Standard Deviation</a></li>
+</ul>
+<p>The results were generated by running the following snippet with <a href="https://github.com/dotnet/BenchmarkDotNet">BenchmarkDotNet</a>:</p>
+<pre tabindex="0"><code class="language-csharp">
+private List&lt;byte&gt; data;
+private Random random;
+
+[Params(1_000_000)]
+public int SampleSize;
+
+[Params(1_000)]
+public int LoopSize;
+
+[GlobalSetup]
+public void Setup()
+{
+    random = new Random(42);
+
+    var bytes = new byte[SampleSize];
+    random.NextBytes(bytes);
+    data = bytes.ToList();
+}
+
+[Benchmark]
+public int ElementAt()
+{
+    int result = default;
+
+    for (var i = 0; i &lt; LoopSize; i++)
+    {
+        result = data.ElementAt(i);
+    }
+
+    return result;
+}
+
+[Benchmark]
+public int Index()
+{
+    int result = default;
+
+    for (var i = 0; i &lt; LoopSize; i++)
+    {
+        result = data[i];
+    }
+
+    return result;
+}
+
+[Benchmark]
+public int First()
+{
+    int result = default;
+
+    for (var i = 0; i &lt; LoopSize; i++)
+    {
+        result = data.First();
+    }
+
+    return result;
+}
+
+[Benchmark]
+public int First_Index()
+{
+    int result = default;
+
+    for (var i = 0; i &lt; LoopSize; i++)
+    {
+        result = data[0];
+    }
+
+    return result;
+}
+
+[Benchmark]
+public int Last()
+{
+    int result = default;
+
+    for (var i = 0; i &lt; LoopSize; i++)
+    {
+        result = data.Last();
+    }
+
+    return result;
+}
+
+[Benchmark]
+public int Last_Index()
+{
+    int result = default;
+
+    for (var i = 0; i &lt; LoopSize; i++)
+    {
+        result = data[data.Count - 1];
+    }
+
+    return result;
+}
+</code></pre>
+<p>Hardware configuration:</p>
+<pre tabindex="0"><code class="language-csharp">
+BenchmarkDotNet=v0.13.5, OS=Windows 10 (10.0.19045.4412/22H2/2022Update)
+11th Gen Intel Core i7-11850H 2.50GHz, 1 CPU, 16 logical and 8 physical cores
+.NET SDK=8.0.301
+  [Host]   : .NET 8.0.6 (8.0.624.26715), X64 RyuJIT AVX2
+  .NET 8.0 : .NET 8.0.6 (8.0.624.26715), X64 RyuJIT AVX2
+</code></pre>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

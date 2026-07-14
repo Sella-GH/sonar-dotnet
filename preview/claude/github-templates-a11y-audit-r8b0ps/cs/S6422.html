@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S6422: Calls to &quot;async&quot; methods should not be blocking in Azure Functions (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S6422 - Calls to &quot;async&quot; methods should not be blocking in Azure Functions (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S6422 &mdash; Calls to &quot;async&quot; methods should not be blocking in Azure Functions</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
+<div><dt>Severity</dt><dd>Blocker</dd></div>
+<div><dt>Tags</dt><dd>azure, async-await</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>Making <a href="https://en.wikipedia.org/wiki/Blocking_(computing)">blocking calls</a> to <code>async</code> methods transforms the code into a
+synchronous operation. Doing so inside an Azure Function can lead to thread pool exhaustion.</p>
+<p>Thread pool exhaustion refers to a situation where all available threads in a thread pool are occupied, and new tasks or work items cannot be
+scheduled for execution due to the lack of available threads. This can lead to delayed execution and degraded performance.</p>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+class RequestParser
+{
+	[FunctionName(nameof(ParseRequest))]
+	public static async Task&lt;IActionResult&gt; ParseRequest([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req)
+	{
+		// This can lead to thread exhaustion
+		string requestBody = new StreamReader(req.Body).ReadToEndAsync().Result;
+		// do stuff...
+	}
+}
+</code></pre>
+<p>Instead, <a href="https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/">asynchronous</a> mechanisms should be used:</p>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+class RequestParser
+{
+	[FunctionName(nameof(ParseRequest))]
+	public static async Task&lt;IActionResult&gt; ParseRequest([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req)
+	{
+		// Non-blocking, asynchronous operation
+		string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+		// do stuff...
+	}
+}
+</code></pre>
+<p>This applies to multiple methods that are available when working with tasks:</p>
+<div class="table-scroll" role="region" aria-label="Scrollable table" tabindex="0"><table>
+  <colgroup>
+    <col style="width: 33.3333%;">
+    <col style="width: 33.3333%;">
+    <col style="width: 33.3334%;">
+  </colgroup>
+  <thead>
+    <tr>
+      <th>Goal</th>
+      <th>Blocking</th>
+      <th>Asynchronous</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <p>Wait for the result of a task</p>
+      </td>
+      <td>
+        <p><code>Task.Wait</code>, <code>Task.Result</code> or <code>Task.GetAwaiter.GetResult</code></p>
+      </td>
+      <td>
+        <p><code>await</code></p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Wait for any of many task to complete</p>
+      </td>
+      <td>
+        <p><code>Task.WaitAny</code></p>
+      </td>
+      <td>
+        <p><code>await Task.WhenAny</code></p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Wait for all of many tasks to complete</p>
+      </td>
+      <td>
+        <p><code>Task.WaitAll</code></p>
+      </td>
+      <td>
+        <p><code>await Task.WhenAll</code></p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Wait a period of time</p>
+      </td>
+      <td>
+        <p><code>Thread.Sleep</code></p>
+      </td>
+      <td>
+        <p><code>await Task.Delay</code></p>
+      </td>
+    </tr>
+  </tbody>
+</table></div>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li>Microsoft Learn - <a
+  href="https://learn.microsoft.com/en-us/archive/msdn-magazine/2013/march/async-await-best-practices-in-asynchronous-programming">Async/Await - Best
+  Practices in Asynchronous Programming</a></li>
+  <li>Microsoft Learn - <a
+  href="https://learn.microsoft.com/en-us/azure/azure-functions/performance-reliability#use-async-code-but-avoid-blocking-calls">Improve the
+  performance and reliability of Azure Functions - Scalability best practices</a></li>
+  <li>Github - <a href="https://github.com/davidfowl/AspNetCoreDiagnosticScenarios/blob/master/AsyncGuidance.md">Async Guidance by David
+  Fowler</a></li>
+  <li>{rule:csharpsquid:S4462} - Calls to "async" methods should not be blocking (a more general version of this rule)</li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

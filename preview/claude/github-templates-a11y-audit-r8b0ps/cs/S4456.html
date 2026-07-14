@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S4456: Parameter validation in yielding methods should be wrapped (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S4456 - Parameter validation in yielding methods should be wrapped (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S4456 &mdash; Parameter validation in yielding methods should be wrapped</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+<div><dt>Tags</dt><dd>yield</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>Because of the way <code>yield</code> methods are rewritten by the compiler (they become lazily evaluated state machines) any exceptions thrown
+during the parameters check will happen only when the collection is iterated over. That could happen far away from the source of the buggy code.</p>
+<p>Therefore it is recommended to split the method into two: an outer method handling the validation (no longer lazy) and an inner (lazy) method to
+handle the iteration.</p>
+<p>This rule raises an issue when a method throws any exception derived from <code>ArgumentException</code> and contains the <code>yield</code>
+keyword.</p>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+public static IEnumerable&lt;TSource&gt; TakeWhile&lt;TSource&gt;(this IEnumerable&lt;TSource&gt; source, Func&lt;TSource, bool&gt; predicate) // Noncompliant
+{
+    if (source == null) { throw new ArgumentNullException(nameof(source)); }
+    if (predicate == null) { throw new ArgumentNullException(nameof(predicate)); }
+
+    foreach (var element in source)
+    {
+        if (!predicate(element)) { break; }
+        yield return element;
+    }
+}
+</code></pre>
+<pre tabindex="0" data-diff-id="2" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+public static async IAsyncEnumerable&lt;TSource&gt; TakeWhileAsync(this IEnumerable&lt;TSource&gt; source, Func&lt;TSource, bool&gt; predicate) // Noncompliant
+{
+    if (source == null) { throw new ArgumentNullException(nameof(source)); }
+    if (predicate == null) { throw new ArgumentNullException(nameof(predicate)); }
+
+    foreach (var element in source)
+    {
+        await Task.Delay(10);
+        if (!predicate(element)) { break; }
+        yield return element;
+    }
+}
+</code></pre>
+<h3>Compliant solution</h3>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+public static IEnumerable&lt;TSource&gt; TakeWhile&lt;TSource&gt;(this IEnumerable&lt;TSource&gt; source, Func&lt;TSource, bool&gt; predicate)
+{
+    if (source == null) { throw new ArgumentNullException(nameof(source)); }
+    if (predicate == null) { throw new ArgumentNullException(nameof(predicate)); }
+    return TakeWhileIterator&lt;TSource&gt;(source, predicate);
+}
+
+private static IEnumerable&lt;TSource&gt; TakeWhileIterator&lt;TSource&gt;(IEnumerable&lt;TSource&gt; source, Func&lt;TSource, bool&gt; predicate)
+{
+    foreach (TSource element in source)
+    {
+        if (!predicate(element)) break;
+        yield return element;
+    }
+}
+</code></pre>
+<pre tabindex="0" data-diff-id="2" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+public static IAsyncEnumerable&lt;TSource&gt; TakeWhileAsync(this IEnumerable&lt;TSource&gt; source, Func&lt;TSource, bool&gt; predicate)
+{
+    if (source == null) { throw new ArgumentNullException(nameof(source)); }
+    if (predicate == null) { throw new ArgumentNullException(nameof(predicate)); }
+
+    return TakeWhileAsyncIterator&lt;TSource&gt;(source, predicate);
+}
+
+private static async IAsyncEnumerable&lt;TSource&gt; TakeWhileAsyncIterator&lt;TSource&gt;(IEnumerable&lt;TSource&gt; source, Func&lt;TSource, bool&gt; predicate)
+{
+    foreach (TSource element in source)
+    {
+        await Task.Delay(10);
+        if (!predicate(element)) break;
+        yield return element;
+    }
+}
+</code></pre>
+<h2>Resources</h2>
+<h3>Related rules</h3>
+<ul>
+  <li>{rule:csharpsquid:S4457} - Parameter validation in <code>async</code>/<code>await</code> methods should be wrapped</li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S3875: &quot;operator==&quot; should not be overloaded on reference types (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S3875 - &quot;operator==&quot; should not be overloaded on reference types (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S3875 &mdash; &quot;operator==&quot; should not be overloaded on reference types</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
+<div><dt>Severity</dt><dd>Blocker</dd></div>
+<div><dt>Tags</dt><dd>pitfall</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>The use of <code>==</code> to compare two objects is expected to do a reference comparison. That is, it is expected to return <code>true</code> if
+and only if they are the same object instance. Overloading the operator to do anything else will inevitably lead to the introduction of bugs by
+callers.</p>
+<pre tabindex="0"><code class="language-csharp">
+public static bool operator ==(MyType x, MyType y) // Noncompliant: confusing for the caller
+{
+    // custom implementation
+}
+</code></pre>
+<p>On the other hand, overloading it to do exactly that is pointless; that’s what <code>==</code> does by default.</p>
+<pre tabindex="0"><code class="language-csharp">
+public static bool operator ==(MyType x, MyType y) // Noncompliant: redundant
+{
+    if (x == null)
+    {
+        return y == null;
+    }
+
+    return object.ReferenceEquals(x,y);
+}
+</code></pre>
+<h3>Exceptions</h3>
+<ul>
+  <li>Classes with overloaded <code>operator +</code> or <code>operator -</code> are ignored.</li>
+  <li>Classes that implement <code>IComparable&lt;T&gt;</code> or <code>IEquatable&lt;T&gt;</code> most probably behave as value-type objects and are
+  ignored.</li>
+</ul>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/reference-types">Reference types</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/equality-operators">Equality operators</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>

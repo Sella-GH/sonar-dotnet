@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="S2931: Classes with &quot;IDisposable&quot; members should implement &quot;IDisposable&quot; (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S2931 - Classes with &quot;IDisposable&quot; members should implement &quot;IDisposable&quot; (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<header>
+<h1>S2931 &mdash; Classes with &quot;IDisposable&quot; members should implement &quot;IDisposable&quot;</h1>
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Bug</dd></div>
+<div><dt>Severity</dt><dd>Blocker</dd></div>
+<div><dt>Tags</dt><dd>cwe, denial-of-service</dd></div>
+</dl>
+</header>
+<main>
+<h2>Why is this an issue?</h2>
+<p>An <code>IDisposable</code> object should be disposed (there are some rare exceptions where not disposing is fine, most notably <code>Task</code>).
+If a class has an <code>IDisposable</code> field, there can be two situations:</p>
+<ul>
+  <li>The class observes a field that is under the responsibility of another class.</li>
+  <li>The class owns the field, and is therefore responsible for calling <code>Dispose</code> on it.</li>
+</ul>
+<p>In the second case, the safest way for the class to ensure <code>Dispose</code> is called is to call it in its own <code>Dispose</code> function,
+and therefore to be itself <code>IDisposable</code>. A class is considered to own an <code>IDisposable</code> field resource if it created the object
+referenced by the field.</p>
+<h3>Noncompliant code example</h3>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+public class ResourceHolder   // Noncompliant; doesn't implement IDisposable
+{
+    private FileStream fs;  // This member is never Disposed
+    public void OpenResource(string path)
+    {
+        this.fs = new FileStream(path, FileMode.Open); // I create the FileStream, I'm owning it
+    }
+    public void CloseResource()
+    {
+        this.fs.Close();
+    }
+}
+</code></pre>
+<h3>Compliant solution</h3>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+public class ResourceHolder : IDisposable
+{
+    private FileStream fs;
+    public void OpenResource(string path)
+    {
+        this.fs = new FileStream(path, FileMode.Open); // I create the FileStream, I'm owning it
+    }
+    public void CloseResource()
+    {
+        this.fs.Close();
+    }
+    public void Dispose()
+    {
+        this.fs.Dispose();
+    }
+}
+</code></pre>
+<h2>Resources</h2>
+<ul>
+  <li>CWE - <a href="https://cwe.mitre.org/data/definitions/459">CWE-459 - Incomplete Cleanup</a></li>
+</ul>
+
+</main>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>
