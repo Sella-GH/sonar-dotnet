@@ -45,6 +45,21 @@ fi
 preview_dir="$cache_dir/preview"
 mkdir -p "$preview_dir"
 
+# Branch names are attacker-controlled (anyone who can push a branch) and git
+# refnames allow characters like & < > " that are unsafe to interpolate into
+# HTML unescaped, so every branch name is escaped before use below.
+html_escape() {
+  local s=$1
+  # & in the replacement of ${s//pat/repl} is a backreference to the match
+  # (as in sed), so it must be escaped as \& to produce a literal ampersand.
+  s=${s//&/\&amp;}
+  s=${s//</\&lt;}
+  s=${s//>/\&gt;}
+  s=${s//\"/\&quot;}
+  s=${s//\'/\&#39;}
+  printf '%s' "$s"
+}
+
 mapfile -t idx_files < <(find "$preview_dir" -mindepth 2 -name index.html | sort)
 branches=()
 for f in "${idx_files[@]}"; do
@@ -56,16 +71,23 @@ done
   echo '<!DOCTYPE html>'
   echo '<html lang="en">'
   echo '<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
-  echo '<title>RSpec preview branches</title></head>'
+  echo '<meta name="color-scheme" content="light dark">'
+  echo '<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">'
+  echo '<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">'
+  echo '<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='"'"'http://www.w3.org/2000/svg'"'"' viewBox='"'"'0 0 16 16'"'"'%3E%3Crect width='"'"'16'"'"' height='"'"'16'"'"' rx='"'"'3'"'"' fill='"'"'%23c0392b'"'"'/%3E%3Ctext x='"'"'8'"'"' y='"'"'12'"'"' font-size='"'"'10'"'"' font-weight='"'"'bold'"'"' text-anchor='"'"'middle'"'"' fill='"'"'%23ffffff'"'"'%3ES%3C/text%3E%3C/svg%3E">'
+  echo '<title>RSpec preview branches</title>'
+  echo '<link rel="stylesheet" href="../style.css">'
+  echo '</head>'
   echo '<body>'
-  echo '<p><a href="../index.html">&larr; Back to main site</a></p>'
+  echo '<p><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to main site</a></p>'
   echo '<h1>Active branch previews</h1>'
   if [ "${#branches[@]}" -eq 0 ]; then
     echo '<p>No active branch previews.</p>'
   else
     echo '<ul>'
     for branch in "${branches[@]}"; do
-      echo "<li><a href=\"$branch/\">$branch</a></li>"
+      esc_branch=$(html_escape "$branch")
+      echo "<li><a href=\"$esc_branch/\">$esc_branch</a></li>"
     done
     echo '</ul>'
   fi

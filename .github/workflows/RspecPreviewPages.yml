@@ -93,7 +93,7 @@ jobs:
               [ -f "$html_src" ] || continue
 
               esc_title=$(jq -r '.title // "" | @html' "$json")
-              esc_type=$(jq -r '.type // "" | @html' "$json")
+              esc_type=$(jq -r '(.type // "") | gsub("_"; " ") | ascii_downcase | (.[0:1] | ascii_upcase) + .[1:] | @html' "$json")
               esc_severity=$(jq -r '.defaultSeverity // "" | @html' "$json")
               esc_tags=$(jq -r '(.tags // []) | join(", ") | @html' "$json")
 
@@ -108,7 +108,9 @@ jobs:
                   ESC_SEVERITY="$esc_severity" ESC_TAGS_BLOCK="$esc_tags_block" \
                   envsubst '$BASE $ESC_TITLE $LABEL $ESC_TYPE $ESC_SEVERITY $ESC_TAGS_BLOCK' \
                   < "$TEMPLATES/rule-head.html"
-                sed -e 's|<table>|<div class="table-scroll" role="group" aria-label="Scrollable table" tabindex="0"><table>|g' \
+                sed -e 's|data-diff-type="noncompliant">|data-diff-type="noncompliant" aria-label="Noncompliant code example">|g' \
+                    -e 's|data-diff-type="compliant">|data-diff-type="compliant" aria-label="Compliant solution">|g' \
+                    -e 's|<table>|<div class="table-scroll" role="region" aria-label="Scrollable table" tabindex="0"><table>|g' \
                     -e 's|</table>|</table></div>|g' \
                     -e "s|<pre\([^>]*\)>|<pre tabindex=\"0\"\1><code class=\"language-$hl\">|g" \
                     -e 's|</pre>|</code></pre>|g' "$html_src"
