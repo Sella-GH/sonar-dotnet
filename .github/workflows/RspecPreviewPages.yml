@@ -7,19 +7,20 @@ on:
       - 'analyzers/rspec/cs/**'
       - 'analyzers/rspec/vbnet/**'
   workflow_dispatch:
+  delete:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
 concurrency:
-  group: pages-${{ github.ref }}
+  group: rspec-preview-pages
   cancel-in-progress: false
 
 jobs:
   build:
-    if: github.ref == 'refs/heads/master'
+    if: github.event_name != 'delete' && (github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -123,13 +124,50 @@ jobs:
 
           cat "$TEMPLATES/index-foot.html" >> "$INDEX"
 
+      - name: Update preview site cache
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.ref }}" = "refs/heads/master" ]; then
+            DEPLOY_SUBPATH=""
+          else
+            DEPLOY_SUBPATH="preview/${{ github.ref_name }}"
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          .github/scripts/rspec-preview-publish.sh _cache "$DEPLOY_SUBPATH" _site
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
-          path: _site
+          path: _cache
+
+  cleanup:
+    if: github.event_name == 'delete' && github.event.ref_type == 'branch' && github.event.ref != 'master'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+
+      - name: Remove branch preview from cache
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          .github/scripts/rspec-preview-publish.sh _cache "preview/${{ github.event.ref }}"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _cache
 
   deploy:
-    needs: build
+    needs: [build, cleanup]
+    if: always() && (needs.build.result == 'success' || needs.cleanup.result == 'success')
     runs-on: ubuntu-latest
     environment:
       name: github-pages
