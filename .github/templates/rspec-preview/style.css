@@ -9,7 +9,6 @@ h1 { margin: 0 0 0.25rem; }
 button#theme-toggle, button#to-top { display: inline-flex; align-items: center; justify-content: center; width: 2.25rem; height: 2.25rem; padding: 0; border-radius: 3px; border: 1px solid light-dark(#767676, #8b8e94); background: light-dark(#ffffff, #24272e); color: inherit; cursor: pointer; position: fixed; right: max(1rem, calc((100vw - 60rem) / 2)); z-index: 10; }
 button#theme-toggle { top: 1rem; }
 button#to-top { bottom: 1rem; }
-button#to-top[hidden] { display: none; }
 button#theme-toggle:hover, button#to-top:hover { background: light-dark(#f2f2f2, #2e323b); }
 button#theme-toggle svg, button#to-top svg { display: block; }
 label[for="filter"] { display: block; margin-top: 1rem; font-weight: 600; }

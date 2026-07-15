@@ -71,16 +71,6 @@
 
     var toTop = document.getElementById('to-top');
     if (toTop) {
-      var syncToTop = function () {
-        var show = window.scrollY > 400;
-        if (!show && document.activeElement === toTop) {
-          toTop.blur();
-        }
-        toTop.hidden = !show;
-      };
-      syncToTop();
-      window.addEventListener('scroll', syncToTop, { passive: true });
-
       toTop.addEventListener('click', function () {
         var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
         window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
