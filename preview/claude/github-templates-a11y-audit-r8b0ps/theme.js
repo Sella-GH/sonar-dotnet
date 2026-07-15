@@ -51,22 +51,40 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     var button = document.getElementById('theme-toggle');
-    if (!button) return;
+    if (button) {
+      var current = initialTheme;
 
-    var current = initialTheme;
-
-    function render() {
-      button.innerHTML = ICONS[current];
-      button.setAttribute('aria-label', 'Toggle color theme, currently ' + LABELS[current]);
-      button.setAttribute('title', 'Theme: ' + LABELS[current]);
-    }
-    render();
-
-    button.addEventListener('click', function () {
-      current = NEXT[current];
-      applyTheme(current);
-      writeStoredTheme(current);
+      var render = function () {
+        button.innerHTML = ICONS[current];
+        button.setAttribute('aria-label', 'Toggle color theme, currently ' + LABELS[current]);
+        button.setAttribute('title', 'Theme: ' + LABELS[current]);
+      };
       render();
-    });
+
+      button.addEventListener('click', function () {
+        current = NEXT[current];
+        applyTheme(current);
+        writeStoredTheme(current);
+        render();
+      });
+    }
+
+    var toTop = document.getElementById('to-top');
+    if (toTop) {
+      var syncToTop = function () {
+        var show = window.scrollY > 400;
+        if (!show && document.activeElement === toTop) {
+          toTop.blur();
+        }
+        toTop.hidden = !show;
+      };
+      syncToTop();
+      window.addEventListener('scroll', syncToTop, { passive: true });
+
+      toTop.addEventListener('click', function () {
+        var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+      });
+    }
   });
 })();
