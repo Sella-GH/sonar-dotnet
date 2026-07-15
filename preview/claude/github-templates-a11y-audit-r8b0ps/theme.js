@@ -71,15 +71,28 @@
 
     var toTop = document.getElementById('to-top');
     if (toTop) {
-      var syncToTop = function () {
-        var show = window.scrollY > 400;
+      var header = document.querySelector('header');
+
+      var setShown = function (show) {
         if (!show && document.activeElement === toTop) {
           toTop.blur();
         }
         toTop.hidden = !show;
       };
-      syncToTop();
-      window.addEventListener('scroll', syncToTop, { passive: true });
+
+      // Visible whenever the page is scrolled below the header.
+      if (header && 'IntersectionObserver' in window) {
+        new IntersectionObserver(function (entries) {
+          setShown(!entries[0].isIntersecting);
+        }).observe(header);
+      } else {
+        var syncToTop = function () {
+          var threshold = header ? header.offsetTop + header.offsetHeight : 200;
+          setShown(window.scrollY > threshold);
+        };
+        syncToTop();
+        window.addEventListener('scroll', syncToTop, { passive: true });
+      }
 
       toTop.addEventListener('click', function () {
         var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
