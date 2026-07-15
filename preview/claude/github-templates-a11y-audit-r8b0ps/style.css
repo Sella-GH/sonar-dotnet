@@ -1,18 +1,14 @@
 :root { color-scheme: light dark; }
 :root[data-theme="light"] { color-scheme: light; }
 :root[data-theme="dark"] { color-scheme: dark; }
-body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; max-width: 960px; margin: 2rem auto; padding: 0 max(1rem, env(safe-area-inset-right, 0px)) 0 max(1rem, env(safe-area-inset-left, 0px)); background: light-dark(#ffffff, #16181d); color: light-dark(#1b1b1b, #e4e4e4); line-height: 1.5; }
+body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; max-width: 960px; margin: 2rem auto; padding: 0 1rem; background: light-dark(#ffffff, #16181d); color: light-dark(#1b1b1b, #e4e4e4); line-height: 1.5; }
 h1 { margin: 0 0 0.25rem; }
 .brand { display: flex; align-items: center; gap: 0.5rem; min-width: 0; white-space: nowrap; }
 .brand .logo { flex-shrink: 0; }
 .header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: nowrap; padding-right: 3rem; }
-button#theme-toggle, button#to-top { display: inline-flex; align-items: center; justify-content: center; width: 2.25rem; height: 2.25rem; padding: 0; border-radius: 3px; border: 1px solid light-dark(#767676, #8b8e94); background: light-dark(#ffffff, #24272e); color: inherit; cursor: pointer; position: fixed; right: max(1rem, env(safe-area-inset-right, 0px), calc((100vw - 60rem) / 2)); z-index: 10; }
-button#theme-toggle { top: calc(1rem + env(safe-area-inset-top, 0px)); }
-/* safe-area-inset-bottom keeps the button above iOS Safari's floating
-   bottom address/tab bar, which overlays the page edge-to-edge and would
-   otherwise fully cover a button anchored 1rem from the layout viewport. */
-button#to-top { bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); }
-button#to-top[hidden] { display: none; }
+button#theme-toggle, button#to-top { display: inline-flex; align-items: center; justify-content: center; width: 2.25rem; height: 2.25rem; padding: 0; border-radius: 3px; border: 1px solid light-dark(#767676, #8b8e94); background: light-dark(#ffffff, #24272e); color: inherit; cursor: pointer; position: fixed; right: max(1rem, calc((100vw - 60rem) / 2)); z-index: 10; }
+button#theme-toggle { top: 1rem; }
+button#to-top { bottom: 1rem; }
 button#theme-toggle:hover, button#to-top:hover { background: light-dark(#f2f2f2, #2e323b); }
 button#theme-toggle svg, button#to-top svg { display: block; }
 label[for="filter"] { display: block; margin-top: 1rem; font-weight: 600; }
@@ -34,9 +30,6 @@ th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid ligh
   #rules th { position: static; }
   h1.brand { font-size: clamp(0.9rem, 4.6vw, 1.6rem); }
   .brand .logo { width: 22px; height: 22px; }
-  /* Extra base clearance so the button stays visible above mobile browser
-     bottom bars even in contexts where safe-area insets resolve to 0. */
-  button#to-top { bottom: calc(4rem + env(safe-area-inset-bottom, 0px)); }
 }
 tr:hover, tr:focus-within { background: light-dark(#f6f6f6, #22252c); }
 .lang { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 3px; font-size: 0.75rem; font-weight: 600; color: #1b1b1b; }
