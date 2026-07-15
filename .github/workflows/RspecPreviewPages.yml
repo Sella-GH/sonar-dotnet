@@ -224,6 +224,11 @@ jobs:
             exit 1
           }
 
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _cache
+
   cleanup:
     if: github.event_name == 'delete' && github.event.ref_type == 'branch' && github.event.ref != 'master'
     runs-on: ubuntu-latest
@@ -250,11 +255,6 @@ jobs:
             echo "::error::_cache/index.html is missing - gh-pages-data has no site root yet. Run this workflow on master (push or workflow_dispatch) at least once before relying on branch previews."
             exit 1
           }
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: _cache
 
   deploy:
     needs: [build, cleanup]
