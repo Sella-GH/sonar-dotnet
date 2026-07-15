@@ -19,51 +19,10 @@ namespace SonarAnalyzer.Core.Syntax.Extensions;
 
 public static class CountComparisonResultExtensions
 {
-    public static bool IsEmptyOrNotEmpty(this CountComparisonResult comparison) =>
-        comparison == CountComparisonResult.Empty || comparison == CountComparisonResult.NotEmpty;
-
-    public static bool IsInvalid(this CountComparisonResult comparison) =>
-        comparison == CountComparisonResult.AlwaysFalse || comparison == CountComparisonResult.AlwaysTrue;
-
-    public static CountComparisonResult Compare(this ComparisonKind comparison, int count) =>
-        comparison switch
-        {
-            ComparisonKind.Equals => Equals(count),
-            ComparisonKind.NotEquals => NotEquals(count),
-            ComparisonKind.GreaterThanOrEqual => GreaterThanOrEqual(count),
-            ComparisonKind.GreaterThan => GreaterThan(count),
-            ComparisonKind.LessThan => LessThan(count),
-            ComparisonKind.LessThanOrEqual => LessThanOrEqual(count),
-            _ => CountComparisonResult.None,
-        };
-
-    private static CountComparisonResult Equals(int count) =>
-        Check(count, 0, CountComparisonResult.AlwaysFalse, CountComparisonResult.Empty);
-
-    private static CountComparisonResult NotEquals(int count) =>
-        Check(count, 0, CountComparisonResult.AlwaysTrue, CountComparisonResult.NotEmpty);
-
-    private static CountComparisonResult GreaterThan(int count) =>
-        Check(count, 0, CountComparisonResult.AlwaysTrue, CountComparisonResult.NotEmpty);
-
-    private static CountComparisonResult GreaterThanOrEqual(int count) =>
-        Check(count, 1, CountComparisonResult.AlwaysTrue, CountComparisonResult.NotEmpty);
-
-    private static CountComparisonResult LessThan(int count) =>
-        Check(count, 1, CountComparisonResult.AlwaysFalse, CountComparisonResult.Empty);
-
-    private static CountComparisonResult LessThanOrEqual(int count) =>
-        Check(count, 0, CountComparisonResult.AlwaysFalse, CountComparisonResult.Empty);
-
-    private static CountComparisonResult Check(int count, int threshold, CountComparisonResult belowThreshold, CountComparisonResult onThreshold)
+    extension(CountComparisonResult comparison)
     {
-        if (count == threshold)
-        {
-            return onThreshold;
-        }
-        else
-        {
-            return count < threshold ? belowThreshold : CountComparisonResult.SizeDepedendent;
-        }
+        public bool IsEmptyOrNotEmpty => comparison is CountComparisonResult.Empty or CountComparisonResult.NotEmpty;
+
+        public bool IsInvalid => comparison is CountComparisonResult.AlwaysFalse or CountComparisonResult.AlwaysTrue;
     }
 }

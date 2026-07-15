@@ -19,33 +19,78 @@ namespace SonarAnalyzer.Core.Syntax.Extensions;
 
 public static class ComparisonKindExtensions
 {
-    public static ComparisonKind Mirror(this ComparisonKind comparison) =>
-        comparison switch
-        {
-            ComparisonKind.GreaterThan => ComparisonKind.LessThan,
-            ComparisonKind.GreaterThanOrEqual => ComparisonKind.LessThanOrEqual,
-            ComparisonKind.LessThan => ComparisonKind.GreaterThan,
-            ComparisonKind.LessThanOrEqual => ComparisonKind.GreaterThanOrEqual,
-            _ => comparison,
-        };
-
-    public static string ToDisplayString(this ComparisonKind kind, AnalyzerLanguage language)
+    extension(ComparisonKind comparison)
     {
-        if (language != AnalyzerLanguage.CSharp && language != AnalyzerLanguage.VisualBasic)
+        public ComparisonKind Mirror() =>
+            comparison switch
+            {
+                ComparisonKind.GreaterThan => ComparisonKind.LessThan,
+                ComparisonKind.GreaterThanOrEqual => ComparisonKind.LessThanOrEqual,
+                ComparisonKind.LessThan => ComparisonKind.GreaterThan,
+                ComparisonKind.LessThanOrEqual => ComparisonKind.GreaterThanOrEqual,
+                _ => comparison,
+            };
+
+        public string ToDisplayString(AnalyzerLanguage language)
         {
-            throw new NotSupportedException($"Language {language} is not supported.");
+            if (language != AnalyzerLanguage.CSharp && language != AnalyzerLanguage.VisualBasic)
+            {
+                throw new NotSupportedException($"Language {language} is not supported.");
+            }
+            return comparison switch
+            {
+                ComparisonKind.Equals when language == AnalyzerLanguage.CSharp => "==",
+                ComparisonKind.Equals => "=",
+                ComparisonKind.NotEquals when language == AnalyzerLanguage.CSharp => "!=",
+                ComparisonKind.NotEquals => "<>",
+                ComparisonKind.LessThan => "<",
+                ComparisonKind.LessThanOrEqual => "<=",
+                ComparisonKind.GreaterThan => ">",
+                ComparisonKind.GreaterThanOrEqual => ">=",
+                _ => throw new InvalidOperationException(),
+            };
         }
-        return kind switch
+
+        public CountComparisonResult Compare(int count) =>
+            comparison switch
+            {
+                ComparisonKind.Equals => Equals(count),
+                ComparisonKind.NotEquals => NotEquals(count),
+                ComparisonKind.GreaterThanOrEqual => GreaterThanOrEqual(count),
+                ComparisonKind.GreaterThan => GreaterThan(count),
+                ComparisonKind.LessThan => LessThan(count),
+                ComparisonKind.LessThanOrEqual => LessThanOrEqual(count),
+                _ => CountComparisonResult.None,
+            };
+    }
+
+    private static CountComparisonResult Equals(int count) =>
+        Check(count, 0, CountComparisonResult.AlwaysFalse, CountComparisonResult.Empty);
+
+    private static CountComparisonResult NotEquals(int count) =>
+        Check(count, 0, CountComparisonResult.AlwaysTrue, CountComparisonResult.NotEmpty);
+
+    private static CountComparisonResult GreaterThan(int count) =>
+        Check(count, 0, CountComparisonResult.AlwaysTrue, CountComparisonResult.NotEmpty);
+
+    private static CountComparisonResult GreaterThanOrEqual(int count) =>
+        Check(count, 1, CountComparisonResult.AlwaysTrue, CountComparisonResult.NotEmpty);
+
+    private static CountComparisonResult LessThan(int count) =>
+        Check(count, 1, CountComparisonResult.AlwaysFalse, CountComparisonResult.Empty);
+
+    private static CountComparisonResult LessThanOrEqual(int count) =>
+        Check(count, 0, CountComparisonResult.AlwaysFalse, CountComparisonResult.Empty);
+
+    private static CountComparisonResult Check(int count, int threshold, CountComparisonResult belowThreshold, CountComparisonResult onThreshold)
+    {
+        if (count == threshold)
         {
-            ComparisonKind.Equals when language == AnalyzerLanguage.CSharp => "==",
-            ComparisonKind.Equals => "=",
-            ComparisonKind.NotEquals when language == AnalyzerLanguage.CSharp => "!=",
-            ComparisonKind.NotEquals => "<>",
-            ComparisonKind.LessThan => "<",
-            ComparisonKind.LessThanOrEqual => "<=",
-            ComparisonKind.GreaterThan => ">",
-            ComparisonKind.GreaterThanOrEqual => ">=",
-            _ => throw new InvalidOperationException(),
-        };
+            return onThreshold;
+        }
+        else
+        {
+            return count < threshold ? belowThreshold : CountComparisonResult.SizeDepedendent;
+        }
     }
 }
