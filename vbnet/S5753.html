@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="S5753: ASP.NET Request Validation should not be disabled (VB.NET) - SonarAnalyzer rule specification.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
@@ -10,13 +11,15 @@
 <title>S5753 - ASP.NET Request Validation should not be disabled (VB.NET)</title>
 <link rel="stylesheet" href="../style.css">
 <link rel="stylesheet" href="../vendor/hljs.css">
+<script src="../theme.js"></script>
 </head><body>
-<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<nav aria-label="Breadcrumb"><a class="back" href="../"><span aria-hidden="true">&larr;</span> Back to index</a><button type="button" id="theme-toggle" aria-label="Toggle color theme, currently Auto" title="Theme: Auto"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="18" x2="12" y2="21"></line></svg></button></nav>
 <header>
 <h1>S5753 &mdash; ASP.NET Request Validation should not be disabled</h1>
+
 <dl class="meta">
 <div><dt>Language</dt><dd>VB.NET</dd></div>
-<div><dt>Type</dt><dd>VULNERABILITY</dd></div>
+<div><dt>Type</dt><dd>Vulnerability</dd></div>
 <div><dt>Severity</dt><dd>Major</dd></div>
 <div><dt>Tags</dt><dd>cwe, former-hotspot</dd></div>
 </dl>
@@ -26,7 +29,7 @@
 protection against Cross-Site Scripting (XSS) attacks.</p>
 <p>While this feature is not a silver bullet against all XSS attacks, it catches basic injection attempts and should not be disabled. Output encoding
 of user-supplied content remains necessary as a defense in depth.</p>
-<div class="table-scroll" role="group" aria-label="Scrollable table" tabindex="0"><table>
+<div class="table-scroll" role="region" aria-label="Scrollable table" tabindex="0"><table>
   <tbody>
     <tr>
       <td>Note</td>
@@ -48,14 +51,14 @@ actions on behalf of the victim.</p>
 <h3>Code examples</h3>
 <p>At Controller level:</p>
 <h4>Noncompliant code example</h4>
-<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant"><code class="language-vbnet">
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-vbnet">
 &lt;ValidateInput(False)&gt; ' Noncompliant
 Public Function Welcome(Name As String) As ActionResult
   ...
 End Function
 </code></pre>
 <h4>Compliant solution</h4>
-<pre tabindex="0" data-diff-id="1" data-diff-type="compliant"><code class="language-vbnet">
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-vbnet">
 &lt;ValidateInput(True)&gt;
 Public Function Welcome(Name As String) As ActionResult
   ...
@@ -63,7 +66,7 @@ End Function
 </code></pre>
 <p>At application level, configured in the Web.config file:</p>
 <h4>Noncompliant code example</h4>
-<pre tabindex="0" data-diff-id="2" data-diff-type="noncompliant"><code class="language-vbnet">
+<pre tabindex="0" data-diff-id="2" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-vbnet">
 &lt;configuration&gt;
    &lt;system.web&gt;
       &lt;pages validateRequest="false" /&gt; &lt;!-- Noncompliant --&gt;
@@ -73,7 +76,7 @@ End Function
 &lt;/configuration&gt;
 </code></pre>
 <h4>Compliant solution</h4>
-<pre tabindex="0" data-diff-id="2" data-diff-type="compliant"><code class="language-vbnet">
+<pre tabindex="0" data-diff-id="2" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-vbnet">
 &lt;configuration&gt;
    &lt;system.web&gt;
       &lt;pages validateRequest="true" /&gt;
@@ -104,6 +107,7 @@ End Function
 </ul>
 
 </main>
+<p class="to-top"><a href="#">&uarr; Back to top</a></p>
 <script src="../vendor/highlight.js"></script>
 <script>hljs.highlightAll();</script>
 </body></html>

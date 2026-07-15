@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="S4635: Start index should be used instead of calling Substring (C#) - SonarAnalyzer rule specification.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
@@ -10,13 +11,15 @@
 <title>S4635 - Start index should be used instead of calling Substring (C#)</title>
 <link rel="stylesheet" href="../style.css">
 <link rel="stylesheet" href="../vendor/hljs.css">
+<script src="../theme.js"></script>
 </head><body>
-<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<nav aria-label="Breadcrumb"><a class="back" href="../"><span aria-hidden="true">&larr;</span> Back to index</a><button type="button" id="theme-toggle" aria-label="Toggle color theme, currently Auto" title="Theme: Auto"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="18" x2="12" y2="21"></line></svg></button></nav>
 <header>
 <h1>S4635 &mdash; Start index should be used instead of calling Substring</h1>
+
 <dl class="meta">
 <div><dt>Language</dt><dd>C#</dd></div>
-<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
 <div><dt>Severity</dt><dd>Critical</dd></div>
 <div><dt>Tags</dt><dd>performance</dd></div>
 </dl>
@@ -24,7 +27,7 @@
 <main>
 <h2>Why is this an issue?</h2>
 <p>It is important to be careful when searching for characters within a substring. Let’s consider the following example:</p>
-<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant"><code class="language-csharp">
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
 if (str.SubString(startIndex).IndexOf(char1) == -1) // Noncompliant: a new string is going to be created by "Substring"
 {
    // ...
@@ -44,7 +47,7 @@ following methods, it creates a new object for one-time use only:</p>
 When using <code>Substring</code> repeatedly, such as in a loop, it can greatly impact the overall performance of the application or program.</p>
 <p>To mitigate the creation of new objects while searching for characters within a substring, it is possible to use an overload of the mentioned
 methods with a <code>startIndex</code> parameter:</p>
-<pre tabindex="0" data-diff-id="1" data-diff-type="compliant"><code class="language-csharp">
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
 if (str.IndexOf(char1, startIndex) == -1)           // Compliant: no new instance of string is created
 {
    // ...
@@ -61,7 +64,7 @@ if (str.IndexOf(char1, startIndex) == -1)           // Compliant: no new instanc
   <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.string.lastindexofany"><code>String.LastIndexOfAny</code> Method</a></li>
 </ul>
 <h3>Benchmarks</h3>
-<div class="table-scroll" role="group" aria-label="Scrollable table" tabindex="0"><table>
+<div class="table-scroll" role="region" aria-label="Scrollable table" tabindex="0"><table>
   <colgroup>
     <col style="width: 14.2857%;">
     <col style="width: 14.2857%;">
@@ -402,6 +405,7 @@ BenchmarkDotNet=v0.13.5, OS=Windows 10 (10.0.19045.2965/22H2/2022Update)
 </code></pre>
 
 </main>
+<p class="to-top"><a href="#">&uarr; Back to top</a></p>
 <script src="../vendor/highlight.js"></script>
 <script>hljs.highlightAll();</script>
 </body></html>

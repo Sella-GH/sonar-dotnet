@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="S5344: Passwords should not be stored in plaintext or with a fast hashing algorithm (C#) - SonarAnalyzer rule specification.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
@@ -10,13 +11,15 @@
 <title>S5344 - Passwords should not be stored in plaintext or with a fast hashing algorithm (C#)</title>
 <link rel="stylesheet" href="../style.css">
 <link rel="stylesheet" href="../vendor/hljs.css">
+<script src="../theme.js"></script>
 </head><body>
-<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<nav aria-label="Breadcrumb"><a class="back" href="../"><span aria-hidden="true">&larr;</span> Back to index</a><button type="button" id="theme-toggle" aria-label="Toggle color theme, currently Auto" title="Theme: Auto"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="18" x2="12" y2="21"></line></svg></button></nav>
 <header>
 <h1>S5344 &mdash; Passwords should not be stored in plaintext or with a fast hashing algorithm</h1>
+
 <dl class="meta">
 <div><dt>Language</dt><dd>C#</dd></div>
-<div><dt>Type</dt><dd>VULNERABILITY</dd></div>
+<div><dt>Type</dt><dd>Vulnerability</dd></div>
 <div><dt>Severity</dt><dd>Critical</dd></div>
 <div><dt>Tags</dt><dd>cwe, spring</dd></div>
 </dl>
@@ -47,7 +50,7 @@ penalties, and damage to the reputation of the software application and its deve
 <h3>Code examples</h3>
 <h4>Noncompliant code example</h4>
 <p>Using <code>Microsoft.AspNetCore.Cryptography.KeyDerivation</code>:</p>
-<pre tabindex="0" data-diff-id="101" data-diff-type="noncompliant"><code class="language-csharp">
+<pre tabindex="0" data-diff-id="101" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using System.Security.Cryptography;
 
@@ -62,7 +65,7 @@ string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
     numBytesRequested: 256 / 8));
 </code></pre>
 <p>Using <code>System.Security.Cryptography</code>:</p>
-<pre tabindex="0" data-diff-id="102" data-diff-type="noncompliant"><code class="language-csharp">
+<pre tabindex="0" data-diff-id="102" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
 using System.Security.Cryptography;
 
 string password = Request.Query["password"];
@@ -71,7 +74,7 @@ Rfc2898DeriveBytes kdf = new Rfc2898DeriveBytes(password, 128/8); // Noncomplian
 string hashed = Convert.ToBase64String(kdf.GetBytes(256 / 8));
 </code></pre>
 <p>Using <code>Microsoft.AspNetCore.Identity</code>:</p>
-<pre tabindex="0" data-diff-id="103" data-diff-type="noncompliant"><code class="language-csharp">
+<pre tabindex="0" data-diff-id="103" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 
@@ -84,7 +87,7 @@ string hash = hasher.HashPassword(new User("test"), password);
 </code></pre>
 <h4>Compliant solution</h4>
 <p>Using <code>Microsoft.AspNetCore.Cryptography.KeyDerivation</code>:</p>
-<pre tabindex="0" data-diff-id="101" data-diff-type="compliant"><code class="language-csharp">
+<pre tabindex="0" data-diff-id="101" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using System.Security.Cryptography;
 
@@ -99,7 +102,7 @@ string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
     numBytesRequested: 256 / 8));
 </code></pre>
 <p>Using <code>System.Security.Cryptography</code></p>
-<pre tabindex="0" data-diff-id="102" data-diff-type="compliant"><code class="language-csharp">
+<pre tabindex="0" data-diff-id="102" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
 using System.Security.Cryptography;
 
 string password = Request.Query["password"];
@@ -108,7 +111,7 @@ Rfc2898DeriveBytes kdf = new Rfc2898DeriveBytes(password, salt, 100_000, HashAlg
 string hashed = Convert.ToBase64String(kdf.GetBytes(256 / 8));
 </code></pre>
 <p>Using <code>Microsoft.AspNetCore.Identity</code>:</p>
-<pre tabindex="0" data-diff-id="103" data-diff-type="compliant"><code class="language-csharp">
+<pre tabindex="0" data-diff-id="103" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 
@@ -144,7 +147,7 @@ is added to a password before it is hashed.
 <h2>How to fix it in ASP.NET</h2>
 <h3>Code examples</h3>
 <h4>Noncompliant code example</h4>
-<pre tabindex="0" data-diff-id="201" data-diff-type="noncompliant"><code class="language-csharp">
+<pre tabindex="0" data-diff-id="201" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
 using System.Security.Cryptography;
 
 RNGCryptoServiceProvider rngCsp = new RNGCryptoServiceProvider();
@@ -162,7 +165,7 @@ PasswordHasher hasher = new PasswordHasher();
 string hash = hasher.HashPassword(password); // Noncompliant
 </code></pre>
 <h4>Compliant solution</h4>
-<pre tabindex="0" data-diff-id="201" data-diff-type="compliant"><code class="language-csharp">
+<pre tabindex="0" data-diff-id="201" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
 using System.Security.Cryptography;
 
 RNGCryptoServiceProvider rngCsp = new RNGCryptoServiceProvider();
@@ -200,7 +203,7 @@ is added to a password before it is hashed.
 <h3>Code examples</h3>
 <h4>Noncompliant code example</h4>
 <p>Using SCrypt:</p>
-<pre tabindex="0" data-diff-id="301" data-diff-type="noncompliant"><code class="language-csharp">
+<pre tabindex="0" data-diff-id="301" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
 using Org.BouncyCastle.Crypto.Generators;
 
 string password = Request.Query["password"];
@@ -209,7 +212,7 @@ byte[] salt = RandomNumberGenerator.GetBytes(128 / 8); // divide by 8 to convert
 string hashed = Convert.ToBase64String(SCrypt.Generate(Encoding.Unicode.GetBytes(password), salt, 4, 2, 1, 32));  // Noncompliant
 </code></pre>
 <p>Using BCrypt:</p>
-<pre tabindex="0" data-diff-id="302" data-diff-type="noncompliant"><code class="language-csharp">
+<pre tabindex="0" data-diff-id="302" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 
@@ -219,7 +222,7 @@ byte[] salt = RandomNumberGenerator.GetBytes(128 / 8);
 string hashed = OpenBsdBCrypt.Generate(password.ToCharArray(), salt, 4); // Noncompliant
 </code></pre>
 <p>Using PBKDF2:</p>
-<pre tabindex="0" data-diff-id="303" data-diff-type="noncompliant"><code class="language-csharp">
+<pre tabindex="0" data-diff-id="303" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using System.Security.Cryptography;
@@ -233,7 +236,7 @@ string hashed = Convert.ToBase64String(keyParam.GetKey());
 </code></pre>
 <h4>Compliant solution</h4>
 <p>Using SCrypt:</p>
-<pre tabindex="0" data-diff-id="301" data-diff-type="compliant"><code class="language-csharp">
+<pre tabindex="0" data-diff-id="301" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
 using Org.BouncyCastle.Crypto.Generators;
 
 string password = Request.Query["password"];
@@ -242,7 +245,7 @@ byte[] salt = RandomNumberGenerator.GetBytes(128 / 8); // divide by 8 to convert
 string hashed = Convert.ToBase64String(SCrypt.Generate(Encoding.Unicode.GetBytes(password), salt, 1&lt;&lt;12, 8, 1, 32));  // Noncompliant
 </code></pre>
 <p>Using BCrypt:</p>
-<pre tabindex="0" data-diff-id="302" data-diff-type="compliant"><code class="language-csharp">
+<pre tabindex="0" data-diff-id="302" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 
@@ -252,7 +255,7 @@ byte[] salt = RandomNumberGenerator.GetBytes(128 / 8);
 string hashed = OpenBsdBCrypt.Generate(password.ToCharArray(), salt, 14); // Noncompliant
 </code></pre>
 <p>Using PBKDF2:</p>
-<pre tabindex="0" data-diff-id="303" data-diff-type="compliant"><code class="language-csharp">
+<pre tabindex="0" data-diff-id="303" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using System.Security.Cryptography;
@@ -279,7 +282,7 @@ the block size and p is the parallelization factor.</p>
 <p>All three parameters affect the memory and CPU usage of the algorithm. Higher values of N, r and p result in safer hashes, but come at the cost of
 higher resource usage.</p>
 <p>For scrypt, OWASP recommends to have a hash length of at least 64 bytes, and to set N, p and r to the values of one of the following rows:</p>
-<div class="table-scroll" role="group" aria-label="Scrollable table" tabindex="0"><table>
+<div class="table-scroll" role="region" aria-label="Scrollable table" tabindex="0"><table>
   <colgroup>
     <col style="width: 33.3333%;">
     <col style="width: 33.3333%;">
@@ -395,6 +398,7 @@ is added to a password before it is hashed.
 </ul>
 
 </main>
+<p class="to-top"><a href="#">&uarr; Back to top</a></p>
 <script src="../vendor/highlight.js"></script>
 <script>hljs.highlightAll();</script>
 </body></html>

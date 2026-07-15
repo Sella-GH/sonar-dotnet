@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="S3433: Test method signatures should be correct (C#) - SonarAnalyzer rule specification.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
@@ -10,13 +11,15 @@
 <title>S3433 - Test method signatures should be correct (C#)</title>
 <link rel="stylesheet" href="../style.css">
 <link rel="stylesheet" href="../vendor/hljs.css">
+<script src="../theme.js"></script>
 </head><body>
-<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<nav aria-label="Breadcrumb"><a class="back" href="../"><span aria-hidden="true">&larr;</span> Back to index</a><button type="button" id="theme-toggle" aria-label="Toggle color theme, currently Auto" title="Theme: Auto"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="18" x2="12" y2="21"></line></svg></button></nav>
 <header>
 <h1>S3433 &mdash; Test method signatures should be correct</h1>
+
 <dl class="meta">
 <div><dt>Language</dt><dd>C#</dd></div>
-<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
 <div><dt>Severity</dt><dd>Blocker</dd></div>
 <div><dt>Tags</dt><dd>tests</dd></div>
 </dl>
@@ -32,7 +35,7 @@
 <p>However, non-<code>public</code> methods are not considered test methods and will not be executed, regardless of whether they have a test
 attribute. Additionally, methods with the <code>async void</code> modifier or methods that contain generics <code>&lt;T&gt;</code> anywhere in their
 signatures are also excluded from being recognized as tests and will not be executed.</p>
-<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant"><code class="language-csharp">
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
 [TestMethod]
 void TestNullArg()  // Noncompliant, method is not public
 {  /* ... */  }
@@ -45,7 +48,7 @@ public async void MyIgnoredTestMethod()  // Noncompliant, this is an 'async void
 public void MyIgnoredGenericTestMethod&lt;T&gt;(T foo)  // Noncompliant, method has generics in its signature
 { /* ... */ }
 </code></pre>
-<pre tabindex="0" data-diff-id="1" data-diff-type="compliant"><code class="language-csharp">
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
 [TestMethod]
 public void TestNullArg()
 {  /* ... */  }
@@ -72,6 +75,7 @@ declared as <code>public</code>.</p>
 </ul>
 
 </main>
+<p class="to-top"><a href="#">&uarr; Back to top</a></p>
 <script src="../vendor/highlight.js"></script>
 <script>hljs.highlightAll();</script>
 </body></html>

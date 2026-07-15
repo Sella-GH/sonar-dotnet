@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="S2068: Credentials should not be hard-coded (C#) - SonarAnalyzer rule specification.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
@@ -10,13 +11,15 @@
 <title>S2068 - Credentials should not be hard-coded (C#)</title>
 <link rel="stylesheet" href="../style.css">
 <link rel="stylesheet" href="../vendor/hljs.css">
+<script src="../theme.js"></script>
 </head><body>
-<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<nav aria-label="Breadcrumb"><a class="back" href="../"><span aria-hidden="true">&larr;</span> Back to index</a><button type="button" id="theme-toggle" aria-label="Toggle color theme, currently Auto" title="Theme: Auto"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="18" x2="12" y2="21"></line></svg></button></nav>
 <header>
 <h1>S2068 &mdash; Credentials should not be hard-coded</h1>
+
 <dl class="meta">
 <div><dt>Language</dt><dd>C#</dd></div>
-<div><dt>Type</dt><dd>VULNERABILITY</dd></div>
+<div><dt>Type</dt><dd>Vulnerability</dd></div>
 <div><dt>Severity</dt><dd>Major</dd></div>
 <div><dt>Tags</dt><dd>cwe, former-hotspot, secret</dd></div>
 </dl>
@@ -42,14 +45,14 @@ strings, and for variable names that match any of the patterns from the provided
 provider’s secrets management service. If a password is exposed in the source code, it must be changed immediately.</p>
 <h3>Code Examples</h3>
 <h4>Noncompliant code example</h4>
-<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant"><code class="language-csharp">
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
 string username = "admin";
 string password = "Admin123"; // Noncompliant
 string usernamePassword  = "user=admin&amp;password=Admin123"; // Noncompliant
 string url = "scheme://user:Admin123@domain.com"; // Noncompliant
 </code></pre>
 <h4>Compliant solution</h4>
-<pre tabindex="0" data-diff-id="1" data-diff-type="compliant"><code class="language-csharp">
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
 string username = "admin";
 string password = GetEncryptedPassword();
 string usernamePassword = string.Format("user={0}&amp;password={1}", GetEncryptedUsername(), GetEncryptedPassword());
@@ -70,6 +73,7 @@ const string Password_Property = "custom.password"; // Compliant
 </ul>
 
 </main>
+<p class="to-top"><a href="#">&uarr; Back to top</a></p>
 <script src="../vendor/highlight.js"></script>
 <script>hljs.highlightAll();</script>
 </body></html>

@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="S1643: Strings should not be concatenated using &quot;+&quot; or &quot;&amp;&quot; in a loop (VB.NET) - SonarAnalyzer rule specification.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
@@ -10,13 +11,15 @@
 <title>S1643 - Strings should not be concatenated using &quot;+&quot; or &quot;&amp;&quot; in a loop (VB.NET)</title>
 <link rel="stylesheet" href="../style.css">
 <link rel="stylesheet" href="../vendor/hljs.css">
+<script src="../theme.js"></script>
 </head><body>
-<nav aria-label="Breadcrumb"><a class="back" href="../index.html"><span aria-hidden="true">&larr;</span> Back to index</a></nav>
+<nav aria-label="Breadcrumb"><a class="back" href="../"><span aria-hidden="true">&larr;</span> Back to index</a><button type="button" id="theme-toggle" aria-label="Toggle color theme, currently Auto" title="Theme: Auto"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="18" x2="12" y2="21"></line></svg></button></nav>
 <header>
 <h1>S1643 &mdash; Strings should not be concatenated using &quot;+&quot; or &quot;&amp;&quot; in a loop</h1>
+
 <dl class="meta">
 <div><dt>Language</dt><dd>VB.NET</dd></div>
-<div><dt>Type</dt><dd>CODE_SMELL</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
 <div><dt>Severity</dt><dd>Minor</dd></div>
 <div><dt>Tags</dt><dd>performance</dd></div>
 </dl>
@@ -52,6 +55,7 @@ End Module
 </code></pre>
 
 </main>
+<p class="to-top"><a href="#">&uarr; Back to top</a></p>
 <script src="../vendor/highlight.js"></script>
 <script>hljs.highlightAll();</script>
 </body></html>
