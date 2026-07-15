@@ -70,7 +70,7 @@ done
 {
   echo '<!DOCTYPE html>'
   echo '<html lang="en">'
-  echo '<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
+  echo '<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">'
   echo '<meta name="color-scheme" content="light dark">'
   echo '<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">'
   echo '<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">'
