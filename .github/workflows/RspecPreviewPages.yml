@@ -224,11 +224,6 @@ jobs:
             exit 1
           }
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: _cache
-
   cleanup:
     if: github.event_name == 'delete' && github.event.ref_type == 'branch' && github.event.ref != 'master'
     runs-on: ubuntu-latest
