@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Rendered SonarAnalyzer rule specifications (RSPEC) for C# and VB.NET, generated for review.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
@@ -10,18 +10,31 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
 <title>SonarAnalyzer Rule Specs</title>
 <link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
 </head>
 <body>
 <header>
-<h1>SonarAnalyzer Rule Specs</h1>
-<p>Rule descriptions from <code>analyzers/rspec/cs</code> and <code>analyzers/rspec/vbnet</code>, rendered for review.</p>
-<p><a href="preview/">Branch previews &rarr;</a></p>
+<div class="header-row">
+<h1 class="brand"><svg class="logo" viewBox="0 0 16 16" width="28" height="28" aria-hidden="true"><rect width="16" height="16" rx="3" fill="#c0392b"></rect><text x="8" y="12" font-size="10" font-weight="bold" text-anchor="middle" fill="#ffffff">S</text></svg> SonarAnalyzer Rule Specs</h1>
+<button type="button" id="theme-toggle" aria-label="Toggle color theme, currently Auto" title="Theme: Auto"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="18" x2="12" y2="21"></line></svg></button>
+</div>
+$PREVIEW_BANNER
+<p class="tagline">A browsable, filterable reference of every rule specification (RSPEC) shipped with the SonarAnalyzer for .NET.</p>
+<p>Full description, code samples, type, severity and tags for each rule &mdash; generated from the <a href="$REPO_URL">sonar-dotnet repo</a>.</p>
+<ul class="chips">
+<li class="chip">$CS_COUNT C# rules</li>
+<li class="chip">$VBNET_COUNT VB.NET rules</li>
+<li class="chip">Syntax-highlighted examples</li>
+<li class="chip">Filter by id, title or tag</li>
+</ul>
+$BRANCH_PREVIEWS_LINK
 </header>
 <main>
-<search>
+<search role="search">
 <label for="filter">Filter rules</label>
 <input id="filter" type="search" placeholder="Rule id, title or tag &hellip;" autocomplete="off">
 <p id="filter-status" role="status"></p>
+<p id="rule-count"></p>
 </search>
 <section class="table-scroll" id="rules-scroll" aria-labelledby="rules-caption" tabindex="0">
 <table id="rules">

@@ -3,15 +3,24 @@
 </section>
 <p id="no-results" hidden>No rules match the current filter.</p>
 </main>
+<footer>
+<p>Last updated <time datetime="$BUILD_TIME_ISO">$BUILD_TIME_HUMAN</time></p>
+<p>Commit <a href="$COMMIT_URL"><code>$COMMIT_SHORT</code></a></p>
+<p>Made with &#10084;&#65039; by <a href="$REPO_URL">$REPO_NAME</a></p>
+</footer>
+<p class="to-top"><a href="#">&uarr; Back to top</a></p>
 <script>
   const filter = document.getElementById('filter');
   const status = document.getElementById('filter-status');
   const noResults = document.getElementById('no-results');
+  const ruleCount = document.getElementById('rule-count');
   const rows = Array.from(document.querySelectorAll('#rules tbody tr'));
   const haystack = rows.map(r => r.textContent.toLowerCase());
+  ruleCount.textContent = rows.length + ' rules total';
   let announceTimer;
-  filter.addEventListener('input', () => {
-    const q = filter.value.trim().toLowerCase();
+  let urlTimer;
+
+  function applyFilter(q) {
     let shown = 0;
     rows.forEach((r, i) => {
       const match = !q || haystack[i].includes(q);
@@ -21,9 +30,30 @@
     noResults.hidden = shown !== 0;
     clearTimeout(announceTimer);
     announceTimer = setTimeout(() => {
-      status.textContent = q ? shown + ' of ' + rows.length + ' rules shown' : '';
+      status.textContent = q ? shown + ' of ' + rows.length + ' rules shown' : 'Showing all ' + rows.length + ' rules';
+    }, 400);
+  }
+
+  filter.addEventListener('input', () => {
+    const q = filter.value.trim().toLowerCase();
+    applyFilter(q);
+    clearTimeout(urlTimer);
+    urlTimer = setTimeout(() => {
+      const url = new URL(location.href);
+      if (q) {
+        url.searchParams.set('q', filter.value.trim());
+      } else {
+        url.searchParams.delete('q');
+      }
+      history.replaceState(null, '', url);
     }, 400);
   });
+
+  const initialQ = new URL(location.href).searchParams.get('q');
+  if (initialQ) {
+    filter.value = initialQ;
+    applyFilter(initialQ.trim().toLowerCase());
+  }
 </script>
 </body>
 </html>
