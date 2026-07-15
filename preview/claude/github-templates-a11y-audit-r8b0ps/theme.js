@@ -68,13 +68,5 @@
         render();
       });
     }
-
-    var toTop = document.getElementById('to-top');
-    if (toTop) {
-      toTop.addEventListener('click', function () {
-        var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-        window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
-      });
-    }
   });
 })();
