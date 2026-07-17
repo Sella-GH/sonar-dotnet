@@ -8,6 +8,7 @@ on:
 permissions:
   contents: write
   issues: write
+  actions: write
 
 concurrency:
   group: sync-fork
@@ -21,7 +22,20 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Sync master with SonarSource/sonar-dotnet
-        run: gh repo sync ${{ github.repository }} --source SonarSource/sonar-dotnet --branch master
+        id: sync
+        run: |
+          before=$(gh api repos/${{ github.repository }}/git/ref/heads/master --jq .object.sha)
+          gh repo sync ${{ github.repository }} --source SonarSource/sonar-dotnet --branch master
+          after=$(gh api repos/${{ github.repository }}/git/ref/heads/master --jq .object.sha)
+          if [ "$before" != "$after" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Trigger Build workflow
+        if: steps.sync.outputs.changed == 'true'
+        run: gh workflow run RspecPreviewPages.yml --repo ${{ github.repository }} --ref master
 
       - name: Open issue on sync failure
         if: failure()
