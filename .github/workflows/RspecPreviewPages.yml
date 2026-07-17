@@ -8,10 +8,6 @@ on:
       - 'analyzers/rspec/vbnet/**'
   workflow_dispatch:
   delete:
-  workflow_run:
-    workflows: ["Sync fork with upstream"]
-    types: [completed]
-    branches: [master]
 
 permissions:
   contents: write
@@ -31,8 +27,7 @@ jobs:
       (
         github.event_name == 'workflow_dispatch' ||
         (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
-        (github.event_name == 'delete' && github.event.ref_type == 'branch' && github.event.ref != 'master') ||
-        (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+        (github.event_name == 'delete' && github.event.ref_type == 'branch' && github.event.ref != 'master')
       )
     runs-on: ubuntu-latest
     steps:
