@@ -37,7 +37,7 @@ public sealed partial class MemberInitializerRedundant : SonarDiagnosticAnalyzer
     public MemberInitializerRedundant() : this(AnalyzerConfiguration.AlwaysEnabled) { }
 
     internal MemberInitializerRedundant(IAnalyzerConfiguration configuration) =>
-        useSonarCfg = configuration.UseSonarCfg();
+        useSonarCfg = configuration.UseSonarCfg;
 
     protected override void Initialize(SonarAnalysisContext context) =>
         context.RegisterNodeAction(
@@ -104,7 +104,7 @@ public sealed partial class MemberInitializerRedundant : SonarDiagnosticAnalyzer
 
     private void CheckStaticMembers(SonarSyntaxNodeReportingContext c, TypeDeclarationSyntax declaration, IEnumerable<ISymbol> typeMembers)
     {
-        var typeInitializers = typeMembers.OfType<IMethodSymbol>().Where(x => x.MethodKind == MethodKind.StaticConstructor || x.IsModuleInitializer()).ToList();
+        var typeInitializers = typeMembers.OfType<IMethodSymbol>().Where(x => x is { MethodKind: MethodKind.StaticConstructor } or { IsModuleInitializer: true }).ToList();
         if (typeInitializers.Count == 0)
         {
             return;
@@ -180,7 +180,7 @@ public sealed partial class MemberInitializerRedundant : SonarDiagnosticAnalyzer
     private static IEnumerable<NodeSymbolAndModel<TSyntax, IMethodSymbol>> ConstructorDeclarations<TSyntax>(SonarSyntaxNodeReportingContext context, List<IMethodSymbol> constructorSymbols)
         where TSyntax : SyntaxNode =>
         constructorSymbols
-            .SelectMany(x => x.AllPartialParts())
+            .SelectMany(x => x.AllPartialParts)
             .OfType<IMethodSymbol>()
             .SelectMany(x => x.DeclaringSyntaxReferences.Select(r => r.GetSyntax()).OfType<TSyntax>().Select(syntax => AddModel(context, syntax, x)))
             .Where(x => x.Model is not null);

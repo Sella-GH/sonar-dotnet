@@ -142,7 +142,7 @@ namespace SonarAnalyzer.CSharp.Rules
         }
 
         private static bool IsCallingBase(IMethodSymbol methodSymbol) =>
-            methodSymbol.ImplementationSyntax() is { } methodDeclaration
+            methodSymbol.ImplementationSyntax is { } methodDeclaration
             && methodDeclaration.DescendantNodes()
                 .OfType<InvocationExpressionSyntax>()
                 .Select(x => x.Expression)
@@ -153,8 +153,7 @@ namespace SonarAnalyzer.CSharp.Rules
             constructorSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is ConstructorDeclarationSyntax { Initializer: { ThisOrBaseKeyword: { RawKind: (int)SyntaxKind.BaseKeyword } } };
 
         private static bool ImplementsISerializable(ITypeSymbol typeSymbol) =>
-            typeSymbol != null
-            && typeSymbol.IsPubliclyAccessible()
+            typeSymbol is { IsPubliclyAccessible: true }
             && typeSymbol.Implements(KnownType.System_Runtime_Serialization_ISerializable);
 
         private static bool OptsInForSerialization(INamedTypeSymbol typeSymbol) =>

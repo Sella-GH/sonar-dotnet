@@ -134,7 +134,7 @@ namespace SonarAnalyzer.CSharp.Rules
                         if (declarator.Initializer != null
                             && !IsAllowedInitializationValue(declarator.Initializer.Value)
                             && !symbol.IsConst
-                            && symbol.RefKind() == RefKind.None
+                            && symbol.RefKind == RefKind.None
                             && !liveOut.Contains(symbol)
                             && !IsUnusedLocal(symbol)
                             && !IsMuted(declarator, symbol))
@@ -198,7 +198,7 @@ namespace SonarAnalyzer.CSharp.Rules
 
                 private static Location GetFirstLineLocationFromToken(SyntaxToken issueStartToken, SyntaxNode wholeIssue)
                 {
-                    var line = wholeIssue.SyntaxTree.GetText().Lines[issueStartToken.GetLocation().StartLine()];
+                    var line = wholeIssue.SyntaxTree.GetText().Lines[issueStartToken.GetLocation().StartLine];
                     var rightSingleLine = line.Span.Intersection(TextSpan.FromBounds(issueStartToken.SpanStart, wholeIssue.Span.End));
                     return Location.Create(wholeIssue.SyntaxTree, TextSpan.FromBounds(issueStartToken.SpanStart, rightSingleLine.HasValue ? rightSingleLine.Value.End : issueStartToken.Span.End));
                 }

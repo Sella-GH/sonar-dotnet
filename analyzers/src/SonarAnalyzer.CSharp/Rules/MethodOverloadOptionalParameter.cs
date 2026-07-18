@@ -50,7 +50,7 @@ namespace SonarAnalyzer.CSharp.Rules
         private static void ReportIssue(SonarSymbolReportingContext c, ParameterHidingMethodInfo hidingInfo)
         {
             var syntax = hidingInfo.ParameterToReportOn.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
-            if (syntax == null || hidingInfo.HidingMethod.ImplementationSyntax() is not { } hidingMethodSyntax)
+            if (syntax == null || hidingInfo.HidingMethod.ImplementationSyntax is not { } hidingMethodSyntax)
             {
                 return;
             }
@@ -129,7 +129,7 @@ namespace SonarAnalyzer.CSharp.Rules
 
         private static bool ShouldSkip(IMethodSymbol methodSymbol) =>
             methodSymbol.InterfaceMembers().Any()
-            || methodSymbol.GetOverriddenMember() is not null
+            || methodSymbol.OverriddenMember is not null
             || !methodSymbol.Parameters.Any(p => p.IsOptional);
 
         private sealed class ParameterHidingMethodInfo
