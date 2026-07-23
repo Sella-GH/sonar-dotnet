@@ -3,25 +3,25 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="S8969: Redundant null-forgiving operators should be removed (C#) - SonarAnalyzer rule specification.">
+<meta name="description" content="S8969: Null-forgiving operators should not be redundant (C#) - SonarAnalyzer rule specification.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
-<title>S8969 - Redundant null-forgiving operators should be removed (C#)</title>
+<title>S8969 - Null-forgiving operators should not be redundant (C#)</title>
 <link rel="stylesheet" href="../style.css">
 <link rel="stylesheet" href="../vendor/hljs.css">
 <script src="../theme.js"></script>
 </head><body>
 <nav aria-label="Breadcrumb"><a class="back" href="../"><span aria-hidden="true">&larr;</span> Back to index</a><button type="button" id="theme-toggle" aria-label="Toggle color theme, currently Auto" title="Theme: Auto"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="18" x2="12" y2="21"></line></svg></button></nav>
 <header>
-<h1>S8969 &mdash; Redundant null-forgiving operators should be removed</h1>
+<h1>S8969 &mdash; Null-forgiving operators should not be redundant</h1>
 
 <dl class="meta">
 <div><dt>Language</dt><dd>C#</dd></div>
 <div><dt>Type</dt><dd>Code smell</dd></div>
 <div><dt>Severity</dt><dd>Minor</dd></div>
-
+<div><dt>Tags</dt><dd>redundant</dd></div>
 </dl>
 </header>
 <main>
@@ -75,20 +75,16 @@ void M(string? a)
     }
 }
 </code></pre>
-<h3>Pitfalls</h3>
-<p>This rule only removes operators that are provably redundant according to the compiler’s own nullable flow analysis at the exact point of the
-<code>!</code>. It does not flag:</p>
-<ul>
-  <li>Null-forgiving operators used where the nullable annotation context is disabled altogether. In that case the compiler is not tracking
-  nullability at all, so this rule cannot tell whether the operator is needed; a separate, narrower rule covers that case.</li>
-  <li>Suppressions on unconstrained generic type parameters or other expressions the compiler still considers possibly null.</li>
-</ul>
 <h2>Resources</h2>
 <h3>Documentation</h3>
 <ul>
   <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/null-forgiving">! (null-forgiving)
   operator</a></li>
   <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/dotnet/csharp/nullable-references">Nullable reference types</a></li>
+</ul>
+<h3>Related rules</h3>
+<ul>
+  <li>{rule:csharpsquid:S8970} - Null-forgiving operators should not be used when nullable warnings are disabled</li>
 </ul>
 
 </main>

@@ -58,7 +58,7 @@
 <tr><td><code>S110</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S110.html">Inheritance tree of classes should not be too deep</a></td><td>Code smell</td><td>Major</td><td></td></tr>
 <tr><td><code>S1104</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S1104.html">Fields should not have public accessibility</a></td><td>Code smell</td><td>Minor</td><td>cwe</td></tr>
 <tr><td><code>S1109</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S1109.html">A close curly brace should be located at the beginning of a line</a></td><td>Code smell</td><td>Minor</td><td>convention</td></tr>
-<tr><td><code>S1110</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S1110.html">Unnecessary parentheses should be removed</a></td><td>Code smell</td><td>Minor</td><td>redundant, readability</td></tr>
+<tr><td><code>S1110</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S1110.html">Redundant pairs of parentheses should be removed</a></td><td>Code smell</td><td>Major</td><td>confusing</td></tr>
 <tr><td><code>S1116</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S1116.html">Empty statements should be removed</a></td><td>Code smell</td><td>Minor</td><td>unused</td></tr>
 <tr><td><code>S1117</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S1117.html">Local variables should not shadow class fields or properties</a></td><td>Code smell</td><td>Major</td><td>suspicious, pitfall</td></tr>
 <tr><td><code>S1118</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S1118.html">Utility classes should not have public constructors</a></td><td>Code smell</td><td>Major</td><td>design</td></tr>
@@ -440,7 +440,7 @@
 <tr><td><code>S5856</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S5856.html">Regular expressions should be syntactically valid</a></td><td>Bug</td><td>Critical</td><td>regex</td></tr>
 <tr><td><code>S6354</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S6354.html">Use a testable date/time provider</a></td><td>Code smell</td><td>Major</td><td></td></tr>
 <tr><td><code>S6377</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S6377.html">XML signatures should be validated securely</a></td><td>Vulnerability</td><td>Major</td><td></td></tr>
-<tr><td><code>S6418</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S6418.html">Secrets should not be hard-coded</a></td><td>Vulnerability</td><td>Blocker</td><td>cwe, former-hotspot</td></tr>
+<tr><td><code>S6418</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S6418.html">Secrets should not be hard-coded</a></td><td>Vulnerability</td><td>Blocker</td><td>cwe, former-hotspot, secret</td></tr>
 <tr><td><code>S6419</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S6419.html">Azure Functions should be stateless</a></td><td>Code smell</td><td>Major</td><td>azure, bad-practice</td></tr>
 <tr><td><code>S6420</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S6420.html">Client instances should not be recreated on each Azure Function invocation</a></td><td>Code smell</td><td>Major</td><td>azure, bad-practice, design</td></tr>
 <tr><td><code>S6421</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S6421.html">Azure Functions should use Structured Error Handling</a></td><td>Code smell</td><td>Major</td><td>azure, error-handling</td></tr>
@@ -481,7 +481,7 @@
 <tr><td><code>S6675</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S6675.html">&quot;Trace.WriteLineIf&quot; should not be used with &quot;TraceSwitch&quot; levels</a></td><td>Code smell</td><td>Minor</td><td>confusing, clumsy, logging</td></tr>
 <tr><td><code>S6677</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S6677.html">Message template placeholders should be unique</a></td><td>Bug</td><td>Major</td><td>logging</td></tr>
 <tr><td><code>S6678</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S6678.html">Use PascalCase for named placeholders</a></td><td>Code smell</td><td>Minor</td><td>logging</td></tr>
-<tr><td><code>S6781</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S6781.html">JWT secret keys should not be disclosed</a></td><td>Vulnerability</td><td>Blocker</td><td>cwe, symbolic-execution</td></tr>
+<tr><td><code>S6781</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S6781.html">JWT secret keys should not be disclosed</a></td><td>Vulnerability</td><td>Blocker</td><td>cwe, secret, symbolic-execution</td></tr>
 <tr><td><code>S6797</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S6797.html">Blazor query parameter type should be supported</a></td><td>Bug</td><td>Major</td><td>blazor</td></tr>
 <tr><td><code>S6798</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S6798.html">[JSInvokable] attribute should only be used on public methods</a></td><td>Bug</td><td>Major</td><td>blazor</td></tr>
 <tr><td><code>S6800</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S6800.html">Component parameter type should match the route parameter type constraint</a></td><td>Bug</td><td>Major</td><td>blazor</td></tr>
@@ -512,8 +512,8 @@
 <tr><td><code>S8747</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S8747.html">Migrations should not narrow column types without converting existing data</a></td><td>Bug</td><td>Major</td><td>entity-framework-core, entity-framework, orm, database, migration</td></tr>
 <tr><td><code>S881</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S881.html">Increment (++) and decrement (--) operators should not be used in a method call or mixed with other operators in an expression</a></td><td>Code smell</td><td>Major</td><td></td></tr>
 <tr><td><code>S8949</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S8949.html">The overload accepting a &apos;CancellationToken&apos; should be used</a></td><td>Bug</td><td>Major</td><td>async, concurrency, performance</td></tr>
-<tr><td><code>S8969</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S8969.html">Redundant null-forgiving operators should be removed</a></td><td>Code smell</td><td>Minor</td><td></td></tr>
-<tr><td><code>S8970</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S8970.html">The null-forgiving operator should not be used when nullable warnings are disabled</a></td><td>Code smell</td><td>Minor</td><td>redundant</td></tr>
+<tr><td><code>S8969</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S8969.html">Null-forgiving operators should not be redundant</a></td><td>Code smell</td><td>Minor</td><td>redundant</td></tr>
+<tr><td><code>S8970</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S8970.html">Null-forgiving operators should not be used when nullable warnings are disabled</a></td><td>Code smell</td><td>Minor</td><td>redundant</td></tr>
 <tr><td><code>S907</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S907.html">&quot;goto&quot; statement should not be used</a></td><td>Code smell</td><td>Major</td><td>brain-overload</td></tr>
 <tr><td><code>S927</code></td><td><span class="lang lang-cs">C#</span></td><td><a href="cs/S927.html">Parameter names should match base declaration and other partial definitions</a></td><td>Code smell</td><td>Critical</td><td>suspicious</td></tr>
 <tr><td><code>S101</code></td><td><span class="lang lang-vbnet">VB.NET</span></td><td><a href="vbnet/S101.html">Class names should comply with a naming convention</a></td><td>Code smell</td><td>Minor</td><td>convention</td></tr>
@@ -526,7 +526,7 @@
 <tr><td><code>S107</code></td><td><span class="lang lang-vbnet">VB.NET</span></td><td><a href="vbnet/S107.html">Procedures should not have too many parameters</a></td><td>Code smell</td><td>Major</td><td>brain-overload</td></tr>
 <tr><td><code>S1075</code></td><td><span class="lang lang-vbnet">VB.NET</span></td><td><a href="vbnet/S1075.html">URIs should not be hardcoded</a></td><td>Code smell</td><td>Minor</td><td></td></tr>
 <tr><td><code>S108</code></td><td><span class="lang lang-vbnet">VB.NET</span></td><td><a href="vbnet/S108.html">Nested blocks of code should not be left empty</a></td><td>Code smell</td><td>Major</td><td>suspicious</td></tr>
-<tr><td><code>S1110</code></td><td><span class="lang lang-vbnet">VB.NET</span></td><td><a href="vbnet/S1110.html">Unnecessary parentheses should be removed</a></td><td>Code smell</td><td>Minor</td><td>redundant, readability</td></tr>
+<tr><td><code>S1110</code></td><td><span class="lang lang-vbnet">VB.NET</span></td><td><a href="vbnet/S1110.html">Redundant pairs of parentheses should be removed</a></td><td>Code smell</td><td>Major</td><td>confusing</td></tr>
 <tr><td><code>S112</code></td><td><span class="lang lang-vbnet">VB.NET</span></td><td><a href="vbnet/S112.html">General or reserved exceptions should never be thrown</a></td><td>Code smell</td><td>Major</td><td>cwe, error-handling</td></tr>
 <tr><td><code>S1123</code></td><td><span class="lang lang-vbnet">VB.NET</span></td><td><a href="vbnet/S1123.html">&quot;Obsolete&quot; attributes should include explanations</a></td><td>Code smell</td><td>Major</td><td>obsolete, bad-practice</td></tr>
 <tr><td><code>S1125</code></td><td><span class="lang lang-vbnet">VB.NET</span></td><td><a href="vbnet/S1125.html">Boolean literals should not be redundant</a></td><td>Code smell</td><td>Minor</td><td>clumsy</td></tr>
@@ -700,7 +700,7 @@
 <tr><td><code>S6145</code></td><td><span class="lang lang-vbnet">VB.NET</span></td><td><a href="vbnet/S6145.html">&quot;Option Strict&quot; should be enabled</a></td><td>Code smell</td><td>Major</td><td>bad-practice</td></tr>
 <tr><td><code>S6146</code></td><td><span class="lang lang-vbnet">VB.NET</span></td><td><a href="vbnet/S6146.html">&quot;Option Explicit&quot; should be enabled</a></td><td>Code smell</td><td>Critical</td><td>bad-practice</td></tr>
 <tr><td><code>S6354</code></td><td><span class="lang lang-vbnet">VB.NET</span></td><td><a href="vbnet/S6354.html">Use a testable date/time provider</a></td><td>Code smell</td><td>Major</td><td></td></tr>
-<tr><td><code>S6418</code></td><td><span class="lang lang-vbnet">VB.NET</span></td><td><a href="vbnet/S6418.html">Secrets should not be hard-coded</a></td><td>Vulnerability</td><td>Blocker</td><td>cwe, former-hotspot</td></tr>
+<tr><td><code>S6418</code></td><td><span class="lang lang-vbnet">VB.NET</span></td><td><a href="vbnet/S6418.html">Secrets should not be hard-coded</a></td><td>Vulnerability</td><td>Blocker</td><td>cwe, former-hotspot, secret</td></tr>
 <tr><td><code>S6444</code></td><td><span class="lang lang-vbnet">VB.NET</span></td><td><a href="vbnet/S6444.html">Regular expressions should be executed with a timeout</a></td><td>Vulnerability</td><td>Minor</td><td>cwe, regex, former-hotspot</td></tr>
 <tr><td><code>S6513</code></td><td><span class="lang lang-vbnet">VB.NET</span></td><td><a href="vbnet/S6513.html">&quot;ExcludeFromCodeCoverage&quot; attributes should include a justification</a></td><td>Code smell</td><td>Minor</td><td>bad-practice</td></tr>
 <tr><td><code>S6561</code></td><td><span class="lang lang-vbnet">VB.NET</span></td><td><a href="vbnet/S6561.html">Avoid using &quot;DateTime.Now&quot; for benchmarking or timing operations</a></td><td>Code smell</td><td>Major</td><td></td></tr>
@@ -734,8 +734,8 @@
 <p id="no-results" hidden>No rules match the current filter.</p>
 </main>
 <footer>
-<p>Last updated <time datetime="2026-07-22T01:41:23Z">22 Jul 2026, 01:41 UTC</time></p>
-<p>Commit <a href="https://github.com/Sella-GH/sonar-dotnet/commit/36c94f2e091dde094032ad53970027f66ce4f294"><code>36c94f2</code></a></p>
+<p>Last updated <time datetime="2026-07-23T01:42:13Z">23 Jul 2026, 01:42 UTC</time></p>
+<p>Commit <a href="https://github.com/Sella-GH/sonar-dotnet/commit/d794e283079b930353f48578dc97f7ff22328754"><code>d794e28</code></a></p>
 <p>Made with &#10084;&#65039; by <a href="https://github.com/Sella-GH/sonar-dotnet">Sella-GH/sonar-dotnet</a></p>
 </footer>
 <p class="to-top"><a href="#">&uarr; Back to top</a></p>
