@@ -34,11 +34,11 @@ public readonly partial struct RecursivePatternSyntaxWrapper: ISyntaxWrapper<CSh
 
     static RecursivePatternSyntaxWrapper()
     {
-        WrappedType = SyntaxNodeTypes.LatestType(typeof(RecursivePatternSyntaxWrapper));
-        TypeAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, TypeSyntax>(WrappedType, "Type");
-        PositionalPatternClauseAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, CSharpSyntaxNode>(WrappedType, "PositionalPatternClause");
-        PropertyPatternClauseAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, CSharpSyntaxNode>(WrappedType, "PropertyPatternClause");
-        DesignationAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, CSharpSyntaxNode>(WrappedType, "Designation");
+        WrappedType = TypeRegister.LatestType(typeof(RecursivePatternSyntaxWrapper));
+        TypeAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, TypeSyntax>(WrappedType, "Type");
+        PositionalPatternClauseAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, CSharpSyntaxNode>(WrappedType, "PositionalPatternClause");
+        PropertyPatternClauseAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, CSharpSyntaxNode>(WrappedType, "PropertyPatternClause");
+        DesignationAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, CSharpSyntaxNode>(WrappedType, "Designation");
     }
 
     private RecursivePatternSyntaxWrapper(CSharpSyntaxNode node) =>

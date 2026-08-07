@@ -34,9 +34,9 @@ public readonly partial struct RefStructConstraintSyntaxWrapper: ISyntaxWrapper<
 
     static RefStructConstraintSyntaxWrapper()
     {
-        WrappedType = SyntaxNodeTypes.LatestType(typeof(RefStructConstraintSyntaxWrapper));
-        RefKeywordAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "RefKeyword");
-        StructKeywordAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "StructKeyword");
+        WrappedType = TypeRegister.LatestType(typeof(RefStructConstraintSyntaxWrapper));
+        RefKeywordAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "RefKeyword");
+        StructKeywordAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "StructKeyword");
     }
 
     private RefStructConstraintSyntaxWrapper(CSharpSyntaxNode node) =>

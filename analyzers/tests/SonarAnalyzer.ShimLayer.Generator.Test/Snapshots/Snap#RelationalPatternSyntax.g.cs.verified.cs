@@ -34,9 +34,9 @@ public readonly partial struct RelationalPatternSyntaxWrapper: ISyntaxWrapper<CS
 
     static RelationalPatternSyntaxWrapper()
     {
-        WrappedType = SyntaxNodeTypes.LatestType(typeof(RelationalPatternSyntaxWrapper));
-        OperatorTokenAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "OperatorToken");
-        ExpressionAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, ExpressionSyntax>(WrappedType, "Expression");
+        WrappedType = TypeRegister.LatestType(typeof(RelationalPatternSyntaxWrapper));
+        OperatorTokenAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "OperatorToken");
+        ExpressionAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, ExpressionSyntax>(WrappedType, "Expression");
     }
 
     private RelationalPatternSyntaxWrapper(CSharpSyntaxNode node) =>

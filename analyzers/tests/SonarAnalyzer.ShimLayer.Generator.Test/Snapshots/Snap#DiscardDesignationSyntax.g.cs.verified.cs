@@ -34,8 +34,8 @@ public readonly partial struct DiscardDesignationSyntaxWrapper: ISyntaxWrapper<C
 
     static DiscardDesignationSyntaxWrapper()
     {
-        WrappedType = SyntaxNodeTypes.LatestType(typeof(DiscardDesignationSyntaxWrapper));
-        UnderscoreTokenAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "UnderscoreToken");
+        WrappedType = TypeRegister.LatestType(typeof(DiscardDesignationSyntaxWrapper));
+        UnderscoreTokenAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "UnderscoreToken");
     }
 
     private DiscardDesignationSyntaxWrapper(CSharpSyntaxNode node) =>

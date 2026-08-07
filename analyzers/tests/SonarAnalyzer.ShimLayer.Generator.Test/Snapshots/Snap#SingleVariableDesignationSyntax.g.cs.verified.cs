@@ -34,8 +34,8 @@ public readonly partial struct SingleVariableDesignationSyntaxWrapper: ISyntaxWr
 
     static SingleVariableDesignationSyntaxWrapper()
     {
-        WrappedType = SyntaxNodeTypes.LatestType(typeof(SingleVariableDesignationSyntaxWrapper));
-        IdentifierAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "Identifier");
+        WrappedType = TypeRegister.LatestType(typeof(SingleVariableDesignationSyntaxWrapper));
+        IdentifierAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "Identifier");
     }
 
     private SingleVariableDesignationSyntaxWrapper(CSharpSyntaxNode node) =>

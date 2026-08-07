@@ -34,9 +34,9 @@ public readonly partial struct ExpressionColonSyntaxWrapper: ISyntaxWrapper<CSha
 
     static ExpressionColonSyntaxWrapper()
     {
-        WrappedType = SyntaxNodeTypes.LatestType(typeof(ExpressionColonSyntaxWrapper));
-        ExpressionAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, ExpressionSyntax>(WrappedType, "Expression");
-        ColonTokenAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "ColonToken");
+        WrappedType = TypeRegister.LatestType(typeof(ExpressionColonSyntaxWrapper));
+        ExpressionAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, ExpressionSyntax>(WrappedType, "Expression");
+        ColonTokenAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "ColonToken");
     }
 
     private ExpressionColonSyntaxWrapper(CSharpSyntaxNode node) =>

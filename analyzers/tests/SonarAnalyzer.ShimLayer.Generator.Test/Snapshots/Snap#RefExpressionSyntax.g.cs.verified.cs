@@ -34,9 +34,9 @@ public readonly partial struct RefExpressionSyntaxWrapper: ISyntaxWrapper<Expres
 
     static RefExpressionSyntaxWrapper()
     {
-        WrappedType = SyntaxNodeTypes.LatestType(typeof(RefExpressionSyntaxWrapper));
-        RefKeywordAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "RefKeyword");
-        ExpressionAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<ExpressionSyntax, ExpressionSyntax>(WrappedType, "Expression");
+        WrappedType = TypeRegister.LatestType(typeof(RefExpressionSyntaxWrapper));
+        RefKeywordAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "RefKeyword");
+        ExpressionAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, ExpressionSyntax>(WrappedType, "Expression");
     }
 
     private RefExpressionSyntaxWrapper(ExpressionSyntax node) =>

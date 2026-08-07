@@ -34,9 +34,9 @@ public readonly partial struct IgnoredDirectiveTriviaSyntaxWrapper: ISyntaxWrapp
 
     static IgnoredDirectiveTriviaSyntaxWrapper()
     {
-        WrappedType = SyntaxNodeTypes.LatestType(typeof(IgnoredDirectiveTriviaSyntaxWrapper));
-        ColonTokenAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<DirectiveTriviaSyntax, SyntaxToken>(WrappedType, "ColonToken");
-        ContentAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<DirectiveTriviaSyntax, SyntaxToken>(WrappedType, "Content");
+        WrappedType = TypeRegister.LatestType(typeof(IgnoredDirectiveTriviaSyntaxWrapper));
+        ColonTokenAccessor = LightupHelpers.CreatePropertyAccessor<DirectiveTriviaSyntax, SyntaxToken>(WrappedType, "ColonToken");
+        ContentAccessor = LightupHelpers.CreatePropertyAccessor<DirectiveTriviaSyntax, SyntaxToken>(WrappedType, "Content");
     }
 
     private IgnoredDirectiveTriviaSyntaxWrapper(DirectiveTriviaSyntax node) =>

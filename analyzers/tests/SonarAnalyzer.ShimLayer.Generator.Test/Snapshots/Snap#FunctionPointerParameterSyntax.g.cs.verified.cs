@@ -34,10 +34,10 @@ public readonly partial struct FunctionPointerParameterSyntaxWrapper: ISyntaxWra
 
     static FunctionPointerParameterSyntaxWrapper()
     {
-        WrappedType = SyntaxNodeTypes.LatestType(typeof(FunctionPointerParameterSyntaxWrapper));
-        AttributeListsAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, SyntaxList<AttributeListSyntax>>(WrappedType, "AttributeLists");
-        ModifiersAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, SyntaxTokenList>(WrappedType, "Modifiers");
-        TypeAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, TypeSyntax>(WrappedType, "Type");
+        WrappedType = TypeRegister.LatestType(typeof(FunctionPointerParameterSyntaxWrapper));
+        AttributeListsAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxList<AttributeListSyntax>>(WrappedType, "AttributeLists");
+        ModifiersAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxTokenList>(WrappedType, "Modifiers");
+        TypeAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, TypeSyntax>(WrappedType, "Type");
     }
 
     private FunctionPointerParameterSyntaxWrapper(CSharpSyntaxNode node) =>

@@ -34,9 +34,9 @@ public readonly partial struct DeclarationExpressionSyntaxWrapper: ISyntaxWrappe
 
     static DeclarationExpressionSyntaxWrapper()
     {
-        WrappedType = SyntaxNodeTypes.LatestType(typeof(DeclarationExpressionSyntaxWrapper));
-        TypeAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<ExpressionSyntax, TypeSyntax>(WrappedType, "Type");
-        DesignationAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<ExpressionSyntax, CSharpSyntaxNode>(WrappedType, "Designation");
+        WrappedType = TypeRegister.LatestType(typeof(DeclarationExpressionSyntaxWrapper));
+        TypeAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, TypeSyntax>(WrappedType, "Type");
+        DesignationAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, CSharpSyntaxNode>(WrappedType, "Designation");
     }
 
     private DeclarationExpressionSyntaxWrapper(ExpressionSyntax node) =>

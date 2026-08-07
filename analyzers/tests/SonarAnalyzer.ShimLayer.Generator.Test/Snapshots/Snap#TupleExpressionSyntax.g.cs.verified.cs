@@ -34,10 +34,10 @@ public readonly partial struct TupleExpressionSyntaxWrapper: ISyntaxWrapper<Expr
 
     static TupleExpressionSyntaxWrapper()
     {
-        WrappedType = SyntaxNodeTypes.LatestType(typeof(TupleExpressionSyntaxWrapper));
-        OpenParenTokenAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "OpenParenToken");
-        ArgumentsAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<ExpressionSyntax, SeparatedSyntaxList<ArgumentSyntax>>(WrappedType, "Arguments");
-        CloseParenTokenAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "CloseParenToken");
+        WrappedType = TypeRegister.LatestType(typeof(TupleExpressionSyntaxWrapper));
+        OpenParenTokenAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "OpenParenToken");
+        ArgumentsAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, SeparatedSyntaxList<ArgumentSyntax>>(WrappedType, "Arguments");
+        CloseParenTokenAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "CloseParenToken");
     }
 
     private TupleExpressionSyntaxWrapper(ExpressionSyntax node) =>

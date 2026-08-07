@@ -34,9 +34,9 @@ public readonly partial struct VarPatternSyntaxWrapper: ISyntaxWrapper<CSharpSyn
 
     static VarPatternSyntaxWrapper()
     {
-        WrappedType = SyntaxNodeTypes.LatestType(typeof(VarPatternSyntaxWrapper));
-        VarKeywordAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "VarKeyword");
-        DesignationAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, CSharpSyntaxNode>(WrappedType, "Designation");
+        WrappedType = TypeRegister.LatestType(typeof(VarPatternSyntaxWrapper));
+        VarKeywordAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "VarKeyword");
+        DesignationAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, CSharpSyntaxNode>(WrappedType, "Designation");
     }
 
     private VarPatternSyntaxWrapper(CSharpSyntaxNode node) =>

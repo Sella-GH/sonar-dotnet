@@ -34,10 +34,10 @@ public readonly partial struct RangeExpressionSyntaxWrapper: ISyntaxWrapper<Expr
 
     static RangeExpressionSyntaxWrapper()
     {
-        WrappedType = SyntaxNodeTypes.LatestType(typeof(RangeExpressionSyntaxWrapper));
-        LeftOperandAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<ExpressionSyntax, ExpressionSyntax>(WrappedType, "LeftOperand");
-        OperatorTokenAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "OperatorToken");
-        RightOperandAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<ExpressionSyntax, ExpressionSyntax>(WrappedType, "RightOperand");
+        WrappedType = TypeRegister.LatestType(typeof(RangeExpressionSyntaxWrapper));
+        LeftOperandAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, ExpressionSyntax>(WrappedType, "LeftOperand");
+        OperatorTokenAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "OperatorToken");
+        RightOperandAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, ExpressionSyntax>(WrappedType, "RightOperand");
     }
 
     private RangeExpressionSyntaxWrapper(ExpressionSyntax node) =>

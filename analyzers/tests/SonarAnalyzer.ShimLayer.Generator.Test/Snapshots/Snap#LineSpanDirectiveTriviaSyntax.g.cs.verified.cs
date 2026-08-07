@@ -34,13 +34,13 @@ public readonly partial struct LineSpanDirectiveTriviaSyntaxWrapper: ISyntaxWrap
 
     static LineSpanDirectiveTriviaSyntaxWrapper()
     {
-        WrappedType = SyntaxNodeTypes.LatestType(typeof(LineSpanDirectiveTriviaSyntaxWrapper));
-        LineKeywordAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<DirectiveTriviaSyntax, SyntaxToken>(WrappedType, "LineKeyword");
-        StartAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<DirectiveTriviaSyntax, CSharpSyntaxNode>(WrappedType, "Start");
-        MinusTokenAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<DirectiveTriviaSyntax, SyntaxToken>(WrappedType, "MinusToken");
-        EndAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<DirectiveTriviaSyntax, CSharpSyntaxNode>(WrappedType, "End");
-        CharacterOffsetAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<DirectiveTriviaSyntax, SyntaxToken>(WrappedType, "CharacterOffset");
-        FileAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<DirectiveTriviaSyntax, SyntaxToken>(WrappedType, "File");
+        WrappedType = TypeRegister.LatestType(typeof(LineSpanDirectiveTriviaSyntaxWrapper));
+        LineKeywordAccessor = LightupHelpers.CreatePropertyAccessor<DirectiveTriviaSyntax, SyntaxToken>(WrappedType, "LineKeyword");
+        StartAccessor = LightupHelpers.CreatePropertyAccessor<DirectiveTriviaSyntax, CSharpSyntaxNode>(WrappedType, "Start");
+        MinusTokenAccessor = LightupHelpers.CreatePropertyAccessor<DirectiveTriviaSyntax, SyntaxToken>(WrappedType, "MinusToken");
+        EndAccessor = LightupHelpers.CreatePropertyAccessor<DirectiveTriviaSyntax, CSharpSyntaxNode>(WrappedType, "End");
+        CharacterOffsetAccessor = LightupHelpers.CreatePropertyAccessor<DirectiveTriviaSyntax, SyntaxToken>(WrappedType, "CharacterOffset");
+        FileAccessor = LightupHelpers.CreatePropertyAccessor<DirectiveTriviaSyntax, SyntaxToken>(WrappedType, "File");
     }
 
     private LineSpanDirectiveTriviaSyntaxWrapper(DirectiveTriviaSyntax node) =>

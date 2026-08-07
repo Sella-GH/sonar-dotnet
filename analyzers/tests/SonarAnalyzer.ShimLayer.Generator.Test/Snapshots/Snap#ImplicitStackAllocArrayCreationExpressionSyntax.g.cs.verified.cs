@@ -34,11 +34,11 @@ public readonly partial struct ImplicitStackAllocArrayCreationExpressionSyntaxWr
 
     static ImplicitStackAllocArrayCreationExpressionSyntaxWrapper()
     {
-        WrappedType = SyntaxNodeTypes.LatestType(typeof(ImplicitStackAllocArrayCreationExpressionSyntaxWrapper));
-        StackAllocKeywordAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "StackAllocKeyword");
-        OpenBracketTokenAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "OpenBracketToken");
-        CloseBracketTokenAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "CloseBracketToken");
-        InitializerAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<ExpressionSyntax, InitializerExpressionSyntax>(WrappedType, "Initializer");
+        WrappedType = TypeRegister.LatestType(typeof(ImplicitStackAllocArrayCreationExpressionSyntaxWrapper));
+        StackAllocKeywordAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "StackAllocKeyword");
+        OpenBracketTokenAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "OpenBracketToken");
+        CloseBracketTokenAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "CloseBracketToken");
+        InitializerAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, InitializerExpressionSyntax>(WrappedType, "Initializer");
     }
 
     private ImplicitStackAllocArrayCreationExpressionSyntaxWrapper(ExpressionSyntax node) =>

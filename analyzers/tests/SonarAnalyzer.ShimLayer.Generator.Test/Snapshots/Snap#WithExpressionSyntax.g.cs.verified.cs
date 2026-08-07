@@ -34,10 +34,10 @@ public readonly partial struct WithExpressionSyntaxWrapper: ISyntaxWrapper<Expre
 
     static WithExpressionSyntaxWrapper()
     {
-        WrappedType = SyntaxNodeTypes.LatestType(typeof(WithExpressionSyntaxWrapper));
-        ExpressionAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<ExpressionSyntax, ExpressionSyntax>(WrappedType, "Expression");
-        WithKeywordAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "WithKeyword");
-        InitializerAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<ExpressionSyntax, InitializerExpressionSyntax>(WrappedType, "Initializer");
+        WrappedType = TypeRegister.LatestType(typeof(WithExpressionSyntaxWrapper));
+        ExpressionAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, ExpressionSyntax>(WrappedType, "Expression");
+        WithKeywordAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "WithKeyword");
+        InitializerAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, InitializerExpressionSyntax>(WrappedType, "Initializer");
     }
 
     private WithExpressionSyntaxWrapper(ExpressionSyntax node) =>

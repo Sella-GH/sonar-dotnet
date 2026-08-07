@@ -34,12 +34,12 @@ public readonly partial struct LineDirectivePositionSyntaxWrapper: ISyntaxWrappe
 
     static LineDirectivePositionSyntaxWrapper()
     {
-        WrappedType = SyntaxNodeTypes.LatestType(typeof(LineDirectivePositionSyntaxWrapper));
-        OpenParenTokenAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "OpenParenToken");
-        LineAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "Line");
-        CommaTokenAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "CommaToken");
-        CharacterAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "Character");
-        CloseParenTokenAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "CloseParenToken");
+        WrappedType = TypeRegister.LatestType(typeof(LineDirectivePositionSyntaxWrapper));
+        OpenParenTokenAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "OpenParenToken");
+        LineAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "Line");
+        CommaTokenAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "CommaToken");
+        CharacterAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "Character");
+        CloseParenTokenAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "CloseParenToken");
     }
 
     private LineDirectivePositionSyntaxWrapper(CSharpSyntaxNode node) =>

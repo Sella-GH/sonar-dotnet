@@ -34,10 +34,10 @@ public readonly partial struct BaseParameterSyntaxWrapper: ISyntaxWrapper<CSharp
 
     static BaseParameterSyntaxWrapper()
     {
-        WrappedType = SyntaxNodeTypes.LatestType(typeof(BaseParameterSyntaxWrapper));
-        AttributeListsAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, SyntaxList<AttributeListSyntax>>(WrappedType, "AttributeLists");
-        ModifiersAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, SyntaxTokenList>(WrappedType, "Modifiers");
-        TypeAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, TypeSyntax>(WrappedType, "Type");
+        WrappedType = TypeRegister.LatestType(typeof(BaseParameterSyntaxWrapper));
+        AttributeListsAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxList<AttributeListSyntax>>(WrappedType, "AttributeLists");
+        ModifiersAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxTokenList>(WrappedType, "Modifiers");
+        TypeAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, TypeSyntax>(WrappedType, "Type");
     }
 
     private BaseParameterSyntaxWrapper(CSharpSyntaxNode node) =>

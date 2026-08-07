@@ -34,10 +34,10 @@ public readonly partial struct PropertyPatternClauseSyntaxWrapper: ISyntaxWrappe
 
     static PropertyPatternClauseSyntaxWrapper()
     {
-        WrappedType = SyntaxNodeTypes.LatestType(typeof(PropertyPatternClauseSyntaxWrapper));
-        OpenBraceTokenAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "OpenBraceToken");
+        WrappedType = TypeRegister.LatestType(typeof(PropertyPatternClauseSyntaxWrapper));
+        OpenBraceTokenAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "OpenBraceToken");
         SubpatternsAccessor = LightupHelpers.CreateSeparatedSyntaxListPropertyAccessor<CSharpSyntaxNode, SubpatternSyntaxWrapper>(WrappedType, nameof(Subpatterns));
-        CloseBraceTokenAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "CloseBraceToken");
+        CloseBraceTokenAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "CloseBraceToken");
     }
 
     private PropertyPatternClauseSyntaxWrapper(CSharpSyntaxNode node) =>

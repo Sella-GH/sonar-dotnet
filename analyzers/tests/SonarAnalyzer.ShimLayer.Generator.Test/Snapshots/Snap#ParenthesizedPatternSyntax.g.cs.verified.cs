@@ -34,10 +34,10 @@ public readonly partial struct ParenthesizedPatternSyntaxWrapper: ISyntaxWrapper
 
     static ParenthesizedPatternSyntaxWrapper()
     {
-        WrappedType = SyntaxNodeTypes.LatestType(typeof(ParenthesizedPatternSyntaxWrapper));
-        OpenParenTokenAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "OpenParenToken");
-        PatternAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, CSharpSyntaxNode>(WrappedType, "Pattern");
-        CloseParenTokenAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "CloseParenToken");
+        WrappedType = TypeRegister.LatestType(typeof(ParenthesizedPatternSyntaxWrapper));
+        OpenParenTokenAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "OpenParenToken");
+        PatternAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, CSharpSyntaxNode>(WrappedType, "Pattern");
+        CloseParenTokenAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "CloseParenToken");
     }
 
     private ParenthesizedPatternSyntaxWrapper(CSharpSyntaxNode node) =>

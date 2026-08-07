@@ -34,10 +34,10 @@ public readonly partial struct ParenthesizedVariableDesignationSyntaxWrapper: IS
 
     static ParenthesizedVariableDesignationSyntaxWrapper()
     {
-        WrappedType = SyntaxNodeTypes.LatestType(typeof(ParenthesizedVariableDesignationSyntaxWrapper));
-        OpenParenTokenAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "OpenParenToken");
+        WrappedType = TypeRegister.LatestType(typeof(ParenthesizedVariableDesignationSyntaxWrapper));
+        OpenParenTokenAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "OpenParenToken");
         VariablesAccessor = LightupHelpers.CreateSeparatedSyntaxListPropertyAccessor<CSharpSyntaxNode, VariableDesignationSyntaxWrapper>(WrappedType, nameof(Variables));
-        CloseParenTokenAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "CloseParenToken");
+        CloseParenTokenAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "CloseParenToken");
     }
 
     private ParenthesizedVariableDesignationSyntaxWrapper(CSharpSyntaxNode node) =>

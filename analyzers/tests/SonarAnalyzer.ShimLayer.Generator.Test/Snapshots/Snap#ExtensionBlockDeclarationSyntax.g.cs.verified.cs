@@ -34,8 +34,8 @@ public readonly partial struct ExtensionBlockDeclarationSyntaxWrapper: ISyntaxWr
 
     static ExtensionBlockDeclarationSyntaxWrapper()
     {
-        WrappedType = SyntaxNodeTypes.LatestType(typeof(ExtensionBlockDeclarationSyntaxWrapper));
-        ParameterListAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<TypeDeclarationSyntax, ParameterListSyntax>(WrappedType, "ParameterList");
+        WrappedType = TypeRegister.LatestType(typeof(ExtensionBlockDeclarationSyntaxWrapper));
+        ParameterListAccessor = LightupHelpers.CreatePropertyAccessor<TypeDeclarationSyntax, ParameterListSyntax>(WrappedType, "ParameterList");
     }
 
     private ExtensionBlockDeclarationSyntaxWrapper(TypeDeclarationSyntax node) =>
