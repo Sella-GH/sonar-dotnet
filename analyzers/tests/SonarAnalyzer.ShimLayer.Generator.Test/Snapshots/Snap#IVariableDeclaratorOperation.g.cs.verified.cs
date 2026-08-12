@@ -25,20 +25,77 @@ using System.Collections.Immutable;
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct IVariableDeclaratorOperationWrapperFIXME
+public readonly partial struct IVariableDeclaratorOperationWrapper : IOperationWrapper
 {
     public const string WrappedTypeName = "Microsoft.CodeAnalysis.Operations.IVariableDeclaratorOperation";
     private static readonly Type WrappedType;
 
-    private readonly IOperation operation;
+    private readonly IOperation instance;
 
-    static IVariableDeclaratorOperationWrapperFIXME()
+    static IVariableDeclaratorOperationWrapper()
     {
-        WrappedType = TypeRegister.LatestType(typeof(IVariableDeclaratorOperationWrapperFIXME));
+        WrappedType = TypeRegister.LatestType(typeof(IVariableDeclaratorOperationWrapper));
+        SymbolAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, ILocalSymbol>(WrappedType, "Symbol");
+        InitializerAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "Initializer");
+        IgnoredArgumentsAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, ImmutableArray<IOperation>>(WrappedType, "IgnoredArguments");
+        ParentAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "Parent");
+        ChildrenAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IEnumerable<IOperation>>(WrappedType, "Children");
+        LanguageAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, String>(WrappedType, "Language");
+        IsImplicitAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, Boolean>(WrappedType, "IsImplicit");
+        SemanticModelAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, SemanticModel>(WrappedType, "SemanticModel");
     }
 
-    private IVariableDeclaratorOperationWrapperFIXME(IOperation operation) =>
-        this.operation = operation;
+    private IVariableDeclaratorOperationWrapper(IOperation instance) =>
+        this.instance = instance;
 
-    public IOperation WrappedOperation => this.operation;
+    [Obsolete("Use WrappedInstance instead")]
+    public IOperation WrappedOperation => this.instance;
+
+    public IOperation WrappedInstance => this.instance;
+
+    private static readonly Func<IOperation, ILocalSymbol> SymbolAccessor;
+    public ILocalSymbol Symbol => (ILocalSymbol)SymbolAccessor(this.instance);
+    private static readonly Func<IOperation, IOperation> InitializerAccessor;
+    public IVariableInitializerOperationWrapper Initializer => IVariableInitializerOperationWrapper.From(InitializerAccessor(this.instance));
+    private static readonly Func<IOperation, ImmutableArray<IOperation>> IgnoredArgumentsAccessor;
+    public ImmutableArray<IOperation> IgnoredArguments => (ImmutableArray<IOperation>)IgnoredArgumentsAccessor(this.instance);
+    private static readonly Func<IOperation, IOperation> ParentAccessor;
+    public IOperation Parent => ParentAccessor(this.instance);
+    public OperationKind Kind => this.instance.Kind;
+    public SyntaxNode Syntax => this.instance.Syntax;
+    public ITypeSymbol Type => this.instance.Type;
+    public Optional<Object> ConstantValue => this.instance.ConstantValue;
+    private static readonly Func<IOperation, IEnumerable<IOperation>> ChildrenAccessor;
+    [System.ObsoleteAttribute("This API has performance penalties, please use ChildOperations instead.", false)]
+    public IEnumerable<IOperation> Children => (IEnumerable<IOperation>)ChildrenAccessor(this.instance);
+    private static readonly Func<IOperation, String> LanguageAccessor;
+    public String Language => (String)LanguageAccessor(this.instance);
+    private static readonly Func<IOperation, Boolean> IsImplicitAccessor;
+    public Boolean IsImplicit => (Boolean)IsImplicitAccessor(this.instance);
+    private static readonly Func<IOperation, SemanticModel> SemanticModelAccessor;
+    public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(this.instance);
+
+    [Obsolete("Use From instead")]
+    public static IVariableDeclaratorOperationWrapper FromOperation(IOperation operation) =>
+        From(operation);
+
+    public static IVariableDeclaratorOperationWrapper From(IOperation operation)
+    {
+        if (operation is null)
+        {
+            return default;
+        }
+        else if (IsInstance(operation))
+        {
+            return new IVariableDeclaratorOperationWrapper(operation);
+        }
+        else
+        {
+            throw new InvalidCastException($"Cannot cast '{operation.GetType().FullName}' to '{WrappedTypeName}'");
+        }
+    }
+
+    public static bool IsInstance(IOperation operation) =>
+        operation is not null && LightupHelpers.CanWrapOperation(operation, WrappedType);
+
 }

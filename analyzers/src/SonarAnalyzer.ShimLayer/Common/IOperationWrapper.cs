@@ -15,21 +15,21 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using SonarAnalyzer.TestFramework.Extensions;
+using Microsoft.CodeAnalysis;
 
-namespace SonarAnalyzer.ShimLayer.Generator.Strategies.Test;
+namespace SonarAnalyzer.ShimLayer;
 
-[TestClass]
-public class OperationExtendStrategyTest
+public interface IOperationWrapper
 {
-    [TestMethod]
-    public void Generate_IOperation()
-    {
-        var sut = new OperationExtendStrategy(typeof(IOperation), []);
-        var result = sut.Generate([]);
-        result.Should().BeIgnoringLineEndings(
-            """
-            namespace SonarAnalyzer.ShimLayer; // Extend IOperation
-            """);
-    }
+    IOperation WrappedOperation { get; }
+    IOperation Parent { get; }
+    OperationKind Kind { get; }
+    SyntaxNode Syntax { get; }
+    ITypeSymbol Type { get; }
+    Optional<object> ConstantValue { get; }
+    [Obsolete("This API has performance penalties, please use ChildOperations instead.", false)]
+    IEnumerable<IOperation> Children { get; }
+    string Language { get; }
+    bool IsImplicit { get; }
+    SemanticModel SemanticModel { get; }
 }

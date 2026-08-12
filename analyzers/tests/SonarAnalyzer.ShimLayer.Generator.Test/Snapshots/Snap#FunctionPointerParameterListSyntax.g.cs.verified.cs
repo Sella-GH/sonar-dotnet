@@ -25,12 +25,12 @@ using System.Collections.Immutable;
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct FunctionPointerParameterListSyntaxWrapper: ISyntaxWrapper<CSharpSyntaxNode>
+public readonly partial struct FunctionPointerParameterListSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
 {
     public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax";
     private static readonly Type WrappedType;
 
-    private readonly CSharpSyntaxNode node;
+    private readonly CSharpSyntaxNode instance;
 
     static FunctionPointerParameterListSyntaxWrapper()
     {
@@ -40,55 +40,63 @@ public readonly partial struct FunctionPointerParameterListSyntaxWrapper: ISynta
         GreaterThanTokenAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "GreaterThanToken");
     }
 
-    private FunctionPointerParameterListSyntaxWrapper(CSharpSyntaxNode node) =>
-        this.node = node;
+    private FunctionPointerParameterListSyntaxWrapper(CSharpSyntaxNode instance) =>
+        this.instance = instance;
 
-    public CSharpSyntaxNode Node => this.node;
+    [Obsolete("Use WrappedInstance instead")]
+    public CSharpSyntaxNode Node => this.instance;
 
-    [Obsolete("Use Node instead")]
-    public CSharpSyntaxNode SyntaxNode => this.node;
+    [Obsolete("Use WrappedInstance instead")]
+    public CSharpSyntaxNode SyntaxNode => this.instance;
+
+    public CSharpSyntaxNode WrappedInstance => this.instance;
 
     private static readonly Func<CSharpSyntaxNode, SyntaxToken> LessThanTokenAccessor;
-    public SyntaxToken LessThanToken => (SyntaxToken)LessThanTokenAccessor(this.node);
+    public SyntaxToken LessThanToken => (SyntaxToken)LessThanTokenAccessor(this.instance);
     private static readonly Func<CSharpSyntaxNode, SeparatedSyntaxListWrapper<FunctionPointerParameterSyntaxWrapper>> ParametersAccessor;
-    public SeparatedSyntaxListWrapper<FunctionPointerParameterSyntaxWrapper> Parameters => ParametersAccessor(this.node);
+    public SeparatedSyntaxListWrapper<FunctionPointerParameterSyntaxWrapper> Parameters => ParametersAccessor(this.instance);
     private static readonly Func<CSharpSyntaxNode, SyntaxToken> GreaterThanTokenAccessor;
-    public SyntaxToken GreaterThanToken => (SyntaxToken)GreaterThanTokenAccessor(this.node);
-    public String Language => this.node.Language;
-    public Int32 RawKind => this.node.RawKind;
-    public TextSpan FullSpan => this.node.FullSpan;
-    public TextSpan Span => this.node.Span;
-    public Int32 SpanStart => this.node.SpanStart;
-    public Boolean IsMissing => this.node.IsMissing;
-    public Boolean IsStructuredTrivia => this.node.IsStructuredTrivia;
-    public Boolean HasStructuredTrivia => this.node.HasStructuredTrivia;
-    public Boolean ContainsSkippedText => this.node.ContainsSkippedText;
-    public Boolean ContainsDiagnostics => this.node.ContainsDiagnostics;
-    public Boolean ContainsDirectives => this.node.ContainsDirectives;
-    public Boolean HasLeadingTrivia => this.node.HasLeadingTrivia;
-    public Boolean HasTrailingTrivia => this.node.HasTrailingTrivia;
-    public SyntaxNode Parent => this.node.Parent;
-    public SyntaxTrivia ParentTrivia => this.node.ParentTrivia;
-    public Boolean ContainsAnnotations => this.node.ContainsAnnotations;
+    public SyntaxToken GreaterThanToken => (SyntaxToken)GreaterThanTokenAccessor(this.instance);
+    public String Language => this.instance.Language;
+    public Int32 RawKind => this.instance.RawKind;
+    public TextSpan FullSpan => this.instance.FullSpan;
+    public TextSpan Span => this.instance.Span;
+    public Int32 SpanStart => this.instance.SpanStart;
+    public Boolean IsMissing => this.instance.IsMissing;
+    public Boolean IsStructuredTrivia => this.instance.IsStructuredTrivia;
+    public Boolean HasStructuredTrivia => this.instance.HasStructuredTrivia;
+    public Boolean ContainsSkippedText => this.instance.ContainsSkippedText;
+    public Boolean ContainsDiagnostics => this.instance.ContainsDiagnostics;
+    public Boolean ContainsDirectives => this.instance.ContainsDirectives;
+    public Boolean HasLeadingTrivia => this.instance.HasLeadingTrivia;
+    public Boolean HasTrailingTrivia => this.instance.HasTrailingTrivia;
+    public SyntaxNode Parent => this.instance.Parent;
+    public SyntaxTrivia ParentTrivia => this.instance.ParentTrivia;
+    public Boolean ContainsAnnotations => this.instance.ContainsAnnotations;
 
-    public static explicit operator FunctionPointerParameterListSyntaxWrapper(SyntaxNode node)
+    public static explicit operator FunctionPointerParameterListSyntaxWrapper(SyntaxNode node) =>
+        From(node);
+
+    public static implicit operator CSharpSyntaxNode(FunctionPointerParameterListSyntaxWrapper wrapper) =>
+        wrapper.instance;
+
+    public static FunctionPointerParameterListSyntaxWrapper From(SyntaxNode node)
     {
         if (node is null)
         {
             return default;
         }
-
-        if (!IsInstance(node))
+        else if (IsInstance(node))
+        {
+            return new FunctionPointerParameterListSyntaxWrapper((CSharpSyntaxNode)node);
+        }
+        else
         {
             throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
         }
-
-        return new FunctionPointerParameterListSyntaxWrapper((CSharpSyntaxNode)node);
     }
-
-    public static implicit operator CSharpSyntaxNode(FunctionPointerParameterListSyntaxWrapper wrapper) =>
-        wrapper.node;
 
     public static bool IsInstance(SyntaxNode node) =>
         node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+
 }

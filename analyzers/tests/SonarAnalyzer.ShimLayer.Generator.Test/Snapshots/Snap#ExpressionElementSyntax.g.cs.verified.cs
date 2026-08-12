@@ -25,12 +25,12 @@ using System.Collections.Immutable;
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct ExpressionElementSyntaxWrapper: ISyntaxWrapper<CSharpSyntaxNode>
+public readonly partial struct ExpressionElementSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
 {
     public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionElementSyntax";
     private static readonly Type WrappedType;
 
-    private readonly CSharpSyntaxNode node;
+    private readonly CSharpSyntaxNode instance;
 
     static ExpressionElementSyntaxWrapper()
     {
@@ -38,54 +38,62 @@ public readonly partial struct ExpressionElementSyntaxWrapper: ISyntaxWrapper<CS
         ExpressionAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, ExpressionSyntax>(WrappedType, "Expression");
     }
 
-    private ExpressionElementSyntaxWrapper(CSharpSyntaxNode node) =>
-        this.node = node;
+    private ExpressionElementSyntaxWrapper(CSharpSyntaxNode instance) =>
+        this.instance = instance;
 
-    public CSharpSyntaxNode Node => this.node;
+    [Obsolete("Use WrappedInstance instead")]
+    public CSharpSyntaxNode Node => this.instance;
 
-    [Obsolete("Use Node instead")]
-    public CSharpSyntaxNode SyntaxNode => this.node;
+    [Obsolete("Use WrappedInstance instead")]
+    public CSharpSyntaxNode SyntaxNode => this.instance;
+
+    public CSharpSyntaxNode WrappedInstance => this.instance;
 
     private static readonly Func<CSharpSyntaxNode, ExpressionSyntax> ExpressionAccessor;
-    public ExpressionSyntax Expression => ExpressionAccessor(this.node);
-    public String Language => this.node.Language;
-    public Int32 RawKind => this.node.RawKind;
-    public TextSpan FullSpan => this.node.FullSpan;
-    public TextSpan Span => this.node.Span;
-    public Int32 SpanStart => this.node.SpanStart;
-    public Boolean IsMissing => this.node.IsMissing;
-    public Boolean IsStructuredTrivia => this.node.IsStructuredTrivia;
-    public Boolean HasStructuredTrivia => this.node.HasStructuredTrivia;
-    public Boolean ContainsSkippedText => this.node.ContainsSkippedText;
-    public Boolean ContainsDiagnostics => this.node.ContainsDiagnostics;
-    public Boolean ContainsDirectives => this.node.ContainsDirectives;
-    public Boolean HasLeadingTrivia => this.node.HasLeadingTrivia;
-    public Boolean HasTrailingTrivia => this.node.HasTrailingTrivia;
-    public SyntaxNode Parent => this.node.Parent;
-    public SyntaxTrivia ParentTrivia => this.node.ParentTrivia;
-    public Boolean ContainsAnnotations => this.node.ContainsAnnotations;
+    public ExpressionSyntax Expression => ExpressionAccessor(this.instance);
+    public String Language => this.instance.Language;
+    public Int32 RawKind => this.instance.RawKind;
+    public TextSpan FullSpan => this.instance.FullSpan;
+    public TextSpan Span => this.instance.Span;
+    public Int32 SpanStart => this.instance.SpanStart;
+    public Boolean IsMissing => this.instance.IsMissing;
+    public Boolean IsStructuredTrivia => this.instance.IsStructuredTrivia;
+    public Boolean HasStructuredTrivia => this.instance.HasStructuredTrivia;
+    public Boolean ContainsSkippedText => this.instance.ContainsSkippedText;
+    public Boolean ContainsDiagnostics => this.instance.ContainsDiagnostics;
+    public Boolean ContainsDirectives => this.instance.ContainsDirectives;
+    public Boolean HasLeadingTrivia => this.instance.HasLeadingTrivia;
+    public Boolean HasTrailingTrivia => this.instance.HasTrailingTrivia;
+    public SyntaxNode Parent => this.instance.Parent;
+    public SyntaxTrivia ParentTrivia => this.instance.ParentTrivia;
+    public Boolean ContainsAnnotations => this.instance.ContainsAnnotations;
 
-    public static explicit operator ExpressionElementSyntaxWrapper(SyntaxNode node)
+    public static explicit operator ExpressionElementSyntaxWrapper(SyntaxNode node) =>
+        From(node);
+
+    public static implicit operator CSharpSyntaxNode(ExpressionElementSyntaxWrapper wrapper) =>
+        wrapper.instance;
+
+    public static ExpressionElementSyntaxWrapper From(SyntaxNode node)
     {
         if (node is null)
         {
             return default;
         }
-
-        if (!IsInstance(node))
+        else if (IsInstance(node))
+        {
+            return new ExpressionElementSyntaxWrapper((CSharpSyntaxNode)node);
+        }
+        else
         {
             throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
         }
-
-        return new ExpressionElementSyntaxWrapper((CSharpSyntaxNode)node);
     }
-
-    public static implicit operator CSharpSyntaxNode(ExpressionElementSyntaxWrapper wrapper) =>
-        wrapper.node;
-
-    public static implicit operator CollectionElementSyntaxWrapper(ExpressionElementSyntaxWrapper up) => (CollectionElementSyntaxWrapper)up.SyntaxNode;
-    public static explicit operator ExpressionElementSyntaxWrapper(CollectionElementSyntaxWrapper down) => (ExpressionElementSyntaxWrapper)down.SyntaxNode;
 
     public static bool IsInstance(SyntaxNode node) =>
         node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+
+    public static implicit operator CollectionElementSyntaxWrapper(ExpressionElementSyntaxWrapper up) => CollectionElementSyntaxWrapper.From(up.WrappedInstance);
+    public static explicit operator ExpressionElementSyntaxWrapper(CollectionElementSyntaxWrapper down) => ExpressionElementSyntaxWrapper.From(down.WrappedInstance);
+
 }

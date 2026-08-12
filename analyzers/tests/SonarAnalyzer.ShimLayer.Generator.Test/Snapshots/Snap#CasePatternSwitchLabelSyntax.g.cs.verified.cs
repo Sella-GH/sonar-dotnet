@@ -25,12 +25,12 @@ using System.Collections.Immutable;
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct CasePatternSwitchLabelSyntaxWrapper: ISyntaxWrapper<SwitchLabelSyntax>
+public readonly partial struct CasePatternSwitchLabelSyntaxWrapper : ISyntaxWrapper<SwitchLabelSyntax>
 {
     public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.CasePatternSwitchLabelSyntax";
     private static readonly Type WrappedType;
 
-    private readonly SwitchLabelSyntax node;
+    private readonly SwitchLabelSyntax instance;
 
     static CasePatternSwitchLabelSyntaxWrapper()
     {
@@ -39,55 +39,63 @@ public readonly partial struct CasePatternSwitchLabelSyntaxWrapper: ISyntaxWrapp
         WhenClauseAccessor = LightupHelpers.CreatePropertyAccessor<SwitchLabelSyntax, CSharpSyntaxNode>(WrappedType, "WhenClause");
     }
 
-    private CasePatternSwitchLabelSyntaxWrapper(SwitchLabelSyntax node) =>
-        this.node = node;
+    private CasePatternSwitchLabelSyntaxWrapper(SwitchLabelSyntax instance) =>
+        this.instance = instance;
 
-    public SwitchLabelSyntax Node => this.node;
+    [Obsolete("Use WrappedInstance instead")]
+    public SwitchLabelSyntax Node => this.instance;
 
-    [Obsolete("Use Node instead")]
-    public SwitchLabelSyntax SyntaxNode => this.node;
+    [Obsolete("Use WrappedInstance instead")]
+    public SwitchLabelSyntax SyntaxNode => this.instance;
 
-    public SyntaxToken Keyword => this.node.Keyword;
+    public SwitchLabelSyntax WrappedInstance => this.instance;
+
+    public SyntaxToken Keyword => this.instance.Keyword;
     private static readonly Func<SwitchLabelSyntax, CSharpSyntaxNode> PatternAccessor;
-    public PatternSyntaxWrapper Pattern => (PatternSyntaxWrapper)PatternAccessor(this.node);
+    public PatternSyntaxWrapper Pattern => PatternSyntaxWrapper.From(PatternAccessor(this.instance));
     private static readonly Func<SwitchLabelSyntax, CSharpSyntaxNode> WhenClauseAccessor;
-    public WhenClauseSyntaxWrapper WhenClause => (WhenClauseSyntaxWrapper)WhenClauseAccessor(this.node);
-    public SyntaxToken ColonToken => this.node.ColonToken;
-    public String Language => this.node.Language;
-    public Int32 RawKind => this.node.RawKind;
-    public TextSpan FullSpan => this.node.FullSpan;
-    public TextSpan Span => this.node.Span;
-    public Int32 SpanStart => this.node.SpanStart;
-    public Boolean IsMissing => this.node.IsMissing;
-    public Boolean IsStructuredTrivia => this.node.IsStructuredTrivia;
-    public Boolean HasStructuredTrivia => this.node.HasStructuredTrivia;
-    public Boolean ContainsSkippedText => this.node.ContainsSkippedText;
-    public Boolean ContainsDiagnostics => this.node.ContainsDiagnostics;
-    public Boolean ContainsDirectives => this.node.ContainsDirectives;
-    public Boolean HasLeadingTrivia => this.node.HasLeadingTrivia;
-    public Boolean HasTrailingTrivia => this.node.HasTrailingTrivia;
-    public SyntaxNode Parent => this.node.Parent;
-    public SyntaxTrivia ParentTrivia => this.node.ParentTrivia;
-    public Boolean ContainsAnnotations => this.node.ContainsAnnotations;
+    public WhenClauseSyntaxWrapper WhenClause => WhenClauseSyntaxWrapper.From(WhenClauseAccessor(this.instance));
+    public SyntaxToken ColonToken => this.instance.ColonToken;
+    public String Language => this.instance.Language;
+    public Int32 RawKind => this.instance.RawKind;
+    public TextSpan FullSpan => this.instance.FullSpan;
+    public TextSpan Span => this.instance.Span;
+    public Int32 SpanStart => this.instance.SpanStart;
+    public Boolean IsMissing => this.instance.IsMissing;
+    public Boolean IsStructuredTrivia => this.instance.IsStructuredTrivia;
+    public Boolean HasStructuredTrivia => this.instance.HasStructuredTrivia;
+    public Boolean ContainsSkippedText => this.instance.ContainsSkippedText;
+    public Boolean ContainsDiagnostics => this.instance.ContainsDiagnostics;
+    public Boolean ContainsDirectives => this.instance.ContainsDirectives;
+    public Boolean HasLeadingTrivia => this.instance.HasLeadingTrivia;
+    public Boolean HasTrailingTrivia => this.instance.HasTrailingTrivia;
+    public SyntaxNode Parent => this.instance.Parent;
+    public SyntaxTrivia ParentTrivia => this.instance.ParentTrivia;
+    public Boolean ContainsAnnotations => this.instance.ContainsAnnotations;
 
-    public static explicit operator CasePatternSwitchLabelSyntaxWrapper(SyntaxNode node)
+    public static explicit operator CasePatternSwitchLabelSyntaxWrapper(SyntaxNode node) =>
+        From(node);
+
+    public static implicit operator SwitchLabelSyntax(CasePatternSwitchLabelSyntaxWrapper wrapper) =>
+        wrapper.instance;
+
+    public static CasePatternSwitchLabelSyntaxWrapper From(SyntaxNode node)
     {
         if (node is null)
         {
             return default;
         }
-
-        if (!IsInstance(node))
+        else if (IsInstance(node))
+        {
+            return new CasePatternSwitchLabelSyntaxWrapper((SwitchLabelSyntax)node);
+        }
+        else
         {
             throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
         }
-
-        return new CasePatternSwitchLabelSyntaxWrapper((SwitchLabelSyntax)node);
     }
-
-    public static implicit operator SwitchLabelSyntax(CasePatternSwitchLabelSyntaxWrapper wrapper) =>
-        wrapper.node;
 
     public static bool IsInstance(SyntaxNode node) =>
         node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+
 }

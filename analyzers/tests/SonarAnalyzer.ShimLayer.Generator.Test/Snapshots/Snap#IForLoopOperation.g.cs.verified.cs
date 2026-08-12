@@ -25,20 +25,98 @@ using System.Collections.Immutable;
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct IForLoopOperationWrapperFIXME
+public readonly partial struct IForLoopOperationWrapper : IOperationWrapper
 {
     public const string WrappedTypeName = "Microsoft.CodeAnalysis.Operations.IForLoopOperation";
     private static readonly Type WrappedType;
 
-    private readonly IOperation operation;
+    private readonly IOperation instance;
 
-    static IForLoopOperationWrapperFIXME()
+    static IForLoopOperationWrapper()
     {
-        WrappedType = TypeRegister.LatestType(typeof(IForLoopOperationWrapperFIXME));
+        WrappedType = TypeRegister.LatestType(typeof(IForLoopOperationWrapper));
+        BeforeAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, ImmutableArray<IOperation>>(WrappedType, "Before");
+        ConditionLocalsAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, ImmutableArray<ILocalSymbol>>(WrappedType, "ConditionLocals");
+        ConditionAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "Condition");
+        AtLoopBottomAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, ImmutableArray<IOperation>>(WrappedType, "AtLoopBottom");
+        LoopKindAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, LoopKind>(WrappedType, "LoopKind");
+        BodyAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "Body");
+        LocalsAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, ImmutableArray<ILocalSymbol>>(WrappedType, "Locals");
+        ContinueLabelAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, ILabelSymbol>(WrappedType, "ContinueLabel");
+        ExitLabelAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, ILabelSymbol>(WrappedType, "ExitLabel");
+        ParentAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "Parent");
+        ChildrenAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IEnumerable<IOperation>>(WrappedType, "Children");
+        LanguageAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, String>(WrappedType, "Language");
+        IsImplicitAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, Boolean>(WrappedType, "IsImplicit");
+        SemanticModelAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, SemanticModel>(WrappedType, "SemanticModel");
     }
 
-    private IForLoopOperationWrapperFIXME(IOperation operation) =>
-        this.operation = operation;
+    private IForLoopOperationWrapper(IOperation instance) =>
+        this.instance = instance;
 
-    public IOperation WrappedOperation => this.operation;
+    [Obsolete("Use WrappedInstance instead")]
+    public IOperation WrappedOperation => this.instance;
+
+    public IOperation WrappedInstance => this.instance;
+
+    private static readonly Func<IOperation, ImmutableArray<IOperation>> BeforeAccessor;
+    public ImmutableArray<IOperation> Before => (ImmutableArray<IOperation>)BeforeAccessor(this.instance);
+    private static readonly Func<IOperation, ImmutableArray<ILocalSymbol>> ConditionLocalsAccessor;
+    public ImmutableArray<ILocalSymbol> ConditionLocals => (ImmutableArray<ILocalSymbol>)ConditionLocalsAccessor(this.instance);
+    private static readonly Func<IOperation, IOperation> ConditionAccessor;
+    public IOperation Condition => ConditionAccessor(this.instance);
+    private static readonly Func<IOperation, ImmutableArray<IOperation>> AtLoopBottomAccessor;
+    public ImmutableArray<IOperation> AtLoopBottom => (ImmutableArray<IOperation>)AtLoopBottomAccessor(this.instance);
+    private static readonly Func<IOperation, LoopKind> LoopKindAccessor;
+    public LoopKind LoopKind => (LoopKind)LoopKindAccessor(this.instance);
+    private static readonly Func<IOperation, IOperation> BodyAccessor;
+    public IOperation Body => BodyAccessor(this.instance);
+    private static readonly Func<IOperation, ImmutableArray<ILocalSymbol>> LocalsAccessor;
+    public ImmutableArray<ILocalSymbol> Locals => (ImmutableArray<ILocalSymbol>)LocalsAccessor(this.instance);
+    private static readonly Func<IOperation, ILabelSymbol> ContinueLabelAccessor;
+    public ILabelSymbol ContinueLabel => (ILabelSymbol)ContinueLabelAccessor(this.instance);
+    private static readonly Func<IOperation, ILabelSymbol> ExitLabelAccessor;
+    public ILabelSymbol ExitLabel => (ILabelSymbol)ExitLabelAccessor(this.instance);
+    private static readonly Func<IOperation, IOperation> ParentAccessor;
+    public IOperation Parent => ParentAccessor(this.instance);
+    public OperationKind Kind => this.instance.Kind;
+    public SyntaxNode Syntax => this.instance.Syntax;
+    public ITypeSymbol Type => this.instance.Type;
+    public Optional<Object> ConstantValue => this.instance.ConstantValue;
+    private static readonly Func<IOperation, IEnumerable<IOperation>> ChildrenAccessor;
+    [System.ObsoleteAttribute("This API has performance penalties, please use ChildOperations instead.", false)]
+    public IEnumerable<IOperation> Children => (IEnumerable<IOperation>)ChildrenAccessor(this.instance);
+    private static readonly Func<IOperation, String> LanguageAccessor;
+    public String Language => (String)LanguageAccessor(this.instance);
+    private static readonly Func<IOperation, Boolean> IsImplicitAccessor;
+    public Boolean IsImplicit => (Boolean)IsImplicitAccessor(this.instance);
+    private static readonly Func<IOperation, SemanticModel> SemanticModelAccessor;
+    public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(this.instance);
+
+    [Obsolete("Use From instead")]
+    public static IForLoopOperationWrapper FromOperation(IOperation operation) =>
+        From(operation);
+
+    public static IForLoopOperationWrapper From(IOperation operation)
+    {
+        if (operation is null)
+        {
+            return default;
+        }
+        else if (IsInstance(operation))
+        {
+            return new IForLoopOperationWrapper(operation);
+        }
+        else
+        {
+            throw new InvalidCastException($"Cannot cast '{operation.GetType().FullName}' to '{WrappedTypeName}'");
+        }
+    }
+
+    public static bool IsInstance(IOperation operation) =>
+        operation is not null && LightupHelpers.CanWrapOperation(operation, WrappedType);
+
+    public static implicit operator ILoopOperationWrapper(IForLoopOperationWrapper up) => ILoopOperationWrapper.From(up.WrappedInstance);
+    public static explicit operator IForLoopOperationWrapper(ILoopOperationWrapper down) => IForLoopOperationWrapper.From(down.WrappedInstance);
+
 }

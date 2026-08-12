@@ -25,20 +25,77 @@ using System.Collections.Immutable;
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct ITupleBinaryOperationWrapperFIXME
+public readonly partial struct ITupleBinaryOperationWrapper : IOperationWrapper
 {
     public const string WrappedTypeName = "Microsoft.CodeAnalysis.Operations.ITupleBinaryOperation";
     private static readonly Type WrappedType;
 
-    private readonly IOperation operation;
+    private readonly IOperation instance;
 
-    static ITupleBinaryOperationWrapperFIXME()
+    static ITupleBinaryOperationWrapper()
     {
-        WrappedType = TypeRegister.LatestType(typeof(ITupleBinaryOperationWrapperFIXME));
+        WrappedType = TypeRegister.LatestType(typeof(ITupleBinaryOperationWrapper));
+        OperatorKindAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, BinaryOperatorKind>(WrappedType, "OperatorKind");
+        LeftOperandAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "LeftOperand");
+        RightOperandAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "RightOperand");
+        ParentAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "Parent");
+        ChildrenAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IEnumerable<IOperation>>(WrappedType, "Children");
+        LanguageAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, String>(WrappedType, "Language");
+        IsImplicitAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, Boolean>(WrappedType, "IsImplicit");
+        SemanticModelAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, SemanticModel>(WrappedType, "SemanticModel");
     }
 
-    private ITupleBinaryOperationWrapperFIXME(IOperation operation) =>
-        this.operation = operation;
+    private ITupleBinaryOperationWrapper(IOperation instance) =>
+        this.instance = instance;
 
-    public IOperation WrappedOperation => this.operation;
+    [Obsolete("Use WrappedInstance instead")]
+    public IOperation WrappedOperation => this.instance;
+
+    public IOperation WrappedInstance => this.instance;
+
+    private static readonly Func<IOperation, BinaryOperatorKind> OperatorKindAccessor;
+    public BinaryOperatorKind OperatorKind => (BinaryOperatorKind)OperatorKindAccessor(this.instance);
+    private static readonly Func<IOperation, IOperation> LeftOperandAccessor;
+    public IOperation LeftOperand => LeftOperandAccessor(this.instance);
+    private static readonly Func<IOperation, IOperation> RightOperandAccessor;
+    public IOperation RightOperand => RightOperandAccessor(this.instance);
+    private static readonly Func<IOperation, IOperation> ParentAccessor;
+    public IOperation Parent => ParentAccessor(this.instance);
+    public OperationKind Kind => this.instance.Kind;
+    public SyntaxNode Syntax => this.instance.Syntax;
+    public ITypeSymbol Type => this.instance.Type;
+    public Optional<Object> ConstantValue => this.instance.ConstantValue;
+    private static readonly Func<IOperation, IEnumerable<IOperation>> ChildrenAccessor;
+    [System.ObsoleteAttribute("This API has performance penalties, please use ChildOperations instead.", false)]
+    public IEnumerable<IOperation> Children => (IEnumerable<IOperation>)ChildrenAccessor(this.instance);
+    private static readonly Func<IOperation, String> LanguageAccessor;
+    public String Language => (String)LanguageAccessor(this.instance);
+    private static readonly Func<IOperation, Boolean> IsImplicitAccessor;
+    public Boolean IsImplicit => (Boolean)IsImplicitAccessor(this.instance);
+    private static readonly Func<IOperation, SemanticModel> SemanticModelAccessor;
+    public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(this.instance);
+
+    [Obsolete("Use From instead")]
+    public static ITupleBinaryOperationWrapper FromOperation(IOperation operation) =>
+        From(operation);
+
+    public static ITupleBinaryOperationWrapper From(IOperation operation)
+    {
+        if (operation is null)
+        {
+            return default;
+        }
+        else if (IsInstance(operation))
+        {
+            return new ITupleBinaryOperationWrapper(operation);
+        }
+        else
+        {
+            throw new InvalidCastException($"Cannot cast '{operation.GetType().FullName}' to '{WrappedTypeName}'");
+        }
+    }
+
+    public static bool IsInstance(IOperation operation) =>
+        operation is not null && LightupHelpers.CanWrapOperation(operation, WrappedType);
+
 }

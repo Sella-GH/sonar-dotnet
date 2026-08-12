@@ -17,35 +17,19 @@
 
 namespace SonarAnalyzer.ShimLayer.Generator.Strategies;
 
-public class SyntaxNodeWrapStrategy : Strategy
+public class SyntaxNodeWrapStrategy : WrapStrategy
 {
-    public Type BaseType { get; }
-    public IReadOnlyList<MemberDescriptor> Members { get; }
+    public SyntaxNodeWrapStrategy(Type latest, Type baseType, IReadOnlyList<MemberDescriptor> members) : base(latest, baseType, members) { }
 
-    public SyntaxNodeWrapStrategy(Type latest, Type baseType, IReadOnlyList<MemberDescriptor> members) : base(latest)
-    {
-        BaseType = baseType;
-        Members = members;
-    }
-
-    public override string ReturnTypeSnippet() =>
-        $"{Latest.Name}Wrapper";
-
-    public override string ToConversionSnippet(string from) =>
-        $"({Latest.Name}Wrapper){from}";
-
-    public override string CompiletimeTypeSnippet() =>
-        BaseType.Name;
-
-    public override string Generate(StrategyModel model) =>
+    protected override string GenerateCore(StrategyModel model) =>
         $$"""
         {{Preamble()}}
-        public readonly partial struct {{Latest.Name}}Wrapper: ISyntaxWrapper<{{CompiletimeTypeSnippet()}}>
+        public readonly partial struct {{Latest.Name}}Wrapper : ISyntaxWrapper<{{CompiletimeTypeSnippet()}}>
         {
             public const string WrappedTypeName = "{{Latest.FullName}}";
             private static readonly Type WrappedType;
 
-            private readonly {{CompiletimeTypeSnippet()}} node;
+            private readonly {{CompiletimeTypeSnippet()}} instance;
 
             static {{Latest.Name}}Wrapper()
             {
@@ -53,78 +37,60 @@ public class SyntaxNodeWrapStrategy : Strategy
         {{JoinLines(Members.Where(x => !x.IsPassthrough).Select(x => MemberAccessorInitialization(x.Member, model)))}}
             }
 
-            private {{Latest.Name}}Wrapper({{CompiletimeTypeSnippet()}} node) =>
-                this.node = node;
+            private {{Latest.Name}}Wrapper({{CompiletimeTypeSnippet()}} instance) =>
+                this.instance = instance;
 
-            public {{CompiletimeTypeSnippet()}} Node => this.node;
+            [Obsolete("Use WrappedInstance instead")]
+            public {{CompiletimeTypeSnippet()}} Node => this.instance;
 
-            [Obsolete("Use Node instead")]
-            public {{CompiletimeTypeSnippet()}} SyntaxNode => this.node;
+            [Obsolete("Use WrappedInstance instead")]
+            public {{CompiletimeTypeSnippet()}} SyntaxNode => this.instance;
+
+            public {{CompiletimeTypeSnippet()}} WrappedInstance => this.instance;
 
         {{JoinLines(Members.Select(x => MemberDeclaration(x, model)))}}
 
-            public static explicit operator {{Latest.Name}}Wrapper(SyntaxNode node)
+            public static explicit operator {{Latest.Name}}Wrapper(SyntaxNode node) =>
+                From(node);
+
+            public static implicit operator {{CompiletimeTypeSnippet()}}({{Latest.Name}}Wrapper wrapper) =>
+                wrapper.instance;
+
+            public static {{Latest.Name}}Wrapper From(SyntaxNode node)
             {
                 if (node is null)
                 {
                     return default;
                 }
-
-                if (!IsInstance(node))
+                else if (IsInstance(node))
+                {
+                    return new {{Latest.Name}}Wrapper(({{CompiletimeTypeSnippet()}})node);
+                }
+                else
                 {
                     throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
                 }
-
-                return new {{Latest.Name}}Wrapper(({{CompiletimeTypeSnippet()}})node);
             }
-
-            public static implicit operator {{CompiletimeTypeSnippet()}}({{Latest.Name}}Wrapper wrapper) =>
-                wrapper.node;
-
-        {{WrapperToWrapperConversions(model)}}
 
             public static bool IsInstance(SyntaxNode node) =>
                 node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+
+        {{WrapperToWrapperConversions(model)}}
         }
         """;
 
     private string WrapperToWrapperConversions(StrategyModel model)
     {
-        StringBuilder sb = null;
-        var baseType = Latest.BaseType;
-        while (baseType is not null && model[baseType] is SyntaxNodeWrapStrategy) // BaseType is also wrapped
-        {
-            sb ??= new StringBuilder();
-            sb.AppendLine($"""
-                    public static implicit operator {baseType.Name}Wrapper({Latest.Name}Wrapper up) => ({baseType.Name}Wrapper)up.SyntaxNode;
-                    public static explicit operator {Latest.Name}Wrapper({baseType.Name}Wrapper down) => ({Latest.Name}Wrapper)down.SyntaxNode;
+        return WrapperToWrapperConversions(WrappedBaseTypes());
 
-                """);
-            baseType = baseType.BaseType;
+        IEnumerable<Type> WrappedBaseTypes()
+        {
+            var baseType = Latest.BaseType;
+            while (baseType is not null && model[baseType] is SyntaxNodeWrapStrategy) // BaseType is also wrapped
+            {
+                yield return baseType;
+                baseType = baseType.BaseType;
+            }
         }
-        return sb?.ToString();
-    }
-
-    private string MemberAccessorInitialization(MemberInfo member, StrategyModel model) =>
-        member is PropertyInfo property && model[property.PropertyType] is { IsSupported: true } propertyTypeStrategy
-            ? $"""
-                        {member.Name}Accessor = {propertyTypeStrategy.PropertyAccessorInitializerSnippet(CompiletimeTypeSnippet(), member.Name)};
-                """
-            : null;
-
-    private string MemberDeclaration(MemberDescriptor member, StrategyModel model)
-    {
-        var attributes = SerializeAttributes(member.Member.GetCustomAttributesData(), 4);
-        return member switch
-        {
-            { IsPassthrough: true, Member: PropertyInfo pi } => $"""
-                    {attributes}public {model[pi.PropertyType].CompiletimeTypeSnippet()} {member.Member.Name} => this.node.{member.Member.Name};
-                """,
-            { IsPassthrough: false, Member: PropertyInfo pi } when model[pi.PropertyType] is { IsSupported: true } propertyTypeStrategy => $"""
-                    private static readonly Func<{BaseType.Name}, {propertyTypeStrategy.CompiletimeTypeSnippet()}> {member.Member.Name}Accessor;
-                    {attributes}public {propertyTypeStrategy.ReturnTypeSnippet()} {member.Member.Name} => {propertyTypeStrategy.ToConversionSnippet($"{member.Member.Name}Accessor(this.node)")};
-                """,
-            _ => null,
-        };
     }
 }

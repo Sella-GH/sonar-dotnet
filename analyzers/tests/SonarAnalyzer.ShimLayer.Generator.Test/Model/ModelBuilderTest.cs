@@ -126,16 +126,13 @@ public class ModelBuilderTest
     {
         using var typeLoader = new TypeLoader();
         var type = typeLoader.LoadLatest().Single(x => x.Type.Name == nameof(IOperation));
-        var model = ModelBuilder.Build([type], []);
-        model[type.Type].Should().BeOfType<OperationWrapStrategy>()
-            .Which.Members.Select(x => x.Member.ToString()).Should().BeEquivalentTo([
+        var iOperation = typeLoader.LoadBaseline().Single(x => x.Type.Name == nameof(IOperation));
+        var model = ModelBuilder.Build([type], [iOperation]);
+        model[type.Type].Should().BeOfType<ExtendStrategy>()
+            .Which.Members.Select(x => x.ToString()).Should().BeEquivalentTo([
                 "System.Void Accept(Microsoft.CodeAnalysis.Operations.OperationVisitor)",
                 "TResult Accept[TArgument,TResult](Microsoft.CodeAnalysis.Operations.OperationVisitor`2[TArgument,TResult], TArgument)",
                 "Microsoft.CodeAnalysis.IOperation Parent",
-                "Microsoft.CodeAnalysis.OperationKind Kind",
-                "Microsoft.CodeAnalysis.SyntaxNode Syntax",
-                "Microsoft.CodeAnalysis.ITypeSymbol Type",
-                "Microsoft.CodeAnalysis.Optional`1[System.Object] ConstantValue",
                 "System.Collections.Generic.IEnumerable`1[Microsoft.CodeAnalysis.IOperation] Children",
                 "Microsoft.CodeAnalysis.IOperation+OperationList ChildOperations",
                 "System.String Language",
@@ -148,7 +145,8 @@ public class ModelBuilderTest
     {
         using var typeLoader = new TypeLoader();
         var type = typeLoader.LoadLatest().Single(x => x.Type.Name == nameof(IInvocationOperation));
-        var model = ModelBuilder.Build([type], []);
+        var iOperation = typeLoader.LoadBaseline().Single(x => x.Type.Name == nameof(IOperation));
+        var model = ModelBuilder.Build([type], [iOperation]);
         model[type.Type].Should().BeOfType<OperationWrapStrategy>()
             .Which.Members.Select(x => x.Member.ToString()).Should().BeEquivalentTo([
                 "Microsoft.CodeAnalysis.IMethodSymbol TargetMethod",
@@ -222,11 +220,35 @@ public class ModelBuilderTest
         var baseline = typeLoader.LoadBaseline().Single(x => x.Type.Name == nameof(SyntaxNode));
         var latest = typeLoader.LoadLatest().Single(x => x.Type.Name == nameof(SyntaxNode));
         var model = ModelBuilder.Build([latest], [baseline]);
-        model[latest.Type].Should().BeOfType<SyntaxNodeExtendStrategy>()
+        model[latest.Type].Should().BeOfType<ExtendStrategy>()
             .Which.Members.Select(x => x.ToString()).Should().BeEquivalentTo([
                 "System.Boolean IsIncrementallyIdenticalTo(Microsoft.CodeAnalysis.SyntaxNode)",
                 "System.Boolean ContainsDirective(System.Int32)",
                 "TNode FirstAncestorOrSelf[TNode,TArg](System.Func`3[TNode,TArg,System.Boolean], TArg, System.Boolean)"]);
+    }
+
+    [TestMethod]
+    public void CreateMembers_IsPassthrough_Node()
+    {
+        using var typeLoader = new TypeLoader();
+        var baseline = typeLoader.LoadBaseline().Single(x => x.Type.Name == nameof(CSharpSyntaxNode));
+        var latest = typeLoader.LoadLatest().Single(x => x.Type.Name == nameof(TupleElementSyntax));
+        var model = ModelBuilder.Build([latest], [baseline]);
+        var members = model[latest.Type].Should().BeOfType<SyntaxNodeWrapStrategy>().Which.Members;
+        members.Should().ContainSingle(x => x.Member.Name == "Parent").Which.IsPassthrough.Should().BeTrue();
+        members.Should().ContainSingle(x => x.Member.Name == "Type").Which.IsPassthrough.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void CreateMembers_IsPassthrough_Operation()
+    {
+        using var typeLoader = new TypeLoader();
+        var baseline = typeLoader.LoadBaseline().Single(x => x.Type.Name == nameof(IOperation));
+        var latest = typeLoader.LoadLatest().Single(x => x.Type.Name == nameof(ITupleOperation));
+        var model = ModelBuilder.Build([latest], [baseline]);
+        var members = model[latest.Type].Should().BeOfType<OperationWrapStrategy>().Which.Members;
+        members.Should().ContainSingle(x => x.Member.Name == "Syntax").Which.IsPassthrough.Should().BeTrue();
+        members.Should().ContainSingle(x => x.Member.Name == "NaturalType").Which.IsPassthrough.Should().BeFalse();
     }
 
     [TestMethod]

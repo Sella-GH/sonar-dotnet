@@ -25,12 +25,12 @@ using System.Collections.Immutable;
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct RelationalPatternSyntaxWrapper: ISyntaxWrapper<CSharpSyntaxNode>
+public readonly partial struct RelationalPatternSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
 {
     public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.RelationalPatternSyntax";
     private static readonly Type WrappedType;
 
-    private readonly CSharpSyntaxNode node;
+    private readonly CSharpSyntaxNode instance;
 
     static RelationalPatternSyntaxWrapper()
     {
@@ -39,59 +39,67 @@ public readonly partial struct RelationalPatternSyntaxWrapper: ISyntaxWrapper<CS
         ExpressionAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, ExpressionSyntax>(WrappedType, "Expression");
     }
 
-    private RelationalPatternSyntaxWrapper(CSharpSyntaxNode node) =>
-        this.node = node;
+    private RelationalPatternSyntaxWrapper(CSharpSyntaxNode instance) =>
+        this.instance = instance;
 
-    public CSharpSyntaxNode Node => this.node;
+    [Obsolete("Use WrappedInstance instead")]
+    public CSharpSyntaxNode Node => this.instance;
 
-    [Obsolete("Use Node instead")]
-    public CSharpSyntaxNode SyntaxNode => this.node;
+    [Obsolete("Use WrappedInstance instead")]
+    public CSharpSyntaxNode SyntaxNode => this.instance;
+
+    public CSharpSyntaxNode WrappedInstance => this.instance;
 
     private static readonly Func<CSharpSyntaxNode, SyntaxToken> OperatorTokenAccessor;
-    public SyntaxToken OperatorToken => (SyntaxToken)OperatorTokenAccessor(this.node);
+    public SyntaxToken OperatorToken => (SyntaxToken)OperatorTokenAccessor(this.instance);
     private static readonly Func<CSharpSyntaxNode, ExpressionSyntax> ExpressionAccessor;
-    public ExpressionSyntax Expression => ExpressionAccessor(this.node);
-    public String Language => this.node.Language;
-    public Int32 RawKind => this.node.RawKind;
-    public TextSpan FullSpan => this.node.FullSpan;
-    public TextSpan Span => this.node.Span;
-    public Int32 SpanStart => this.node.SpanStart;
-    public Boolean IsMissing => this.node.IsMissing;
-    public Boolean IsStructuredTrivia => this.node.IsStructuredTrivia;
-    public Boolean HasStructuredTrivia => this.node.HasStructuredTrivia;
-    public Boolean ContainsSkippedText => this.node.ContainsSkippedText;
-    public Boolean ContainsDiagnostics => this.node.ContainsDiagnostics;
-    public Boolean ContainsDirectives => this.node.ContainsDirectives;
-    public Boolean HasLeadingTrivia => this.node.HasLeadingTrivia;
-    public Boolean HasTrailingTrivia => this.node.HasTrailingTrivia;
-    public SyntaxNode Parent => this.node.Parent;
-    public SyntaxTrivia ParentTrivia => this.node.ParentTrivia;
-    public Boolean ContainsAnnotations => this.node.ContainsAnnotations;
+    public ExpressionSyntax Expression => ExpressionAccessor(this.instance);
+    public String Language => this.instance.Language;
+    public Int32 RawKind => this.instance.RawKind;
+    public TextSpan FullSpan => this.instance.FullSpan;
+    public TextSpan Span => this.instance.Span;
+    public Int32 SpanStart => this.instance.SpanStart;
+    public Boolean IsMissing => this.instance.IsMissing;
+    public Boolean IsStructuredTrivia => this.instance.IsStructuredTrivia;
+    public Boolean HasStructuredTrivia => this.instance.HasStructuredTrivia;
+    public Boolean ContainsSkippedText => this.instance.ContainsSkippedText;
+    public Boolean ContainsDiagnostics => this.instance.ContainsDiagnostics;
+    public Boolean ContainsDirectives => this.instance.ContainsDirectives;
+    public Boolean HasLeadingTrivia => this.instance.HasLeadingTrivia;
+    public Boolean HasTrailingTrivia => this.instance.HasTrailingTrivia;
+    public SyntaxNode Parent => this.instance.Parent;
+    public SyntaxTrivia ParentTrivia => this.instance.ParentTrivia;
+    public Boolean ContainsAnnotations => this.instance.ContainsAnnotations;
 
-    public static explicit operator RelationalPatternSyntaxWrapper(SyntaxNode node)
+    public static explicit operator RelationalPatternSyntaxWrapper(SyntaxNode node) =>
+        From(node);
+
+    public static implicit operator CSharpSyntaxNode(RelationalPatternSyntaxWrapper wrapper) =>
+        wrapper.instance;
+
+    public static RelationalPatternSyntaxWrapper From(SyntaxNode node)
     {
         if (node is null)
         {
             return default;
         }
-
-        if (!IsInstance(node))
+        else if (IsInstance(node))
+        {
+            return new RelationalPatternSyntaxWrapper((CSharpSyntaxNode)node);
+        }
+        else
         {
             throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
         }
-
-        return new RelationalPatternSyntaxWrapper((CSharpSyntaxNode)node);
     }
-
-    public static implicit operator CSharpSyntaxNode(RelationalPatternSyntaxWrapper wrapper) =>
-        wrapper.node;
-
-    public static implicit operator PatternSyntaxWrapper(RelationalPatternSyntaxWrapper up) => (PatternSyntaxWrapper)up.SyntaxNode;
-    public static explicit operator RelationalPatternSyntaxWrapper(PatternSyntaxWrapper down) => (RelationalPatternSyntaxWrapper)down.SyntaxNode;
-
-    public static implicit operator ExpressionOrPatternSyntaxWrapper(RelationalPatternSyntaxWrapper up) => (ExpressionOrPatternSyntaxWrapper)up.SyntaxNode;
-    public static explicit operator RelationalPatternSyntaxWrapper(ExpressionOrPatternSyntaxWrapper down) => (RelationalPatternSyntaxWrapper)down.SyntaxNode;
 
     public static bool IsInstance(SyntaxNode node) =>
         node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+
+    public static implicit operator PatternSyntaxWrapper(RelationalPatternSyntaxWrapper up) => PatternSyntaxWrapper.From(up.WrappedInstance);
+    public static explicit operator RelationalPatternSyntaxWrapper(PatternSyntaxWrapper down) => RelationalPatternSyntaxWrapper.From(down.WrappedInstance);
+
+    public static implicit operator ExpressionOrPatternSyntaxWrapper(RelationalPatternSyntaxWrapper up) => ExpressionOrPatternSyntaxWrapper.From(up.WrappedInstance);
+    public static explicit operator RelationalPatternSyntaxWrapper(ExpressionOrPatternSyntaxWrapper down) => RelationalPatternSyntaxWrapper.From(down.WrappedInstance);
+
 }

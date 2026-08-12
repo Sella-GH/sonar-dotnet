@@ -17,42 +17,63 @@
 
 namespace SonarAnalyzer.ShimLayer.Generator.Strategies;
 
-public class OperationWrapStrategy : Strategy
+public class OperationWrapStrategy : WrapStrategy
 {
-    public IReadOnlyList<MemberDescriptor> Members { get; }
+    public OperationWrapStrategy(Type latest, IReadOnlyList<MemberDescriptor> members) : base(latest, typeof(IOperation), members) { }
 
-    public OperationWrapStrategy(Type latest, IReadOnlyList<MemberDescriptor> members) : base(latest) =>
-        Members = members;
-
-    public override string CompiletimeTypeSnippet() =>
-        "IOperation";
-
-    // ToDo: Remove FIXME class name suffix
-    public override string Generate(StrategyModel model) =>
+    protected override string GenerateCore(StrategyModel model) =>
         $$"""
         {{Preamble()}}
-        public readonly partial struct {{Latest.Name}}WrapperFIXME
+        public readonly partial struct {{Latest.Name}}Wrapper : IOperationWrapper
         {
             public const string WrappedTypeName = "{{Latest.FullName}}";
             private static readonly Type WrappedType;
 
-            private readonly {{CompiletimeTypeSnippet()}} operation;
+            private readonly {{CompiletimeTypeSnippet()}} instance;
 
-            static {{Latest.Name}}WrapperFIXME()
+            static {{Latest.Name}}Wrapper()
             {
-                WrappedType = TypeRegister.LatestType(typeof({{Latest.Name}}WrapperFIXME));
+                WrappedType = TypeRegister.LatestType(typeof({{Latest.Name}}Wrapper));
+        {{JoinLines(Members.Where(x => !x.IsPassthrough).Select(x => MemberAccessorInitialization(x.Member, model)))}}
             }
 
-            private {{Latest.Name}}WrapperFIXME({{CompiletimeTypeSnippet()}} operation) =>
-                this.operation = operation;
+            private {{Latest.Name}}Wrapper({{CompiletimeTypeSnippet()}} instance) =>
+                this.instance = instance;
 
-            public {{CompiletimeTypeSnippet()}} WrappedOperation => this.operation;
+            [Obsolete("Use WrappedInstance instead")]
+            public {{CompiletimeTypeSnippet()}} WrappedOperation => this.instance;
+
+            public {{CompiletimeTypeSnippet()}} WrappedInstance => this.instance;
+
+        {{JoinLines(Members.Select(x => MemberDeclaration(x, model)))}}
+
+            [Obsolete("Use From instead")]
+            public static {{Latest.Name}}Wrapper FromOperation(IOperation operation) =>
+                From(operation);
+
+            public static {{Latest.Name}}Wrapper From(IOperation operation)
+            {
+                if (operation is null)
+                {
+                    return default;
+                }
+                else if (IsInstance(operation))
+                {
+                    return new {{Latest.Name}}Wrapper(operation);
+                }
+                else
+                {
+                    throw new InvalidCastException($"Cannot cast '{operation.GetType().FullName}' to '{WrappedTypeName}'");
+                }
+            }
+
+            public static bool IsInstance(IOperation operation) =>
+                operation is not null && LightupHelpers.CanWrapOperation(operation, WrappedType);
+
+        {{WrapperToWrapperConversions(model)}}
         }
         """;
 
-    public override string ReturnTypeSnippet() =>
-        $"{Latest.Name}Wrapper";
-
-    public override string ToConversionSnippet(string from) =>
-        $"{Latest.Name}Wrapper.FromOperation({from})";
+    private string WrapperToWrapperConversions(StrategyModel model) =>
+        WrapperToWrapperConversions(Latest.GetInterfaces().Where(x => model[x] is OperationWrapStrategy));
 }
