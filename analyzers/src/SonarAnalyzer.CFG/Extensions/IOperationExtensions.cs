@@ -21,15 +21,6 @@ namespace SonarAnalyzer.CFG.Extensions;
 
 public static class IOperationExtensions
 {
-    extension(IOperation operation)
-    {
-        [Obsolete("Just delete this, it's a leftover from IOperationWrapperSonar removal")]
-        public IOperation Instance => operation;
-
-        [Obsolete("Just delete this, it's a leftover from IOperationWrapperSonar removal")]
-        public IOperation ToSonar() => operation;
-    }
-
     public static bool IsOutArgumentReference(this IOperation operation) =>
         IArgumentOperationWrapper.IsInstance(operation.Parent)
         && IArgumentOperationWrapper.From(operation.Parent).Parameter.RefKind == RefKind.Out;
