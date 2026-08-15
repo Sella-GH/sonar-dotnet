@@ -75,10 +75,10 @@ public class ExtendStrategyTest
                 private static readonly Func<ClassDeclarationSyntax, ParameterListSyntax> ParameterListAccessor = LightupHelpers.CreatePropertyAccessor<ClassDeclarationSyntax, ParameterListSyntax>(WrappedType, "ParameterList");
                 private static readonly Func<ClassDeclarationSyntax, SyntaxToken> SemicolonTokenAccessor = LightupHelpers.CreatePropertyAccessor<ClassDeclarationSyntax, SyntaxToken>(WrappedType, "SemicolonToken");
 
-                extension(ClassDeclarationSyntax @this)
+                extension(ClassDeclarationSyntax wrappedInstance)
                 {
-                    public ParameterListSyntax ParameterList => (ParameterListSyntax)ParameterListAccessor(@this);
-                    public SyntaxToken SemicolonToken => (SyntaxToken)SemicolonTokenAccessor(@this);
+                    public ParameterListSyntax ParameterList => (ParameterListSyntax)ParameterListAccessor(wrappedInstance);
+                    public SyntaxToken SemicolonToken => (SyntaxToken)SemicolonTokenAccessor(wrappedInstance);
                 }
             }
             """);
@@ -128,9 +128,10 @@ public class ExtendStrategyTest
 
                 private static readonly Func<ProcessStartInfo, String> FileNameAccessor = LightupHelpers.CreatePropertyAccessor<ProcessStartInfo, String>(WrappedType, "FileName");
 
-                extension(ProcessStartInfo @this)
+                extension(ProcessStartInfo wrappedInstance)
                 {
-                    public String FileName => (String)FileNameAccessor(@this);
+                    [System.ComponentModel.EditorAttribute("System.Diagnostics.Design.StartFileNameEditor, System.Design, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Drawing.Design.UITypeEditor, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
+                    public String FileName => (String)FileNameAccessor(wrappedInstance);
                 }
             }
             """);
@@ -183,10 +184,11 @@ public class ExtendStrategyTest
                 private static readonly Func<IOperation, IOperation> ParentAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "Parent");
                 private static readonly Func<IOperation, IEnumerable<IOperation>> ChildrenAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IEnumerable<IOperation>>(WrappedType, "Children");
 
-                extension(IOperation @this)
+                extension(IOperation wrappedInstance)
                 {
-                    public IOperation Parent => (IOperation)ParentAccessor(@this);
-                    public IEnumerable<IOperation> Children => (IEnumerable<IOperation>)ChildrenAccessor(@this);
+                    public IOperation Parent => (IOperation)ParentAccessor(wrappedInstance);
+                    [System.ObsoleteAttribute("This API has performance penalties, please use ChildOperations instead.", false)]
+                    public IEnumerable<IOperation> Children => (IEnumerable<IOperation>)ChildrenAccessor(wrappedInstance);
                 }
             }
             """);

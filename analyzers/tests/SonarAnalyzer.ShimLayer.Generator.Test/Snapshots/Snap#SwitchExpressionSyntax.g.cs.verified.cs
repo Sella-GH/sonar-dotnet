@@ -28,63 +28,55 @@ namespace SonarAnalyzer.ShimLayer;
 public readonly partial struct SwitchExpressionSyntaxWrapper : ISyntaxWrapper<ExpressionSyntax>
 {
     public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax";
-    private static readonly Type WrappedType;
 
-    private readonly ExpressionSyntax instance;
+    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(SwitchExpressionSyntaxWrapper));
+    private readonly ExpressionSyntax wrappedInstance;
 
-    static SwitchExpressionSyntaxWrapper()
-    {
-        WrappedType = TypeRegister.LatestType(typeof(SwitchExpressionSyntaxWrapper));
-        GoverningExpressionAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, ExpressionSyntax>(WrappedType, "GoverningExpression");
-        SwitchKeywordAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "SwitchKeyword");
-        OpenBraceTokenAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "OpenBraceToken");
-        ArmsAccessor = LightupHelpers.CreateSeparatedSyntaxListPropertyAccessor<ExpressionSyntax, SwitchExpressionArmSyntaxWrapper>(WrappedType, nameof(Arms));
-        CloseBraceTokenAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "CloseBraceToken");
-    }
+    private static readonly Func<ExpressionSyntax, ExpressionSyntax> GoverningExpressionAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, ExpressionSyntax>(WrappedType, "GoverningExpression");
+    private static readonly Func<ExpressionSyntax, SyntaxToken> SwitchKeywordAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "SwitchKeyword");
+    private static readonly Func<ExpressionSyntax, SyntaxToken> OpenBraceTokenAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "OpenBraceToken");
+    private static readonly Func<ExpressionSyntax, SeparatedSyntaxListWrapper<SwitchExpressionArmSyntaxWrapper>> ArmsAccessor = LightupHelpers.CreateSeparatedSyntaxListPropertyAccessor<ExpressionSyntax, SwitchExpressionArmSyntaxWrapper>(WrappedType, nameof(Arms));
+    private static readonly Func<ExpressionSyntax, SyntaxToken> CloseBraceTokenAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "CloseBraceToken");
 
-    private SwitchExpressionSyntaxWrapper(ExpressionSyntax instance) =>
-        this.instance = instance;
+    private SwitchExpressionSyntaxWrapper(ExpressionSyntax wrappedInstance) =>
+        this.wrappedInstance = wrappedInstance;
 
     [Obsolete("Use WrappedInstance instead")]
-    public ExpressionSyntax Node => this.instance;
+    public ExpressionSyntax Node => wrappedInstance;
 
     [Obsolete("Use WrappedInstance instead")]
-    public ExpressionSyntax SyntaxNode => this.instance;
+    public ExpressionSyntax SyntaxNode => wrappedInstance;
 
-    public ExpressionSyntax WrappedInstance => this.instance;
+    public ExpressionSyntax WrappedInstance => wrappedInstance;
 
-    private static readonly Func<ExpressionSyntax, ExpressionSyntax> GoverningExpressionAccessor;
-    public ExpressionSyntax GoverningExpression => GoverningExpressionAccessor(this.instance);
-    private static readonly Func<ExpressionSyntax, SyntaxToken> SwitchKeywordAccessor;
-    public SyntaxToken SwitchKeyword => (SyntaxToken)SwitchKeywordAccessor(this.instance);
-    private static readonly Func<ExpressionSyntax, SyntaxToken> OpenBraceTokenAccessor;
-    public SyntaxToken OpenBraceToken => (SyntaxToken)OpenBraceTokenAccessor(this.instance);
-    private static readonly Func<ExpressionSyntax, SeparatedSyntaxListWrapper<SwitchExpressionArmSyntaxWrapper>> ArmsAccessor;
-    public SeparatedSyntaxListWrapper<SwitchExpressionArmSyntaxWrapper> Arms => ArmsAccessor(this.instance);
-    private static readonly Func<ExpressionSyntax, SyntaxToken> CloseBraceTokenAccessor;
-    public SyntaxToken CloseBraceToken => (SyntaxToken)CloseBraceTokenAccessor(this.instance);
-    public String Language => this.instance.Language;
-    public Int32 RawKind => this.instance.RawKind;
-    public TextSpan FullSpan => this.instance.FullSpan;
-    public TextSpan Span => this.instance.Span;
-    public Int32 SpanStart => this.instance.SpanStart;
-    public Boolean IsMissing => this.instance.IsMissing;
-    public Boolean IsStructuredTrivia => this.instance.IsStructuredTrivia;
-    public Boolean HasStructuredTrivia => this.instance.HasStructuredTrivia;
-    public Boolean ContainsSkippedText => this.instance.ContainsSkippedText;
-    public Boolean ContainsDiagnostics => this.instance.ContainsDiagnostics;
-    public Boolean ContainsDirectives => this.instance.ContainsDirectives;
-    public Boolean HasLeadingTrivia => this.instance.HasLeadingTrivia;
-    public Boolean HasTrailingTrivia => this.instance.HasTrailingTrivia;
-    public SyntaxNode Parent => this.instance.Parent;
-    public SyntaxTrivia ParentTrivia => this.instance.ParentTrivia;
-    public Boolean ContainsAnnotations => this.instance.ContainsAnnotations;
+    public String Language => wrappedInstance.Language;
+    public Int32 RawKind => wrappedInstance.RawKind;
+    public TextSpan FullSpan => wrappedInstance.FullSpan;
+    public TextSpan Span => wrappedInstance.Span;
+    public Int32 SpanStart => wrappedInstance.SpanStart;
+    public Boolean IsMissing => wrappedInstance.IsMissing;
+    public Boolean IsStructuredTrivia => wrappedInstance.IsStructuredTrivia;
+    public Boolean HasStructuredTrivia => wrappedInstance.HasStructuredTrivia;
+    public Boolean ContainsSkippedText => wrappedInstance.ContainsSkippedText;
+    public Boolean ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
+    public Boolean ContainsDirectives => wrappedInstance.ContainsDirectives;
+    public Boolean HasLeadingTrivia => wrappedInstance.HasLeadingTrivia;
+    public Boolean HasTrailingTrivia => wrappedInstance.HasTrailingTrivia;
+    public SyntaxNode Parent => wrappedInstance.Parent;
+    public SyntaxTrivia ParentTrivia => wrappedInstance.ParentTrivia;
+    public Boolean ContainsAnnotations => wrappedInstance.ContainsAnnotations;
+
+    public ExpressionSyntax GoverningExpression => GoverningExpressionAccessor(wrappedInstance);
+    public SyntaxToken SwitchKeyword => (SyntaxToken)SwitchKeywordAccessor(wrappedInstance);
+    public SyntaxToken OpenBraceToken => (SyntaxToken)OpenBraceTokenAccessor(wrappedInstance);
+    public SeparatedSyntaxListWrapper<SwitchExpressionArmSyntaxWrapper> Arms => ArmsAccessor(wrappedInstance);
+    public SyntaxToken CloseBraceToken => (SyntaxToken)CloseBraceTokenAccessor(wrappedInstance);
 
     public static explicit operator SwitchExpressionSyntaxWrapper(SyntaxNode node) =>
         From(node);
 
     public static implicit operator ExpressionSyntax(SwitchExpressionSyntaxWrapper wrapper) =>
-        wrapper.instance;
+        wrapper.wrappedInstance;
 
     public static SwitchExpressionSyntaxWrapper From(SyntaxNode node)
     {

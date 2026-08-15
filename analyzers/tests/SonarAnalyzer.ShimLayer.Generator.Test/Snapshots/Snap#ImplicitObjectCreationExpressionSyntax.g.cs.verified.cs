@@ -28,57 +28,51 @@ namespace SonarAnalyzer.ShimLayer;
 public readonly partial struct ImplicitObjectCreationExpressionSyntaxWrapper : ISyntaxWrapper<ExpressionSyntax>
 {
     public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.ImplicitObjectCreationExpressionSyntax";
-    private static readonly Type WrappedType;
 
-    private readonly ExpressionSyntax instance;
+    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(ImplicitObjectCreationExpressionSyntaxWrapper));
+    private readonly ExpressionSyntax wrappedInstance;
 
-    static ImplicitObjectCreationExpressionSyntaxWrapper()
-    {
-        WrappedType = TypeRegister.LatestType(typeof(ImplicitObjectCreationExpressionSyntaxWrapper));
-        NewKeywordAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "NewKeyword");
-        ArgumentListAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, ArgumentListSyntax>(WrappedType, "ArgumentList");
-        InitializerAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, InitializerExpressionSyntax>(WrappedType, "Initializer");
-    }
+    private static readonly Func<ExpressionSyntax, SyntaxToken> NewKeywordAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "NewKeyword");
+    private static readonly Func<ExpressionSyntax, ArgumentListSyntax> ArgumentListAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, ArgumentListSyntax>(WrappedType, "ArgumentList");
+    private static readonly Func<ExpressionSyntax, InitializerExpressionSyntax> InitializerAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, InitializerExpressionSyntax>(WrappedType, "Initializer");
 
-    private ImplicitObjectCreationExpressionSyntaxWrapper(ExpressionSyntax instance) =>
-        this.instance = instance;
+    private ImplicitObjectCreationExpressionSyntaxWrapper(ExpressionSyntax wrappedInstance) =>
+        this.wrappedInstance = wrappedInstance;
 
     [Obsolete("Use WrappedInstance instead")]
-    public ExpressionSyntax Node => this.instance;
+    public ExpressionSyntax Node => wrappedInstance;
 
     [Obsolete("Use WrappedInstance instead")]
-    public ExpressionSyntax SyntaxNode => this.instance;
+    public ExpressionSyntax SyntaxNode => wrappedInstance;
 
-    public ExpressionSyntax WrappedInstance => this.instance;
+    public ExpressionSyntax WrappedInstance => wrappedInstance;
 
-    private static readonly Func<ExpressionSyntax, SyntaxToken> NewKeywordAccessor;
-    public SyntaxToken NewKeyword => (SyntaxToken)NewKeywordAccessor(this.instance);
-    private static readonly Func<ExpressionSyntax, ArgumentListSyntax> ArgumentListAccessor;
-    public ArgumentListSyntax ArgumentList => ArgumentListAccessor(this.instance);
-    private static readonly Func<ExpressionSyntax, InitializerExpressionSyntax> InitializerAccessor;
-    public InitializerExpressionSyntax Initializer => InitializerAccessor(this.instance);
-    public String Language => this.instance.Language;
-    public Int32 RawKind => this.instance.RawKind;
-    public TextSpan FullSpan => this.instance.FullSpan;
-    public TextSpan Span => this.instance.Span;
-    public Int32 SpanStart => this.instance.SpanStart;
-    public Boolean IsMissing => this.instance.IsMissing;
-    public Boolean IsStructuredTrivia => this.instance.IsStructuredTrivia;
-    public Boolean HasStructuredTrivia => this.instance.HasStructuredTrivia;
-    public Boolean ContainsSkippedText => this.instance.ContainsSkippedText;
-    public Boolean ContainsDiagnostics => this.instance.ContainsDiagnostics;
-    public Boolean ContainsDirectives => this.instance.ContainsDirectives;
-    public Boolean HasLeadingTrivia => this.instance.HasLeadingTrivia;
-    public Boolean HasTrailingTrivia => this.instance.HasTrailingTrivia;
-    public SyntaxNode Parent => this.instance.Parent;
-    public SyntaxTrivia ParentTrivia => this.instance.ParentTrivia;
-    public Boolean ContainsAnnotations => this.instance.ContainsAnnotations;
+    public String Language => wrappedInstance.Language;
+    public Int32 RawKind => wrappedInstance.RawKind;
+    public TextSpan FullSpan => wrappedInstance.FullSpan;
+    public TextSpan Span => wrappedInstance.Span;
+    public Int32 SpanStart => wrappedInstance.SpanStart;
+    public Boolean IsMissing => wrappedInstance.IsMissing;
+    public Boolean IsStructuredTrivia => wrappedInstance.IsStructuredTrivia;
+    public Boolean HasStructuredTrivia => wrappedInstance.HasStructuredTrivia;
+    public Boolean ContainsSkippedText => wrappedInstance.ContainsSkippedText;
+    public Boolean ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
+    public Boolean ContainsDirectives => wrappedInstance.ContainsDirectives;
+    public Boolean HasLeadingTrivia => wrappedInstance.HasLeadingTrivia;
+    public Boolean HasTrailingTrivia => wrappedInstance.HasTrailingTrivia;
+    public SyntaxNode Parent => wrappedInstance.Parent;
+    public SyntaxTrivia ParentTrivia => wrappedInstance.ParentTrivia;
+    public Boolean ContainsAnnotations => wrappedInstance.ContainsAnnotations;
+
+    public SyntaxToken NewKeyword => (SyntaxToken)NewKeywordAccessor(wrappedInstance);
+    public ArgumentListSyntax ArgumentList => ArgumentListAccessor(wrappedInstance);
+    public InitializerExpressionSyntax Initializer => InitializerAccessor(wrappedInstance);
 
     public static explicit operator ImplicitObjectCreationExpressionSyntaxWrapper(SyntaxNode node) =>
         From(node);
 
     public static implicit operator ExpressionSyntax(ImplicitObjectCreationExpressionSyntaxWrapper wrapper) =>
-        wrapper.instance;
+        wrapper.wrappedInstance;
 
     public static ImplicitObjectCreationExpressionSyntaxWrapper From(SyntaxNode node)
     {

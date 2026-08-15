@@ -28,57 +28,51 @@ namespace SonarAnalyzer.ShimLayer;
 public readonly partial struct BinaryPatternSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
 {
     public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.BinaryPatternSyntax";
-    private static readonly Type WrappedType;
 
-    private readonly CSharpSyntaxNode instance;
+    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(BinaryPatternSyntaxWrapper));
+    private readonly CSharpSyntaxNode wrappedInstance;
 
-    static BinaryPatternSyntaxWrapper()
-    {
-        WrappedType = TypeRegister.LatestType(typeof(BinaryPatternSyntaxWrapper));
-        LeftAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, CSharpSyntaxNode>(WrappedType, "Left");
-        OperatorTokenAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "OperatorToken");
-        RightAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, CSharpSyntaxNode>(WrappedType, "Right");
-    }
+    private static readonly Func<CSharpSyntaxNode, CSharpSyntaxNode> LeftAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, CSharpSyntaxNode>(WrappedType, "Left");
+    private static readonly Func<CSharpSyntaxNode, SyntaxToken> OperatorTokenAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "OperatorToken");
+    private static readonly Func<CSharpSyntaxNode, CSharpSyntaxNode> RightAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, CSharpSyntaxNode>(WrappedType, "Right");
 
-    private BinaryPatternSyntaxWrapper(CSharpSyntaxNode instance) =>
-        this.instance = instance;
+    private BinaryPatternSyntaxWrapper(CSharpSyntaxNode wrappedInstance) =>
+        this.wrappedInstance = wrappedInstance;
 
     [Obsolete("Use WrappedInstance instead")]
-    public CSharpSyntaxNode Node => this.instance;
+    public CSharpSyntaxNode Node => wrappedInstance;
 
     [Obsolete("Use WrappedInstance instead")]
-    public CSharpSyntaxNode SyntaxNode => this.instance;
+    public CSharpSyntaxNode SyntaxNode => wrappedInstance;
 
-    public CSharpSyntaxNode WrappedInstance => this.instance;
+    public CSharpSyntaxNode WrappedInstance => wrappedInstance;
 
-    private static readonly Func<CSharpSyntaxNode, CSharpSyntaxNode> LeftAccessor;
-    public PatternSyntaxWrapper Left => PatternSyntaxWrapper.From(LeftAccessor(this.instance));
-    private static readonly Func<CSharpSyntaxNode, SyntaxToken> OperatorTokenAccessor;
-    public SyntaxToken OperatorToken => (SyntaxToken)OperatorTokenAccessor(this.instance);
-    private static readonly Func<CSharpSyntaxNode, CSharpSyntaxNode> RightAccessor;
-    public PatternSyntaxWrapper Right => PatternSyntaxWrapper.From(RightAccessor(this.instance));
-    public String Language => this.instance.Language;
-    public Int32 RawKind => this.instance.RawKind;
-    public TextSpan FullSpan => this.instance.FullSpan;
-    public TextSpan Span => this.instance.Span;
-    public Int32 SpanStart => this.instance.SpanStart;
-    public Boolean IsMissing => this.instance.IsMissing;
-    public Boolean IsStructuredTrivia => this.instance.IsStructuredTrivia;
-    public Boolean HasStructuredTrivia => this.instance.HasStructuredTrivia;
-    public Boolean ContainsSkippedText => this.instance.ContainsSkippedText;
-    public Boolean ContainsDiagnostics => this.instance.ContainsDiagnostics;
-    public Boolean ContainsDirectives => this.instance.ContainsDirectives;
-    public Boolean HasLeadingTrivia => this.instance.HasLeadingTrivia;
-    public Boolean HasTrailingTrivia => this.instance.HasTrailingTrivia;
-    public SyntaxNode Parent => this.instance.Parent;
-    public SyntaxTrivia ParentTrivia => this.instance.ParentTrivia;
-    public Boolean ContainsAnnotations => this.instance.ContainsAnnotations;
+    public String Language => wrappedInstance.Language;
+    public Int32 RawKind => wrappedInstance.RawKind;
+    public TextSpan FullSpan => wrappedInstance.FullSpan;
+    public TextSpan Span => wrappedInstance.Span;
+    public Int32 SpanStart => wrappedInstance.SpanStart;
+    public Boolean IsMissing => wrappedInstance.IsMissing;
+    public Boolean IsStructuredTrivia => wrappedInstance.IsStructuredTrivia;
+    public Boolean HasStructuredTrivia => wrappedInstance.HasStructuredTrivia;
+    public Boolean ContainsSkippedText => wrappedInstance.ContainsSkippedText;
+    public Boolean ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
+    public Boolean ContainsDirectives => wrappedInstance.ContainsDirectives;
+    public Boolean HasLeadingTrivia => wrappedInstance.HasLeadingTrivia;
+    public Boolean HasTrailingTrivia => wrappedInstance.HasTrailingTrivia;
+    public SyntaxNode Parent => wrappedInstance.Parent;
+    public SyntaxTrivia ParentTrivia => wrappedInstance.ParentTrivia;
+    public Boolean ContainsAnnotations => wrappedInstance.ContainsAnnotations;
+
+    public PatternSyntaxWrapper Left => PatternSyntaxWrapper.From(LeftAccessor(wrappedInstance));
+    public SyntaxToken OperatorToken => (SyntaxToken)OperatorTokenAccessor(wrappedInstance);
+    public PatternSyntaxWrapper Right => PatternSyntaxWrapper.From(RightAccessor(wrappedInstance));
 
     public static explicit operator BinaryPatternSyntaxWrapper(SyntaxNode node) =>
         From(node);
 
     public static implicit operator CSharpSyntaxNode(BinaryPatternSyntaxWrapper wrapper) =>
-        wrapper.instance;
+        wrapper.wrappedInstance;
 
     public static BinaryPatternSyntaxWrapper From(SyntaxNode node)
     {

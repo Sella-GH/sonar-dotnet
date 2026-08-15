@@ -28,60 +28,53 @@ namespace SonarAnalyzer.ShimLayer;
 public readonly partial struct RecursivePatternSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
 {
     public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax";
-    private static readonly Type WrappedType;
 
-    private readonly CSharpSyntaxNode instance;
+    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(RecursivePatternSyntaxWrapper));
+    private readonly CSharpSyntaxNode wrappedInstance;
 
-    static RecursivePatternSyntaxWrapper()
-    {
-        WrappedType = TypeRegister.LatestType(typeof(RecursivePatternSyntaxWrapper));
-        TypeAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, TypeSyntax>(WrappedType, "Type");
-        PositionalPatternClauseAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, CSharpSyntaxNode>(WrappedType, "PositionalPatternClause");
-        PropertyPatternClauseAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, CSharpSyntaxNode>(WrappedType, "PropertyPatternClause");
-        DesignationAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, CSharpSyntaxNode>(WrappedType, "Designation");
-    }
+    private static readonly Func<CSharpSyntaxNode, TypeSyntax> TypeAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, TypeSyntax>(WrappedType, "Type");
+    private static readonly Func<CSharpSyntaxNode, CSharpSyntaxNode> PositionalPatternClauseAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, CSharpSyntaxNode>(WrappedType, "PositionalPatternClause");
+    private static readonly Func<CSharpSyntaxNode, CSharpSyntaxNode> PropertyPatternClauseAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, CSharpSyntaxNode>(WrappedType, "PropertyPatternClause");
+    private static readonly Func<CSharpSyntaxNode, CSharpSyntaxNode> DesignationAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, CSharpSyntaxNode>(WrappedType, "Designation");
 
-    private RecursivePatternSyntaxWrapper(CSharpSyntaxNode instance) =>
-        this.instance = instance;
+    private RecursivePatternSyntaxWrapper(CSharpSyntaxNode wrappedInstance) =>
+        this.wrappedInstance = wrappedInstance;
 
     [Obsolete("Use WrappedInstance instead")]
-    public CSharpSyntaxNode Node => this.instance;
+    public CSharpSyntaxNode Node => wrappedInstance;
 
     [Obsolete("Use WrappedInstance instead")]
-    public CSharpSyntaxNode SyntaxNode => this.instance;
+    public CSharpSyntaxNode SyntaxNode => wrappedInstance;
 
-    public CSharpSyntaxNode WrappedInstance => this.instance;
+    public CSharpSyntaxNode WrappedInstance => wrappedInstance;
 
-    private static readonly Func<CSharpSyntaxNode, TypeSyntax> TypeAccessor;
-    public TypeSyntax Type => TypeAccessor(this.instance);
-    private static readonly Func<CSharpSyntaxNode, CSharpSyntaxNode> PositionalPatternClauseAccessor;
-    public PositionalPatternClauseSyntaxWrapper PositionalPatternClause => PositionalPatternClauseSyntaxWrapper.From(PositionalPatternClauseAccessor(this.instance));
-    private static readonly Func<CSharpSyntaxNode, CSharpSyntaxNode> PropertyPatternClauseAccessor;
-    public PropertyPatternClauseSyntaxWrapper PropertyPatternClause => PropertyPatternClauseSyntaxWrapper.From(PropertyPatternClauseAccessor(this.instance));
-    private static readonly Func<CSharpSyntaxNode, CSharpSyntaxNode> DesignationAccessor;
-    public VariableDesignationSyntaxWrapper Designation => VariableDesignationSyntaxWrapper.From(DesignationAccessor(this.instance));
-    public String Language => this.instance.Language;
-    public Int32 RawKind => this.instance.RawKind;
-    public TextSpan FullSpan => this.instance.FullSpan;
-    public TextSpan Span => this.instance.Span;
-    public Int32 SpanStart => this.instance.SpanStart;
-    public Boolean IsMissing => this.instance.IsMissing;
-    public Boolean IsStructuredTrivia => this.instance.IsStructuredTrivia;
-    public Boolean HasStructuredTrivia => this.instance.HasStructuredTrivia;
-    public Boolean ContainsSkippedText => this.instance.ContainsSkippedText;
-    public Boolean ContainsDiagnostics => this.instance.ContainsDiagnostics;
-    public Boolean ContainsDirectives => this.instance.ContainsDirectives;
-    public Boolean HasLeadingTrivia => this.instance.HasLeadingTrivia;
-    public Boolean HasTrailingTrivia => this.instance.HasTrailingTrivia;
-    public SyntaxNode Parent => this.instance.Parent;
-    public SyntaxTrivia ParentTrivia => this.instance.ParentTrivia;
-    public Boolean ContainsAnnotations => this.instance.ContainsAnnotations;
+    public String Language => wrappedInstance.Language;
+    public Int32 RawKind => wrappedInstance.RawKind;
+    public TextSpan FullSpan => wrappedInstance.FullSpan;
+    public TextSpan Span => wrappedInstance.Span;
+    public Int32 SpanStart => wrappedInstance.SpanStart;
+    public Boolean IsMissing => wrappedInstance.IsMissing;
+    public Boolean IsStructuredTrivia => wrappedInstance.IsStructuredTrivia;
+    public Boolean HasStructuredTrivia => wrappedInstance.HasStructuredTrivia;
+    public Boolean ContainsSkippedText => wrappedInstance.ContainsSkippedText;
+    public Boolean ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
+    public Boolean ContainsDirectives => wrappedInstance.ContainsDirectives;
+    public Boolean HasLeadingTrivia => wrappedInstance.HasLeadingTrivia;
+    public Boolean HasTrailingTrivia => wrappedInstance.HasTrailingTrivia;
+    public SyntaxNode Parent => wrappedInstance.Parent;
+    public SyntaxTrivia ParentTrivia => wrappedInstance.ParentTrivia;
+    public Boolean ContainsAnnotations => wrappedInstance.ContainsAnnotations;
+
+    public TypeSyntax Type => TypeAccessor(wrappedInstance);
+    public PositionalPatternClauseSyntaxWrapper PositionalPatternClause => PositionalPatternClauseSyntaxWrapper.From(PositionalPatternClauseAccessor(wrappedInstance));
+    public PropertyPatternClauseSyntaxWrapper PropertyPatternClause => PropertyPatternClauseSyntaxWrapper.From(PropertyPatternClauseAccessor(wrappedInstance));
+    public VariableDesignationSyntaxWrapper Designation => VariableDesignationSyntaxWrapper.From(DesignationAccessor(wrappedInstance));
 
     public static explicit operator RecursivePatternSyntaxWrapper(SyntaxNode node) =>
         From(node);
 
     public static implicit operator CSharpSyntaxNode(RecursivePatternSyntaxWrapper wrapper) =>
-        wrapper.instance;
+        wrapper.wrappedInstance;
 
     public static RecursivePatternSyntaxWrapper From(SyntaxNode node)
     {

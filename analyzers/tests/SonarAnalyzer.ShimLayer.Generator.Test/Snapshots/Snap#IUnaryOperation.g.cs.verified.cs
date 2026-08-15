@@ -28,61 +28,47 @@ namespace SonarAnalyzer.ShimLayer;
 public readonly partial struct IUnaryOperationWrapper : IOperationWrapper
 {
     public const string WrappedTypeName = "Microsoft.CodeAnalysis.Operations.IUnaryOperation";
-    private static readonly Type WrappedType;
 
-    private readonly IOperation instance;
+    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(IUnaryOperationWrapper));
+    private readonly IOperation wrappedInstance;
 
-    static IUnaryOperationWrapper()
-    {
-        WrappedType = TypeRegister.LatestType(typeof(IUnaryOperationWrapper));
-        OperatorKindAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, UnaryOperatorKind>(WrappedType, "OperatorKind");
-        OperandAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "Operand");
-        IsLiftedAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, Boolean>(WrappedType, "IsLifted");
-        IsCheckedAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, Boolean>(WrappedType, "IsChecked");
-        OperatorMethodAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IMethodSymbol>(WrappedType, "OperatorMethod");
-        ConstrainedToTypeAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, ITypeSymbol>(WrappedType, "ConstrainedToType");
-        ParentAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "Parent");
-        ChildrenAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IEnumerable<IOperation>>(WrappedType, "Children");
-        LanguageAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, String>(WrappedType, "Language");
-        IsImplicitAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, Boolean>(WrappedType, "IsImplicit");
-        SemanticModelAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, SemanticModel>(WrappedType, "SemanticModel");
-    }
+    private static readonly Func<IOperation, UnaryOperatorKind> OperatorKindAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, UnaryOperatorKind>(WrappedType, "OperatorKind");
+    private static readonly Func<IOperation, IOperation> OperandAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "Operand");
+    private static readonly Func<IOperation, Boolean> IsLiftedAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, Boolean>(WrappedType, "IsLifted");
+    private static readonly Func<IOperation, Boolean> IsCheckedAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, Boolean>(WrappedType, "IsChecked");
+    private static readonly Func<IOperation, IMethodSymbol> OperatorMethodAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IMethodSymbol>(WrappedType, "OperatorMethod");
+    private static readonly Func<IOperation, ITypeSymbol> ConstrainedToTypeAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, ITypeSymbol>(WrappedType, "ConstrainedToType");
+    private static readonly Func<IOperation, IOperation> ParentAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "Parent");
+    private static readonly Func<IOperation, IEnumerable<IOperation>> ChildrenAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IEnumerable<IOperation>>(WrappedType, "Children");
+    private static readonly Func<IOperation, String> LanguageAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, String>(WrappedType, "Language");
+    private static readonly Func<IOperation, Boolean> IsImplicitAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, Boolean>(WrappedType, "IsImplicit");
+    private static readonly Func<IOperation, SemanticModel> SemanticModelAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, SemanticModel>(WrappedType, "SemanticModel");
 
-    private IUnaryOperationWrapper(IOperation instance) =>
-        this.instance = instance;
+    private IUnaryOperationWrapper(IOperation wrappedInstance) =>
+        this.wrappedInstance = wrappedInstance;
 
     [Obsolete("Use WrappedInstance instead")]
-    public IOperation WrappedOperation => this.instance;
+    public IOperation WrappedOperation => wrappedInstance;
 
-    public IOperation WrappedInstance => this.instance;
+    public IOperation WrappedInstance => wrappedInstance;
 
-    private static readonly Func<IOperation, UnaryOperatorKind> OperatorKindAccessor;
-    public UnaryOperatorKind OperatorKind => (UnaryOperatorKind)OperatorKindAccessor(this.instance);
-    private static readonly Func<IOperation, IOperation> OperandAccessor;
-    public IOperation Operand => OperandAccessor(this.instance);
-    private static readonly Func<IOperation, Boolean> IsLiftedAccessor;
-    public Boolean IsLifted => (Boolean)IsLiftedAccessor(this.instance);
-    private static readonly Func<IOperation, Boolean> IsCheckedAccessor;
-    public Boolean IsChecked => (Boolean)IsCheckedAccessor(this.instance);
-    private static readonly Func<IOperation, IMethodSymbol> OperatorMethodAccessor;
-    public IMethodSymbol OperatorMethod => (IMethodSymbol)OperatorMethodAccessor(this.instance);
-    private static readonly Func<IOperation, ITypeSymbol> ConstrainedToTypeAccessor;
-    public ITypeSymbol ConstrainedToType => (ITypeSymbol)ConstrainedToTypeAccessor(this.instance);
-    private static readonly Func<IOperation, IOperation> ParentAccessor;
-    public IOperation Parent => ParentAccessor(this.instance);
-    public OperationKind Kind => this.instance.Kind;
-    public SyntaxNode Syntax => this.instance.Syntax;
-    public ITypeSymbol Type => this.instance.Type;
-    public Optional<Object> ConstantValue => this.instance.ConstantValue;
-    private static readonly Func<IOperation, IEnumerable<IOperation>> ChildrenAccessor;
+    public OperationKind Kind => wrappedInstance.Kind;
+    public SyntaxNode Syntax => wrappedInstance.Syntax;
+    public ITypeSymbol Type => wrappedInstance.Type;
+    public Optional<Object> ConstantValue => wrappedInstance.ConstantValue;
+
+    public UnaryOperatorKind OperatorKind => (UnaryOperatorKind)OperatorKindAccessor(wrappedInstance);
+    public IOperation Operand => OperandAccessor(wrappedInstance);
+    public Boolean IsLifted => (Boolean)IsLiftedAccessor(wrappedInstance);
+    public Boolean IsChecked => (Boolean)IsCheckedAccessor(wrappedInstance);
+    public IMethodSymbol OperatorMethod => (IMethodSymbol)OperatorMethodAccessor(wrappedInstance);
+    public ITypeSymbol ConstrainedToType => (ITypeSymbol)ConstrainedToTypeAccessor(wrappedInstance);
+    public IOperation Parent => ParentAccessor(wrappedInstance);
     [System.ObsoleteAttribute("This API has performance penalties, please use ChildOperations instead.", false)]
-    public IEnumerable<IOperation> Children => (IEnumerable<IOperation>)ChildrenAccessor(this.instance);
-    private static readonly Func<IOperation, String> LanguageAccessor;
-    public String Language => (String)LanguageAccessor(this.instance);
-    private static readonly Func<IOperation, Boolean> IsImplicitAccessor;
-    public Boolean IsImplicit => (Boolean)IsImplicitAccessor(this.instance);
-    private static readonly Func<IOperation, SemanticModel> SemanticModelAccessor;
-    public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(this.instance);
+    public IEnumerable<IOperation> Children => (IEnumerable<IOperation>)ChildrenAccessor(wrappedInstance);
+    public String Language => (String)LanguageAccessor(wrappedInstance);
+    public Boolean IsImplicit => (Boolean)IsImplicitAccessor(wrappedInstance);
+    public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(wrappedInstance);
 
     [Obsolete("Use From instead")]
     public static IUnaryOperationWrapper FromOperation(IOperation operation) =>

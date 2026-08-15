@@ -19,42 +19,22 @@ namespace SonarAnalyzer.ShimLayer.Generator.Strategies;
 
 public class SyntaxNodeWrapStrategy : WrapStrategy
 {
-    public SyntaxNodeWrapStrategy(Type latest, Type baseType, IReadOnlyList<MemberDescriptor> members) : base(latest, baseType, members) { }
+    protected override string BaseTypeSnippet => $"ISyntaxWrapper<{CompiletimeTypeSnippet()}>";
 
-    protected override string GenerateCore(StrategyModel model) =>
-        $$"""
-        {{Preamble()}}
-        public readonly partial struct {{Latest.Name}}Wrapper : ISyntaxWrapper<{{CompiletimeTypeSnippet()}}>
-        {
-            public const string WrappedTypeName = "{{Latest.FullName}}";
-            private static readonly Type WrappedType;
-
-            private readonly {{CompiletimeTypeSnippet()}} instance;
-
-            static {{Latest.Name}}Wrapper()
-            {
-                WrappedType = TypeRegister.LatestType(typeof({{Latest.Name}}Wrapper));
-        {{JoinLines(Members.Where(x => !x.IsPassthrough).Select(x => MemberAccessorInitialization(x.Member, model)))}}
-            }
-
-            private {{Latest.Name}}Wrapper({{CompiletimeTypeSnippet()}} instance) =>
-                this.instance = instance;
+    protected override string ObsoletePropertiesSnippet => $"""
+            [Obsolete("Use WrappedInstance instead")]
+            public {CompiletimeTypeSnippet()} Node => wrappedInstance;
 
             [Obsolete("Use WrappedInstance instead")]
-            public {{CompiletimeTypeSnippet()}} Node => this.instance;
+            public {CompiletimeTypeSnippet()} SyntaxNode => wrappedInstance;
+        """;
 
-            [Obsolete("Use WrappedInstance instead")]
-            public {{CompiletimeTypeSnippet()}} SyntaxNode => this.instance;
-
-            public {{CompiletimeTypeSnippet()}} WrappedInstance => this.instance;
-
-        {{JoinLines(Members.Select(x => MemberDeclaration(x, model)))}}
-
+    protected override string ConversionSnippet => $$"""
             public static explicit operator {{Latest.Name}}Wrapper(SyntaxNode node) =>
                 From(node);
 
             public static implicit operator {{CompiletimeTypeSnippet()}}({{Latest.Name}}Wrapper wrapper) =>
-                wrapper.instance;
+                wrapper.wrappedInstance;
 
             public static {{Latest.Name}}Wrapper From(SyntaxNode node)
             {
@@ -74,12 +54,11 @@ public class SyntaxNodeWrapStrategy : WrapStrategy
 
             public static bool IsInstance(SyntaxNode node) =>
                 node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
-
-        {{WrapperToWrapperConversions(model)}}
-        }
         """;
 
-    private string WrapperToWrapperConversions(StrategyModel model)
+    public SyntaxNodeWrapStrategy(Type latest, Type baseType, IReadOnlyList<MemberDescriptor> members) : base(latest, baseType, members) { }
+
+    protected override string WrapperToWrapperConversions(StrategyModel model)
     {
         return WrapperToWrapperConversions(WrappedBaseTypes());
 

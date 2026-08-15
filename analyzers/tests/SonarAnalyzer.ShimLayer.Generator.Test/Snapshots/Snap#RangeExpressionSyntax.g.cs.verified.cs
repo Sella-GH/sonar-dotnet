@@ -28,57 +28,51 @@ namespace SonarAnalyzer.ShimLayer;
 public readonly partial struct RangeExpressionSyntaxWrapper : ISyntaxWrapper<ExpressionSyntax>
 {
     public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.RangeExpressionSyntax";
-    private static readonly Type WrappedType;
 
-    private readonly ExpressionSyntax instance;
+    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(RangeExpressionSyntaxWrapper));
+    private readonly ExpressionSyntax wrappedInstance;
 
-    static RangeExpressionSyntaxWrapper()
-    {
-        WrappedType = TypeRegister.LatestType(typeof(RangeExpressionSyntaxWrapper));
-        LeftOperandAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, ExpressionSyntax>(WrappedType, "LeftOperand");
-        OperatorTokenAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "OperatorToken");
-        RightOperandAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, ExpressionSyntax>(WrappedType, "RightOperand");
-    }
+    private static readonly Func<ExpressionSyntax, ExpressionSyntax> LeftOperandAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, ExpressionSyntax>(WrappedType, "LeftOperand");
+    private static readonly Func<ExpressionSyntax, SyntaxToken> OperatorTokenAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, SyntaxToken>(WrappedType, "OperatorToken");
+    private static readonly Func<ExpressionSyntax, ExpressionSyntax> RightOperandAccessor = LightupHelpers.CreatePropertyAccessor<ExpressionSyntax, ExpressionSyntax>(WrappedType, "RightOperand");
 
-    private RangeExpressionSyntaxWrapper(ExpressionSyntax instance) =>
-        this.instance = instance;
+    private RangeExpressionSyntaxWrapper(ExpressionSyntax wrappedInstance) =>
+        this.wrappedInstance = wrappedInstance;
 
     [Obsolete("Use WrappedInstance instead")]
-    public ExpressionSyntax Node => this.instance;
+    public ExpressionSyntax Node => wrappedInstance;
 
     [Obsolete("Use WrappedInstance instead")]
-    public ExpressionSyntax SyntaxNode => this.instance;
+    public ExpressionSyntax SyntaxNode => wrappedInstance;
 
-    public ExpressionSyntax WrappedInstance => this.instance;
+    public ExpressionSyntax WrappedInstance => wrappedInstance;
 
-    private static readonly Func<ExpressionSyntax, ExpressionSyntax> LeftOperandAccessor;
-    public ExpressionSyntax LeftOperand => LeftOperandAccessor(this.instance);
-    private static readonly Func<ExpressionSyntax, SyntaxToken> OperatorTokenAccessor;
-    public SyntaxToken OperatorToken => (SyntaxToken)OperatorTokenAccessor(this.instance);
-    private static readonly Func<ExpressionSyntax, ExpressionSyntax> RightOperandAccessor;
-    public ExpressionSyntax RightOperand => RightOperandAccessor(this.instance);
-    public String Language => this.instance.Language;
-    public Int32 RawKind => this.instance.RawKind;
-    public TextSpan FullSpan => this.instance.FullSpan;
-    public TextSpan Span => this.instance.Span;
-    public Int32 SpanStart => this.instance.SpanStart;
-    public Boolean IsMissing => this.instance.IsMissing;
-    public Boolean IsStructuredTrivia => this.instance.IsStructuredTrivia;
-    public Boolean HasStructuredTrivia => this.instance.HasStructuredTrivia;
-    public Boolean ContainsSkippedText => this.instance.ContainsSkippedText;
-    public Boolean ContainsDiagnostics => this.instance.ContainsDiagnostics;
-    public Boolean ContainsDirectives => this.instance.ContainsDirectives;
-    public Boolean HasLeadingTrivia => this.instance.HasLeadingTrivia;
-    public Boolean HasTrailingTrivia => this.instance.HasTrailingTrivia;
-    public SyntaxNode Parent => this.instance.Parent;
-    public SyntaxTrivia ParentTrivia => this.instance.ParentTrivia;
-    public Boolean ContainsAnnotations => this.instance.ContainsAnnotations;
+    public String Language => wrappedInstance.Language;
+    public Int32 RawKind => wrappedInstance.RawKind;
+    public TextSpan FullSpan => wrappedInstance.FullSpan;
+    public TextSpan Span => wrappedInstance.Span;
+    public Int32 SpanStart => wrappedInstance.SpanStart;
+    public Boolean IsMissing => wrappedInstance.IsMissing;
+    public Boolean IsStructuredTrivia => wrappedInstance.IsStructuredTrivia;
+    public Boolean HasStructuredTrivia => wrappedInstance.HasStructuredTrivia;
+    public Boolean ContainsSkippedText => wrappedInstance.ContainsSkippedText;
+    public Boolean ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
+    public Boolean ContainsDirectives => wrappedInstance.ContainsDirectives;
+    public Boolean HasLeadingTrivia => wrappedInstance.HasLeadingTrivia;
+    public Boolean HasTrailingTrivia => wrappedInstance.HasTrailingTrivia;
+    public SyntaxNode Parent => wrappedInstance.Parent;
+    public SyntaxTrivia ParentTrivia => wrappedInstance.ParentTrivia;
+    public Boolean ContainsAnnotations => wrappedInstance.ContainsAnnotations;
+
+    public ExpressionSyntax LeftOperand => LeftOperandAccessor(wrappedInstance);
+    public SyntaxToken OperatorToken => (SyntaxToken)OperatorTokenAccessor(wrappedInstance);
+    public ExpressionSyntax RightOperand => RightOperandAccessor(wrappedInstance);
 
     public static explicit operator RangeExpressionSyntaxWrapper(SyntaxNode node) =>
         From(node);
 
     public static implicit operator ExpressionSyntax(RangeExpressionSyntaxWrapper wrapper) =>
-        wrapper.instance;
+        wrapper.wrappedInstance;
 
     public static RangeExpressionSyntaxWrapper From(SyntaxNode node)
     {

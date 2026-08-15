@@ -30,39 +30,27 @@ public sealed class ExtendStrategy : Strategy
     public override string ToConversionSnippet(string from) =>
         from;
 
-    protected override string GenerateCore(StrategyModel model) =>
-        Members.Select(x => GenerateMemberAccessor(x, model)).Where(x => x is not null).ToArray() is { Length: > 0 } accessors
+    protected override string GenerateCore(StrategyModel model)
+    {
+        var properties = Members.OfType<PropertyInfo>()
+            .Select(x => model[x.PropertyType] is { IsSupported: true } returnType ? new PropertyWrapSnippet(this, x, returnType) : null)
+            .Where(x => x is not null)
+            .ToArray();
+        return properties.Any()
             ? $$"""
                 {{Preamble($"using {Latest.Namespace};")}}
                 public static partial class {{Latest.Name}}ShimExtensions
                 {
                     private static readonly Type WrappedType = typeof({{CompiletimeTypeSnippet()}});
 
-                {{JoinLines(accessors)}}
+                {{JoinLines(properties.Select(x => x.AccessorDeclaration()))}}
 
-                    extension({{CompiletimeTypeSnippet()}} @this)
+                    extension({{CompiletimeTypeSnippet()}} wrappedInstance)
                     {
-                {{JoinLines(Members.Select(x => GenerateMemberExtension(x, model)))}}
+                {{JoinLines(properties.Select(x => x.MemberDeclaration(8)))}}
                     }
                 }
                 """
             : null;
-
-    private string GenerateMemberAccessor(MemberInfo member, StrategyModel model) =>
-        member switch
-        {
-            PropertyInfo prop when model[prop.PropertyType] is { IsSupported: true } propertyTypeStrategy => $"""
-                    private static readonly Func<{CompiletimeTypeSnippet()}, {propertyTypeStrategy.CompiletimeTypeSnippet()}> {prop.Name}Accessor = {propertyTypeStrategy.PropertyAccessorInitializerSnippet(CompiletimeTypeSnippet(), prop.Name)};
-                """,
-            _ => null,
-        };
-
-    private static string GenerateMemberExtension(MemberInfo member, StrategyModel model) =>
-        member switch
-        {
-            PropertyInfo { GetMethod: not null } prop when model[prop.PropertyType] is { IsSupported: true } propertyTypeStrategy => $"""
-                        public {propertyTypeStrategy.ReturnTypeSnippet()} {prop.Name} => {propertyTypeStrategy.ToConversionSnippet($"{prop.Name}Accessor(@this)")};
-                """,
-            _ => null,
-        };
+    }
 }

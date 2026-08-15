@@ -28,55 +28,43 @@ namespace SonarAnalyzer.ShimLayer;
 public readonly partial struct IInterpolatedStringHandlerCreationOperationWrapper : IOperationWrapper
 {
     public const string WrappedTypeName = "Microsoft.CodeAnalysis.Operations.IInterpolatedStringHandlerCreationOperation";
-    private static readonly Type WrappedType;
 
-    private readonly IOperation instance;
+    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(IInterpolatedStringHandlerCreationOperationWrapper));
+    private readonly IOperation wrappedInstance;
 
-    static IInterpolatedStringHandlerCreationOperationWrapper()
-    {
-        WrappedType = TypeRegister.LatestType(typeof(IInterpolatedStringHandlerCreationOperationWrapper));
-        HandlerCreationAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "HandlerCreation");
-        HandlerCreationHasSuccessParameterAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, Boolean>(WrappedType, "HandlerCreationHasSuccessParameter");
-        HandlerAppendCallsReturnBoolAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, Boolean>(WrappedType, "HandlerAppendCallsReturnBool");
-        ContentAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "Content");
-        ParentAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "Parent");
-        ChildrenAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IEnumerable<IOperation>>(WrappedType, "Children");
-        LanguageAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, String>(WrappedType, "Language");
-        IsImplicitAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, Boolean>(WrappedType, "IsImplicit");
-        SemanticModelAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, SemanticModel>(WrappedType, "SemanticModel");
-    }
+    private static readonly Func<IOperation, IOperation> HandlerCreationAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "HandlerCreation");
+    private static readonly Func<IOperation, Boolean> HandlerCreationHasSuccessParameterAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, Boolean>(WrappedType, "HandlerCreationHasSuccessParameter");
+    private static readonly Func<IOperation, Boolean> HandlerAppendCallsReturnBoolAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, Boolean>(WrappedType, "HandlerAppendCallsReturnBool");
+    private static readonly Func<IOperation, IOperation> ContentAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "Content");
+    private static readonly Func<IOperation, IOperation> ParentAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "Parent");
+    private static readonly Func<IOperation, IEnumerable<IOperation>> ChildrenAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IEnumerable<IOperation>>(WrappedType, "Children");
+    private static readonly Func<IOperation, String> LanguageAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, String>(WrappedType, "Language");
+    private static readonly Func<IOperation, Boolean> IsImplicitAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, Boolean>(WrappedType, "IsImplicit");
+    private static readonly Func<IOperation, SemanticModel> SemanticModelAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, SemanticModel>(WrappedType, "SemanticModel");
 
-    private IInterpolatedStringHandlerCreationOperationWrapper(IOperation instance) =>
-        this.instance = instance;
+    private IInterpolatedStringHandlerCreationOperationWrapper(IOperation wrappedInstance) =>
+        this.wrappedInstance = wrappedInstance;
 
     [Obsolete("Use WrappedInstance instead")]
-    public IOperation WrappedOperation => this.instance;
+    public IOperation WrappedOperation => wrappedInstance;
 
-    public IOperation WrappedInstance => this.instance;
+    public IOperation WrappedInstance => wrappedInstance;
 
-    private static readonly Func<IOperation, IOperation> HandlerCreationAccessor;
-    public IOperation HandlerCreation => HandlerCreationAccessor(this.instance);
-    private static readonly Func<IOperation, Boolean> HandlerCreationHasSuccessParameterAccessor;
-    public Boolean HandlerCreationHasSuccessParameter => (Boolean)HandlerCreationHasSuccessParameterAccessor(this.instance);
-    private static readonly Func<IOperation, Boolean> HandlerAppendCallsReturnBoolAccessor;
-    public Boolean HandlerAppendCallsReturnBool => (Boolean)HandlerAppendCallsReturnBoolAccessor(this.instance);
-    private static readonly Func<IOperation, IOperation> ContentAccessor;
-    public IOperation Content => ContentAccessor(this.instance);
-    private static readonly Func<IOperation, IOperation> ParentAccessor;
-    public IOperation Parent => ParentAccessor(this.instance);
-    public OperationKind Kind => this.instance.Kind;
-    public SyntaxNode Syntax => this.instance.Syntax;
-    public ITypeSymbol Type => this.instance.Type;
-    public Optional<Object> ConstantValue => this.instance.ConstantValue;
-    private static readonly Func<IOperation, IEnumerable<IOperation>> ChildrenAccessor;
+    public OperationKind Kind => wrappedInstance.Kind;
+    public SyntaxNode Syntax => wrappedInstance.Syntax;
+    public ITypeSymbol Type => wrappedInstance.Type;
+    public Optional<Object> ConstantValue => wrappedInstance.ConstantValue;
+
+    public IOperation HandlerCreation => HandlerCreationAccessor(wrappedInstance);
+    public Boolean HandlerCreationHasSuccessParameter => (Boolean)HandlerCreationHasSuccessParameterAccessor(wrappedInstance);
+    public Boolean HandlerAppendCallsReturnBool => (Boolean)HandlerAppendCallsReturnBoolAccessor(wrappedInstance);
+    public IOperation Content => ContentAccessor(wrappedInstance);
+    public IOperation Parent => ParentAccessor(wrappedInstance);
     [System.ObsoleteAttribute("This API has performance penalties, please use ChildOperations instead.", false)]
-    public IEnumerable<IOperation> Children => (IEnumerable<IOperation>)ChildrenAccessor(this.instance);
-    private static readonly Func<IOperation, String> LanguageAccessor;
-    public String Language => (String)LanguageAccessor(this.instance);
-    private static readonly Func<IOperation, Boolean> IsImplicitAccessor;
-    public Boolean IsImplicit => (Boolean)IsImplicitAccessor(this.instance);
-    private static readonly Func<IOperation, SemanticModel> SemanticModelAccessor;
-    public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(this.instance);
+    public IEnumerable<IOperation> Children => (IEnumerable<IOperation>)ChildrenAccessor(wrappedInstance);
+    public String Language => (String)LanguageAccessor(wrappedInstance);
+    public Boolean IsImplicit => (Boolean)IsImplicitAccessor(wrappedInstance);
+    public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(wrappedInstance);
 
     [Obsolete("Use From instead")]
     public static IInterpolatedStringHandlerCreationOperationWrapper FromOperation(IOperation operation) =>

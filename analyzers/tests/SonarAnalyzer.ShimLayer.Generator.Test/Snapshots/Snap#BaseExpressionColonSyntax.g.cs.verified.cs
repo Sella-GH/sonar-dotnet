@@ -28,54 +28,49 @@ namespace SonarAnalyzer.ShimLayer;
 public readonly partial struct BaseExpressionColonSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
 {
     public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.BaseExpressionColonSyntax";
-    private static readonly Type WrappedType;
 
-    private readonly CSharpSyntaxNode instance;
+    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(BaseExpressionColonSyntaxWrapper));
+    private readonly CSharpSyntaxNode wrappedInstance;
 
-    static BaseExpressionColonSyntaxWrapper()
-    {
-        WrappedType = TypeRegister.LatestType(typeof(BaseExpressionColonSyntaxWrapper));
-        ExpressionAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, ExpressionSyntax>(WrappedType, "Expression");
-        ColonTokenAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "ColonToken");
-    }
+    private static readonly Func<CSharpSyntaxNode, ExpressionSyntax> ExpressionAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, ExpressionSyntax>(WrappedType, "Expression");
+    private static readonly Func<CSharpSyntaxNode, SyntaxToken> ColonTokenAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "ColonToken");
 
-    private BaseExpressionColonSyntaxWrapper(CSharpSyntaxNode instance) =>
-        this.instance = instance;
+    private BaseExpressionColonSyntaxWrapper(CSharpSyntaxNode wrappedInstance) =>
+        this.wrappedInstance = wrappedInstance;
 
     [Obsolete("Use WrappedInstance instead")]
-    public CSharpSyntaxNode Node => this.instance;
+    public CSharpSyntaxNode Node => wrappedInstance;
 
     [Obsolete("Use WrappedInstance instead")]
-    public CSharpSyntaxNode SyntaxNode => this.instance;
+    public CSharpSyntaxNode SyntaxNode => wrappedInstance;
 
-    public CSharpSyntaxNode WrappedInstance => this.instance;
+    public CSharpSyntaxNode WrappedInstance => wrappedInstance;
 
-    private static readonly Func<CSharpSyntaxNode, ExpressionSyntax> ExpressionAccessor;
-    public ExpressionSyntax Expression => ExpressionAccessor(this.instance);
-    private static readonly Func<CSharpSyntaxNode, SyntaxToken> ColonTokenAccessor;
-    public SyntaxToken ColonToken => (SyntaxToken)ColonTokenAccessor(this.instance);
-    public String Language => this.instance.Language;
-    public Int32 RawKind => this.instance.RawKind;
-    public TextSpan FullSpan => this.instance.FullSpan;
-    public TextSpan Span => this.instance.Span;
-    public Int32 SpanStart => this.instance.SpanStart;
-    public Boolean IsMissing => this.instance.IsMissing;
-    public Boolean IsStructuredTrivia => this.instance.IsStructuredTrivia;
-    public Boolean HasStructuredTrivia => this.instance.HasStructuredTrivia;
-    public Boolean ContainsSkippedText => this.instance.ContainsSkippedText;
-    public Boolean ContainsDiagnostics => this.instance.ContainsDiagnostics;
-    public Boolean ContainsDirectives => this.instance.ContainsDirectives;
-    public Boolean HasLeadingTrivia => this.instance.HasLeadingTrivia;
-    public Boolean HasTrailingTrivia => this.instance.HasTrailingTrivia;
-    public SyntaxNode Parent => this.instance.Parent;
-    public SyntaxTrivia ParentTrivia => this.instance.ParentTrivia;
-    public Boolean ContainsAnnotations => this.instance.ContainsAnnotations;
+    public String Language => wrappedInstance.Language;
+    public Int32 RawKind => wrappedInstance.RawKind;
+    public TextSpan FullSpan => wrappedInstance.FullSpan;
+    public TextSpan Span => wrappedInstance.Span;
+    public Int32 SpanStart => wrappedInstance.SpanStart;
+    public Boolean IsMissing => wrappedInstance.IsMissing;
+    public Boolean IsStructuredTrivia => wrappedInstance.IsStructuredTrivia;
+    public Boolean HasStructuredTrivia => wrappedInstance.HasStructuredTrivia;
+    public Boolean ContainsSkippedText => wrappedInstance.ContainsSkippedText;
+    public Boolean ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
+    public Boolean ContainsDirectives => wrappedInstance.ContainsDirectives;
+    public Boolean HasLeadingTrivia => wrappedInstance.HasLeadingTrivia;
+    public Boolean HasTrailingTrivia => wrappedInstance.HasTrailingTrivia;
+    public SyntaxNode Parent => wrappedInstance.Parent;
+    public SyntaxTrivia ParentTrivia => wrappedInstance.ParentTrivia;
+    public Boolean ContainsAnnotations => wrappedInstance.ContainsAnnotations;
+
+    public ExpressionSyntax Expression => ExpressionAccessor(wrappedInstance);
+    public SyntaxToken ColonToken => (SyntaxToken)ColonTokenAccessor(wrappedInstance);
 
     public static explicit operator BaseExpressionColonSyntaxWrapper(SyntaxNode node) =>
         From(node);
 
     public static implicit operator CSharpSyntaxNode(BaseExpressionColonSyntaxWrapper wrapper) =>
-        wrapper.instance;
+        wrapper.wrappedInstance;
 
     public static BaseExpressionColonSyntaxWrapper From(SyntaxNode node)
     {

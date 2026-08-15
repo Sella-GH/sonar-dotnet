@@ -28,63 +28,55 @@ namespace SonarAnalyzer.ShimLayer;
 public readonly partial struct LineDirectivePositionSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
 {
     public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.LineDirectivePositionSyntax";
-    private static readonly Type WrappedType;
 
-    private readonly CSharpSyntaxNode instance;
+    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(LineDirectivePositionSyntaxWrapper));
+    private readonly CSharpSyntaxNode wrappedInstance;
 
-    static LineDirectivePositionSyntaxWrapper()
-    {
-        WrappedType = TypeRegister.LatestType(typeof(LineDirectivePositionSyntaxWrapper));
-        OpenParenTokenAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "OpenParenToken");
-        LineAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "Line");
-        CommaTokenAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "CommaToken");
-        CharacterAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "Character");
-        CloseParenTokenAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "CloseParenToken");
-    }
+    private static readonly Func<CSharpSyntaxNode, SyntaxToken> OpenParenTokenAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "OpenParenToken");
+    private static readonly Func<CSharpSyntaxNode, SyntaxToken> LineAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "Line");
+    private static readonly Func<CSharpSyntaxNode, SyntaxToken> CommaTokenAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "CommaToken");
+    private static readonly Func<CSharpSyntaxNode, SyntaxToken> CharacterAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "Character");
+    private static readonly Func<CSharpSyntaxNode, SyntaxToken> CloseParenTokenAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "CloseParenToken");
 
-    private LineDirectivePositionSyntaxWrapper(CSharpSyntaxNode instance) =>
-        this.instance = instance;
+    private LineDirectivePositionSyntaxWrapper(CSharpSyntaxNode wrappedInstance) =>
+        this.wrappedInstance = wrappedInstance;
 
     [Obsolete("Use WrappedInstance instead")]
-    public CSharpSyntaxNode Node => this.instance;
+    public CSharpSyntaxNode Node => wrappedInstance;
 
     [Obsolete("Use WrappedInstance instead")]
-    public CSharpSyntaxNode SyntaxNode => this.instance;
+    public CSharpSyntaxNode SyntaxNode => wrappedInstance;
 
-    public CSharpSyntaxNode WrappedInstance => this.instance;
+    public CSharpSyntaxNode WrappedInstance => wrappedInstance;
 
-    private static readonly Func<CSharpSyntaxNode, SyntaxToken> OpenParenTokenAccessor;
-    public SyntaxToken OpenParenToken => (SyntaxToken)OpenParenTokenAccessor(this.instance);
-    private static readonly Func<CSharpSyntaxNode, SyntaxToken> LineAccessor;
-    public SyntaxToken Line => (SyntaxToken)LineAccessor(this.instance);
-    private static readonly Func<CSharpSyntaxNode, SyntaxToken> CommaTokenAccessor;
-    public SyntaxToken CommaToken => (SyntaxToken)CommaTokenAccessor(this.instance);
-    private static readonly Func<CSharpSyntaxNode, SyntaxToken> CharacterAccessor;
-    public SyntaxToken Character => (SyntaxToken)CharacterAccessor(this.instance);
-    private static readonly Func<CSharpSyntaxNode, SyntaxToken> CloseParenTokenAccessor;
-    public SyntaxToken CloseParenToken => (SyntaxToken)CloseParenTokenAccessor(this.instance);
-    public String Language => this.instance.Language;
-    public Int32 RawKind => this.instance.RawKind;
-    public TextSpan FullSpan => this.instance.FullSpan;
-    public TextSpan Span => this.instance.Span;
-    public Int32 SpanStart => this.instance.SpanStart;
-    public Boolean IsMissing => this.instance.IsMissing;
-    public Boolean IsStructuredTrivia => this.instance.IsStructuredTrivia;
-    public Boolean HasStructuredTrivia => this.instance.HasStructuredTrivia;
-    public Boolean ContainsSkippedText => this.instance.ContainsSkippedText;
-    public Boolean ContainsDiagnostics => this.instance.ContainsDiagnostics;
-    public Boolean ContainsDirectives => this.instance.ContainsDirectives;
-    public Boolean HasLeadingTrivia => this.instance.HasLeadingTrivia;
-    public Boolean HasTrailingTrivia => this.instance.HasTrailingTrivia;
-    public SyntaxNode Parent => this.instance.Parent;
-    public SyntaxTrivia ParentTrivia => this.instance.ParentTrivia;
-    public Boolean ContainsAnnotations => this.instance.ContainsAnnotations;
+    public String Language => wrappedInstance.Language;
+    public Int32 RawKind => wrappedInstance.RawKind;
+    public TextSpan FullSpan => wrappedInstance.FullSpan;
+    public TextSpan Span => wrappedInstance.Span;
+    public Int32 SpanStart => wrappedInstance.SpanStart;
+    public Boolean IsMissing => wrappedInstance.IsMissing;
+    public Boolean IsStructuredTrivia => wrappedInstance.IsStructuredTrivia;
+    public Boolean HasStructuredTrivia => wrappedInstance.HasStructuredTrivia;
+    public Boolean ContainsSkippedText => wrappedInstance.ContainsSkippedText;
+    public Boolean ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
+    public Boolean ContainsDirectives => wrappedInstance.ContainsDirectives;
+    public Boolean HasLeadingTrivia => wrappedInstance.HasLeadingTrivia;
+    public Boolean HasTrailingTrivia => wrappedInstance.HasTrailingTrivia;
+    public SyntaxNode Parent => wrappedInstance.Parent;
+    public SyntaxTrivia ParentTrivia => wrappedInstance.ParentTrivia;
+    public Boolean ContainsAnnotations => wrappedInstance.ContainsAnnotations;
+
+    public SyntaxToken OpenParenToken => (SyntaxToken)OpenParenTokenAccessor(wrappedInstance);
+    public SyntaxToken Line => (SyntaxToken)LineAccessor(wrappedInstance);
+    public SyntaxToken CommaToken => (SyntaxToken)CommaTokenAccessor(wrappedInstance);
+    public SyntaxToken Character => (SyntaxToken)CharacterAccessor(wrappedInstance);
+    public SyntaxToken CloseParenToken => (SyntaxToken)CloseParenTokenAccessor(wrappedInstance);
 
     public static explicit operator LineDirectivePositionSyntaxWrapper(SyntaxNode node) =>
         From(node);
 
     public static implicit operator CSharpSyntaxNode(LineDirectivePositionSyntaxWrapper wrapper) =>
-        wrapper.instance;
+        wrapper.wrappedInstance;
 
     public static LineDirectivePositionSyntaxWrapper From(SyntaxNode node)
     {

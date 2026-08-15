@@ -28,70 +28,53 @@ namespace SonarAnalyzer.ShimLayer;
 public readonly partial struct IForLoopOperationWrapper : IOperationWrapper
 {
     public const string WrappedTypeName = "Microsoft.CodeAnalysis.Operations.IForLoopOperation";
-    private static readonly Type WrappedType;
 
-    private readonly IOperation instance;
+    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(IForLoopOperationWrapper));
+    private readonly IOperation wrappedInstance;
 
-    static IForLoopOperationWrapper()
-    {
-        WrappedType = TypeRegister.LatestType(typeof(IForLoopOperationWrapper));
-        BeforeAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, ImmutableArray<IOperation>>(WrappedType, "Before");
-        ConditionLocalsAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, ImmutableArray<ILocalSymbol>>(WrappedType, "ConditionLocals");
-        ConditionAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "Condition");
-        AtLoopBottomAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, ImmutableArray<IOperation>>(WrappedType, "AtLoopBottom");
-        LoopKindAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, LoopKind>(WrappedType, "LoopKind");
-        BodyAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "Body");
-        LocalsAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, ImmutableArray<ILocalSymbol>>(WrappedType, "Locals");
-        ContinueLabelAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, ILabelSymbol>(WrappedType, "ContinueLabel");
-        ExitLabelAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, ILabelSymbol>(WrappedType, "ExitLabel");
-        ParentAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "Parent");
-        ChildrenAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IEnumerable<IOperation>>(WrappedType, "Children");
-        LanguageAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, String>(WrappedType, "Language");
-        IsImplicitAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, Boolean>(WrappedType, "IsImplicit");
-        SemanticModelAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, SemanticModel>(WrappedType, "SemanticModel");
-    }
+    private static readonly Func<IOperation, ImmutableArray<IOperation>> BeforeAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, ImmutableArray<IOperation>>(WrappedType, "Before");
+    private static readonly Func<IOperation, ImmutableArray<ILocalSymbol>> ConditionLocalsAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, ImmutableArray<ILocalSymbol>>(WrappedType, "ConditionLocals");
+    private static readonly Func<IOperation, IOperation> ConditionAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "Condition");
+    private static readonly Func<IOperation, ImmutableArray<IOperation>> AtLoopBottomAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, ImmutableArray<IOperation>>(WrappedType, "AtLoopBottom");
+    private static readonly Func<IOperation, LoopKind> LoopKindAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, LoopKind>(WrappedType, "LoopKind");
+    private static readonly Func<IOperation, IOperation> BodyAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "Body");
+    private static readonly Func<IOperation, ImmutableArray<ILocalSymbol>> LocalsAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, ImmutableArray<ILocalSymbol>>(WrappedType, "Locals");
+    private static readonly Func<IOperation, ILabelSymbol> ContinueLabelAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, ILabelSymbol>(WrappedType, "ContinueLabel");
+    private static readonly Func<IOperation, ILabelSymbol> ExitLabelAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, ILabelSymbol>(WrappedType, "ExitLabel");
+    private static readonly Func<IOperation, IOperation> ParentAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IOperation>(WrappedType, "Parent");
+    private static readonly Func<IOperation, IEnumerable<IOperation>> ChildrenAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, IEnumerable<IOperation>>(WrappedType, "Children");
+    private static readonly Func<IOperation, String> LanguageAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, String>(WrappedType, "Language");
+    private static readonly Func<IOperation, Boolean> IsImplicitAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, Boolean>(WrappedType, "IsImplicit");
+    private static readonly Func<IOperation, SemanticModel> SemanticModelAccessor = LightupHelpers.CreatePropertyAccessor<IOperation, SemanticModel>(WrappedType, "SemanticModel");
 
-    private IForLoopOperationWrapper(IOperation instance) =>
-        this.instance = instance;
+    private IForLoopOperationWrapper(IOperation wrappedInstance) =>
+        this.wrappedInstance = wrappedInstance;
 
     [Obsolete("Use WrappedInstance instead")]
-    public IOperation WrappedOperation => this.instance;
+    public IOperation WrappedOperation => wrappedInstance;
 
-    public IOperation WrappedInstance => this.instance;
+    public IOperation WrappedInstance => wrappedInstance;
 
-    private static readonly Func<IOperation, ImmutableArray<IOperation>> BeforeAccessor;
-    public ImmutableArray<IOperation> Before => (ImmutableArray<IOperation>)BeforeAccessor(this.instance);
-    private static readonly Func<IOperation, ImmutableArray<ILocalSymbol>> ConditionLocalsAccessor;
-    public ImmutableArray<ILocalSymbol> ConditionLocals => (ImmutableArray<ILocalSymbol>)ConditionLocalsAccessor(this.instance);
-    private static readonly Func<IOperation, IOperation> ConditionAccessor;
-    public IOperation Condition => ConditionAccessor(this.instance);
-    private static readonly Func<IOperation, ImmutableArray<IOperation>> AtLoopBottomAccessor;
-    public ImmutableArray<IOperation> AtLoopBottom => (ImmutableArray<IOperation>)AtLoopBottomAccessor(this.instance);
-    private static readonly Func<IOperation, LoopKind> LoopKindAccessor;
-    public LoopKind LoopKind => (LoopKind)LoopKindAccessor(this.instance);
-    private static readonly Func<IOperation, IOperation> BodyAccessor;
-    public IOperation Body => BodyAccessor(this.instance);
-    private static readonly Func<IOperation, ImmutableArray<ILocalSymbol>> LocalsAccessor;
-    public ImmutableArray<ILocalSymbol> Locals => (ImmutableArray<ILocalSymbol>)LocalsAccessor(this.instance);
-    private static readonly Func<IOperation, ILabelSymbol> ContinueLabelAccessor;
-    public ILabelSymbol ContinueLabel => (ILabelSymbol)ContinueLabelAccessor(this.instance);
-    private static readonly Func<IOperation, ILabelSymbol> ExitLabelAccessor;
-    public ILabelSymbol ExitLabel => (ILabelSymbol)ExitLabelAccessor(this.instance);
-    private static readonly Func<IOperation, IOperation> ParentAccessor;
-    public IOperation Parent => ParentAccessor(this.instance);
-    public OperationKind Kind => this.instance.Kind;
-    public SyntaxNode Syntax => this.instance.Syntax;
-    public ITypeSymbol Type => this.instance.Type;
-    public Optional<Object> ConstantValue => this.instance.ConstantValue;
-    private static readonly Func<IOperation, IEnumerable<IOperation>> ChildrenAccessor;
+    public OperationKind Kind => wrappedInstance.Kind;
+    public SyntaxNode Syntax => wrappedInstance.Syntax;
+    public ITypeSymbol Type => wrappedInstance.Type;
+    public Optional<Object> ConstantValue => wrappedInstance.ConstantValue;
+
+    public ImmutableArray<IOperation> Before => (ImmutableArray<IOperation>)BeforeAccessor(wrappedInstance);
+    public ImmutableArray<ILocalSymbol> ConditionLocals => (ImmutableArray<ILocalSymbol>)ConditionLocalsAccessor(wrappedInstance);
+    public IOperation Condition => ConditionAccessor(wrappedInstance);
+    public ImmutableArray<IOperation> AtLoopBottom => (ImmutableArray<IOperation>)AtLoopBottomAccessor(wrappedInstance);
+    public LoopKind LoopKind => (LoopKind)LoopKindAccessor(wrappedInstance);
+    public IOperation Body => BodyAccessor(wrappedInstance);
+    public ImmutableArray<ILocalSymbol> Locals => (ImmutableArray<ILocalSymbol>)LocalsAccessor(wrappedInstance);
+    public ILabelSymbol ContinueLabel => (ILabelSymbol)ContinueLabelAccessor(wrappedInstance);
+    public ILabelSymbol ExitLabel => (ILabelSymbol)ExitLabelAccessor(wrappedInstance);
+    public IOperation Parent => ParentAccessor(wrappedInstance);
     [System.ObsoleteAttribute("This API has performance penalties, please use ChildOperations instead.", false)]
-    public IEnumerable<IOperation> Children => (IEnumerable<IOperation>)ChildrenAccessor(this.instance);
-    private static readonly Func<IOperation, String> LanguageAccessor;
-    public String Language => (String)LanguageAccessor(this.instance);
-    private static readonly Func<IOperation, Boolean> IsImplicitAccessor;
-    public Boolean IsImplicit => (Boolean)IsImplicitAccessor(this.instance);
-    private static readonly Func<IOperation, SemanticModel> SemanticModelAccessor;
-    public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(this.instance);
+    public IEnumerable<IOperation> Children => (IEnumerable<IOperation>)ChildrenAccessor(wrappedInstance);
+    public String Language => (String)LanguageAccessor(wrappedInstance);
+    public Boolean IsImplicit => (Boolean)IsImplicitAccessor(wrappedInstance);
+    public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(wrappedInstance);
 
     [Obsolete("Use From instead")]
     public static IForLoopOperationWrapper FromOperation(IOperation operation) =>

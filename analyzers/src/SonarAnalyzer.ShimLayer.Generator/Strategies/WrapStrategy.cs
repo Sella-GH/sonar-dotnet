@@ -19,6 +19,12 @@ namespace SonarAnalyzer.ShimLayer.Generator.Strategies;
 
 public abstract class WrapStrategy : Strategy
 {
+    protected abstract string BaseTypeSnippet { get; }
+    [Obsolete("This should be removed once we remove the obsolete usages from the generated code")]
+    protected abstract string ObsoletePropertiesSnippet { get; }
+    protected abstract string ConversionSnippet { get; }
+    protected abstract string WrapperToWrapperConversions(StrategyModel model);
+
     public Type BaseType { get; }
     public IReadOnlyList<MemberDescriptor> Members { get; }
 
@@ -37,6 +43,46 @@ public abstract class WrapStrategy : Strategy
     public override string CompiletimeTypeSnippet() =>
         BaseType.Name;
 
+    protected override string GenerateCore(StrategyModel model)
+    {
+        var passthroughProperties = Members
+            .Select(x => x.IsPassthrough && x.Member is PropertyInfo pi ? new PropertyPassthroughSnippet(this, pi, model[pi.PropertyType]) : null)
+            .Where(x => x is not null)
+            .ToArray();
+        var wrapProperties = Members
+            .Select(x => !x.IsPassthrough && x.Member is PropertyInfo pi && model[pi.PropertyType] is { IsSupported: true } returnType ? new PropertyWrapSnippet(this, pi, returnType) : null)
+            .Where(x => x is not null)
+            .ToArray();
+
+        return $$"""
+            {{Preamble()}}
+            public readonly partial struct {{Latest.Name}}Wrapper : {{BaseTypeSnippet}}
+            {
+                public const string WrappedTypeName = "{{Latest.FullName}}";
+
+                private static readonly Type WrappedType = TypeRegister.LatestType(typeof({{Latest.Name}}Wrapper));
+                private readonly {{CompiletimeTypeSnippet()}} wrappedInstance;
+
+            {{JoinLines(wrapProperties.Select(x => x.AccessorDeclaration()))}}
+
+                private {{Latest.Name}}Wrapper({{CompiletimeTypeSnippet()}} wrappedInstance) =>
+                    this.wrappedInstance = wrappedInstance;
+
+            {{ObsoletePropertiesSnippet}}
+
+                public {{CompiletimeTypeSnippet()}} WrappedInstance => wrappedInstance;
+
+            {{JoinLines(passthroughProperties.Select(x => x.MemberDeclaration(4)))}}
+
+            {{JoinLines(wrapProperties.Select(x => x.MemberDeclaration(4)))}}
+
+            {{ConversionSnippet}}
+
+            {{WrapperToWrapperConversions(model)}}
+            }
+            """;
+    }
+
     protected string WrapperToWrapperConversions(IEnumerable<Type> baseTypes)
     {
         StringBuilder sb = null;
@@ -50,28 +96,5 @@ public abstract class WrapStrategy : Strategy
                 """);
         }
         return sb?.ToString();
-    }
-
-    protected string MemberAccessorInitialization(MemberInfo member, StrategyModel model) =>
-        member is PropertyInfo property && model[property.PropertyType] is { IsSupported: true } propertyTypeStrategy
-            ? $"""
-                        {member.Name}Accessor = {propertyTypeStrategy.PropertyAccessorInitializerSnippet(CompiletimeTypeSnippet(), member.Name)};
-                """
-            : null;
-
-    protected string MemberDeclaration(MemberDescriptor member, StrategyModel model)
-    {
-        var attributes = SerializeAttributes(member.Member.GetCustomAttributesData(), 4);
-        return member switch
-        {
-            { IsPassthrough: true, Member: PropertyInfo pi } => $"""
-                    {attributes}public {model[pi.PropertyType].CompiletimeTypeSnippet()} {member.Member.Name} => this.instance.{member.Member.Name};
-                """,
-            { IsPassthrough: false, Member: PropertyInfo pi } when model[pi.PropertyType] is { IsSupported: true } propertyTypeStrategy => $"""
-                    private static readonly Func<{BaseType.Name}, {propertyTypeStrategy.CompiletimeTypeSnippet()}> {member.Member.Name}Accessor;
-                    {attributes}public {propertyTypeStrategy.ReturnTypeSnippet()} {member.Member.Name} => {propertyTypeStrategy.ToConversionSnippet($"{member.Member.Name}Accessor(this.instance)")};
-                """,
-            _ => null,
-        };
     }
 }

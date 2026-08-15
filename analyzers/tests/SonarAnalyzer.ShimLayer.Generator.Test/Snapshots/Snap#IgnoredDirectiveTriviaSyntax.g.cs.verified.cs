@@ -28,58 +28,53 @@ namespace SonarAnalyzer.ShimLayer;
 public readonly partial struct IgnoredDirectiveTriviaSyntaxWrapper : ISyntaxWrapper<DirectiveTriviaSyntax>
 {
     public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.IgnoredDirectiveTriviaSyntax";
-    private static readonly Type WrappedType;
 
-    private readonly DirectiveTriviaSyntax instance;
+    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(IgnoredDirectiveTriviaSyntaxWrapper));
+    private readonly DirectiveTriviaSyntax wrappedInstance;
 
-    static IgnoredDirectiveTriviaSyntaxWrapper()
-    {
-        WrappedType = TypeRegister.LatestType(typeof(IgnoredDirectiveTriviaSyntaxWrapper));
-        ColonTokenAccessor = LightupHelpers.CreatePropertyAccessor<DirectiveTriviaSyntax, SyntaxToken>(WrappedType, "ColonToken");
-        ContentAccessor = LightupHelpers.CreatePropertyAccessor<DirectiveTriviaSyntax, SyntaxToken>(WrappedType, "Content");
-    }
+    private static readonly Func<DirectiveTriviaSyntax, SyntaxToken> ColonTokenAccessor = LightupHelpers.CreatePropertyAccessor<DirectiveTriviaSyntax, SyntaxToken>(WrappedType, "ColonToken");
+    private static readonly Func<DirectiveTriviaSyntax, SyntaxToken> ContentAccessor = LightupHelpers.CreatePropertyAccessor<DirectiveTriviaSyntax, SyntaxToken>(WrappedType, "Content");
 
-    private IgnoredDirectiveTriviaSyntaxWrapper(DirectiveTriviaSyntax instance) =>
-        this.instance = instance;
+    private IgnoredDirectiveTriviaSyntaxWrapper(DirectiveTriviaSyntax wrappedInstance) =>
+        this.wrappedInstance = wrappedInstance;
 
     [Obsolete("Use WrappedInstance instead")]
-    public DirectiveTriviaSyntax Node => this.instance;
+    public DirectiveTriviaSyntax Node => wrappedInstance;
 
     [Obsolete("Use WrappedInstance instead")]
-    public DirectiveTriviaSyntax SyntaxNode => this.instance;
+    public DirectiveTriviaSyntax SyntaxNode => wrappedInstance;
 
-    public DirectiveTriviaSyntax WrappedInstance => this.instance;
+    public DirectiveTriviaSyntax WrappedInstance => wrappedInstance;
 
-    public SyntaxToken HashToken => this.instance.HashToken;
-    private static readonly Func<DirectiveTriviaSyntax, SyntaxToken> ColonTokenAccessor;
-    public SyntaxToken ColonToken => (SyntaxToken)ColonTokenAccessor(this.instance);
-    private static readonly Func<DirectiveTriviaSyntax, SyntaxToken> ContentAccessor;
-    public SyntaxToken Content => (SyntaxToken)ContentAccessor(this.instance);
-    public SyntaxToken EndOfDirectiveToken => this.instance.EndOfDirectiveToken;
-    public Boolean IsActive => this.instance.IsActive;
-    public SyntaxToken DirectiveNameToken => this.instance.DirectiveNameToken;
-    public SyntaxTrivia ParentTrivia => this.instance.ParentTrivia;
-    public String Language => this.instance.Language;
-    public Int32 RawKind => this.instance.RawKind;
-    public TextSpan FullSpan => this.instance.FullSpan;
-    public TextSpan Span => this.instance.Span;
-    public Int32 SpanStart => this.instance.SpanStart;
-    public Boolean IsMissing => this.instance.IsMissing;
-    public Boolean IsStructuredTrivia => this.instance.IsStructuredTrivia;
-    public Boolean HasStructuredTrivia => this.instance.HasStructuredTrivia;
-    public Boolean ContainsSkippedText => this.instance.ContainsSkippedText;
-    public Boolean ContainsDiagnostics => this.instance.ContainsDiagnostics;
-    public Boolean ContainsDirectives => this.instance.ContainsDirectives;
-    public Boolean HasLeadingTrivia => this.instance.HasLeadingTrivia;
-    public Boolean HasTrailingTrivia => this.instance.HasTrailingTrivia;
-    public SyntaxNode Parent => this.instance.Parent;
-    public Boolean ContainsAnnotations => this.instance.ContainsAnnotations;
+    public SyntaxToken HashToken => wrappedInstance.HashToken;
+    public SyntaxToken EndOfDirectiveToken => wrappedInstance.EndOfDirectiveToken;
+    public Boolean IsActive => wrappedInstance.IsActive;
+    public SyntaxToken DirectiveNameToken => wrappedInstance.DirectiveNameToken;
+    public SyntaxTrivia ParentTrivia => wrappedInstance.ParentTrivia;
+    public String Language => wrappedInstance.Language;
+    public Int32 RawKind => wrappedInstance.RawKind;
+    public TextSpan FullSpan => wrappedInstance.FullSpan;
+    public TextSpan Span => wrappedInstance.Span;
+    public Int32 SpanStart => wrappedInstance.SpanStart;
+    public Boolean IsMissing => wrappedInstance.IsMissing;
+    public Boolean IsStructuredTrivia => wrappedInstance.IsStructuredTrivia;
+    public Boolean HasStructuredTrivia => wrappedInstance.HasStructuredTrivia;
+    public Boolean ContainsSkippedText => wrappedInstance.ContainsSkippedText;
+    public Boolean ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
+    public Boolean ContainsDirectives => wrappedInstance.ContainsDirectives;
+    public Boolean HasLeadingTrivia => wrappedInstance.HasLeadingTrivia;
+    public Boolean HasTrailingTrivia => wrappedInstance.HasTrailingTrivia;
+    public SyntaxNode Parent => wrappedInstance.Parent;
+    public Boolean ContainsAnnotations => wrappedInstance.ContainsAnnotations;
+
+    public SyntaxToken ColonToken => (SyntaxToken)ColonTokenAccessor(wrappedInstance);
+    public SyntaxToken Content => (SyntaxToken)ContentAccessor(wrappedInstance);
 
     public static explicit operator IgnoredDirectiveTriviaSyntaxWrapper(SyntaxNode node) =>
         From(node);
 
     public static implicit operator DirectiveTriviaSyntax(IgnoredDirectiveTriviaSyntaxWrapper wrapper) =>
-        wrapper.instance;
+        wrapper.wrappedInstance;
 
     public static IgnoredDirectiveTriviaSyntaxWrapper From(SyntaxNode node)
     {
