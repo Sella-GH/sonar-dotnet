@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="S9129: &quot;Include&quot; and &quot;ThenInclude&quot; chains of reference navigations should be merged into a single &quot;Include&quot; call (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S9129 - &quot;Include&quot; and &quot;ThenInclude&quot; chains of reference navigations should be merged into a single &quot;Include&quot; call (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+<script src="../theme.js"></script>
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../"><span aria-hidden="true">&larr;</span> Back to index</a><button type="button" id="theme-toggle" aria-label="Toggle color theme, currently Auto" title="Theme: Auto"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="18" x2="12" y2="21"></line></svg></button></nav>
+<header>
+<h1>S9129 &mdash; &quot;Include&quot; and &quot;ThenInclude&quot; chains of reference navigations should be merged into a single &quot;Include&quot; call</h1>
+
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
+<div><dt>Severity</dt><dd>Minor</dd></div>
+<div><dt>Tags</dt><dd>entity-framework-core, entity-framework, orm, database</dd></div>
+</dl>
+</header>
+<main>
+<p>An <code>Include</code> call followed by one or more <code>ThenInclude</code> calls can often be written as a single <code>Include</code> call with
+a dotted navigation path, when every navigation before the last step of the chain is a reference (single-valued) navigation.</p>
+<h2>Why is this an issue?</h2>
+<p>A <code>ThenInclude</code> call continues the navigation path of the <code>Include</code>/<code>ThenInclude</code> call it is chained onto. When
+every navigation before the last step of that path is a reference, the whole chain can be written as a single <code>Include</code> call with a dotted
+lambda body instead — Entity Framework Core generates the same SQL either way, but the dotted form is one call instead of several, and reads as a
+single access path instead of a multi-step chain.</p>
+<p>A navigation earlier in the chain must keep using <code>ThenInclude</code> when it is itself a to-many (collection) navigation: Entity Framework
+Core’s dotted <code>Include</code> syntax only supports reference navigations for every step but the last.</p>
+<p>This is a purely syntactic simplification: once the pattern matches, merging the chain is always safe and never changes what the query loads or how
+it behaves.</p>
+<h2>How to fix it</h2>
+<p>Replace the <code>Include</code>/<code>ThenInclude</code> chain with a single <code>Include</code> call whose lambda body is the equivalent dotted
+navigation path.</p>
+<h3>Code examples</h3>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+var students = await context.Students
+    .Include(s =&gt; s.School).ThenInclude(sc =&gt; sc.District) // Noncompliant: "School" is a reference navigation, this chain can be a single "Include" call
+    .ToListAsync();
+</code></pre>
+<h4>Compliant solution</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+var students = await context.Students
+    .Include(s =&gt; s.School.District)
+    .ToListAsync();
+</code></pre>
+<p>A trailing collection navigation can still be folded into the dotted path, as long as every navigation before it is a reference:</p>
+<pre tabindex="0"><code class="language-csharp">
+var students = await context.Students
+    .Include(s =&gt; s.School.Classes) // "School" is a reference; "Classes" is a collection but it is the last step, so the dotted form is still valid
+    .ToListAsync();
+</code></pre>
+<h3>Exceptions</h3>
+<p>The rule does not apply to merging across a collection (to-many) navigation — Entity Framework Core has no dotted syntax that crosses a collection
+navigation partway through the path:</p>
+<pre tabindex="0"><code class="language-csharp">
+var students = await context.Students
+    .Include(s =&gt; s.Enrollments).ThenInclude(e =&gt; e.Grades) // Compliant: "Enrollments" is a collection navigation before the last step, "ThenInclude" cannot be replaced by a dotted "Include"
+    .ToListAsync();
+</code></pre>
+<p>Multiple <code>ThenInclude</code> calls after the collection can still be merged with each other:</p>
+<pre tabindex="0" data-diff-id="2" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+var students = await context.Students
+    .Include(s =&gt; s.Enrollments)
+    .ThenInclude(e =&gt; e.Teacher) // Noncompliant: "Teacher" and "Department" are references, this part of the chain can become "ThenInclude(e =&gt; e.Teacher.Department)"
+    .ThenInclude(t =&gt; t.Department)
+    .ToListAsync();
+</code></pre>
+<pre tabindex="0" data-diff-id="2" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+var students = await context.Students
+    .Include(s =&gt; s.Enrollments)
+    .ThenInclude(e =&gt; e.Teacher.Department)
+    .ToListAsync();
+</code></pre>
+<p>Each <code>Include</code>/<code>ThenInclude</code> run is evaluated on its own. Repeating <code>Include</code> to branch into two different
+<code>ThenInclude</code> continuations does not prevent either branch from being simplified independently:</p>
+<pre tabindex="0"><code class="language-csharp">
+var students = await context.Students
+    .Include(s =&gt; s.School).ThenInclude(sc =&gt; sc.Principal) // Noncompliant: can become "Include(s =&gt; s.School.Principal)"
+    .Include(s =&gt; s.School).ThenInclude(sc =&gt; sc.VicePrincipal) // Noncompliant: can become "Include(s =&gt; s.School.VicePrincipal)", independently of the branch above
+    .ToListAsync();
+</code></pre>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/ef/core/querying/related-data/eager">Loading related data - Eager loading</a>,
+  "Including multiple levels" section</li>
+</ul>
+<h3>Related rules</h3>
+<ul>
+  <li>{rule:csharpsquid:S8733} - covers loading multiple sibling collections in a single query.</li>
+  <li>{rule:csharpsquid:S9022} - covers <code>Include</code>/<code>ThenInclude</code> calls that add nothing to the query at all.</li>
+  <li>{rule:csharpsquid:S9023} - covers <code>Include</code> calls that silently drop real data.</li>
+</ul>
+
+</main>
+<p class="to-top"><a href="#">&uarr; Back to top</a></p>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>
