@@ -32,9 +32,9 @@ public readonly partial struct FunctionPointerParameterSyntaxWrapper : ISyntaxWr
     private static readonly Type WrappedType = TypeRegister.LatestType(typeof(FunctionPointerParameterSyntaxWrapper));
     private readonly CSharpSyntaxNode wrappedInstance;
 
-    private static readonly Func<CSharpSyntaxNode, SyntaxList<AttributeListSyntax>> AttributeListsAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxList<AttributeListSyntax>>(WrappedType, "AttributeLists");
-    private static readonly Func<CSharpSyntaxNode, SyntaxTokenList> ModifiersAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxTokenList>(WrappedType, "Modifiers");
-    private static readonly Func<CSharpSyntaxNode, TypeSyntax> TypeAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, TypeSyntax>(WrappedType, "Type");
+    private static readonly Func<CSharpSyntaxNode, SyntaxList<AttributeListSyntax>> AttributeListsAccessor = AccessorFactory.CreateProperty<Func<CSharpSyntaxNode, SyntaxList<AttributeListSyntax>>>(WrappedType, "AttributeLists");
+    private static readonly Func<CSharpSyntaxNode, SyntaxTokenList> ModifiersAccessor = AccessorFactory.CreateProperty<Func<CSharpSyntaxNode, SyntaxTokenList>>(WrappedType, "Modifiers");
+    private static readonly Func<CSharpSyntaxNode, TypeSyntax> TypeAccessor = AccessorFactory.CreateProperty<Func<CSharpSyntaxNode, TypeSyntax>>(WrappedType, "Type");
 
     private FunctionPointerParameterSyntaxWrapper(CSharpSyntaxNode wrappedInstance) =>
         this.wrappedInstance = wrappedInstance;
@@ -47,22 +47,22 @@ public readonly partial struct FunctionPointerParameterSyntaxWrapper : ISyntaxWr
 
     public CSharpSyntaxNode WrappedInstance => wrappedInstance;
 
-    public String Language => wrappedInstance.Language;
-    public Int32 RawKind => wrappedInstance.RawKind;
-    public TextSpan FullSpan => wrappedInstance.FullSpan;
-    public TextSpan Span => wrappedInstance.Span;
-    public Int32 SpanStart => wrappedInstance.SpanStart;
-    public Boolean IsMissing => wrappedInstance.IsMissing;
-    public Boolean IsStructuredTrivia => wrappedInstance.IsStructuredTrivia;
-    public Boolean HasStructuredTrivia => wrappedInstance.HasStructuredTrivia;
-    public Boolean ContainsSkippedText => wrappedInstance.ContainsSkippedText;
+    public Boolean ContainsAnnotations => wrappedInstance.ContainsAnnotations;
     public Boolean ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
     public Boolean ContainsDirectives => wrappedInstance.ContainsDirectives;
+    public Boolean ContainsSkippedText => wrappedInstance.ContainsSkippedText;
+    public TextSpan FullSpan => wrappedInstance.FullSpan;
     public Boolean HasLeadingTrivia => wrappedInstance.HasLeadingTrivia;
+    public Boolean HasStructuredTrivia => wrappedInstance.HasStructuredTrivia;
     public Boolean HasTrailingTrivia => wrappedInstance.HasTrailingTrivia;
+    public Boolean IsMissing => wrappedInstance.IsMissing;
+    public Boolean IsStructuredTrivia => wrappedInstance.IsStructuredTrivia;
+    public String Language => wrappedInstance.Language;
     public SyntaxNode Parent => wrappedInstance.Parent;
     public SyntaxTrivia ParentTrivia => wrappedInstance.ParentTrivia;
-    public Boolean ContainsAnnotations => wrappedInstance.ContainsAnnotations;
+    public Int32 RawKind => wrappedInstance.RawKind;
+    public TextSpan Span => wrappedInstance.Span;
+    public Int32 SpanStart => wrappedInstance.SpanStart;
 
     public SyntaxList<AttributeListSyntax> AttributeLists => (SyntaxList<AttributeListSyntax>)AttributeListsAccessor(wrappedInstance);
     public SyntaxTokenList Modifiers => (SyntaxTokenList)ModifiersAccessor(wrappedInstance);

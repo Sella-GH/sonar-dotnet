@@ -32,7 +32,7 @@ public readonly partial struct PrimaryConstructorBaseTypeSyntaxWrapper : ISyntax
     private static readonly Type WrappedType = TypeRegister.LatestType(typeof(PrimaryConstructorBaseTypeSyntaxWrapper));
     private readonly BaseTypeSyntax wrappedInstance;
 
-    private static readonly Func<BaseTypeSyntax, ArgumentListSyntax> ArgumentListAccessor = LightupHelpers.CreatePropertyAccessor<BaseTypeSyntax, ArgumentListSyntax>(WrappedType, "ArgumentList");
+    private static readonly Func<BaseTypeSyntax, ArgumentListSyntax> ArgumentListAccessor = AccessorFactory.CreateProperty<Func<BaseTypeSyntax, ArgumentListSyntax>>(WrappedType, "ArgumentList");
 
     private PrimaryConstructorBaseTypeSyntaxWrapper(BaseTypeSyntax wrappedInstance) =>
         this.wrappedInstance = wrappedInstance;
@@ -45,23 +45,23 @@ public readonly partial struct PrimaryConstructorBaseTypeSyntaxWrapper : ISyntax
 
     public BaseTypeSyntax WrappedInstance => wrappedInstance;
 
-    public TypeSyntax Type => wrappedInstance.Type;
-    public String Language => wrappedInstance.Language;
-    public Int32 RawKind => wrappedInstance.RawKind;
-    public TextSpan FullSpan => wrappedInstance.FullSpan;
-    public TextSpan Span => wrappedInstance.Span;
-    public Int32 SpanStart => wrappedInstance.SpanStart;
-    public Boolean IsMissing => wrappedInstance.IsMissing;
-    public Boolean IsStructuredTrivia => wrappedInstance.IsStructuredTrivia;
-    public Boolean HasStructuredTrivia => wrappedInstance.HasStructuredTrivia;
-    public Boolean ContainsSkippedText => wrappedInstance.ContainsSkippedText;
+    public Boolean ContainsAnnotations => wrappedInstance.ContainsAnnotations;
     public Boolean ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
     public Boolean ContainsDirectives => wrappedInstance.ContainsDirectives;
+    public Boolean ContainsSkippedText => wrappedInstance.ContainsSkippedText;
+    public TextSpan FullSpan => wrappedInstance.FullSpan;
     public Boolean HasLeadingTrivia => wrappedInstance.HasLeadingTrivia;
+    public Boolean HasStructuredTrivia => wrappedInstance.HasStructuredTrivia;
     public Boolean HasTrailingTrivia => wrappedInstance.HasTrailingTrivia;
+    public Boolean IsMissing => wrappedInstance.IsMissing;
+    public Boolean IsStructuredTrivia => wrappedInstance.IsStructuredTrivia;
+    public String Language => wrappedInstance.Language;
     public SyntaxNode Parent => wrappedInstance.Parent;
     public SyntaxTrivia ParentTrivia => wrappedInstance.ParentTrivia;
-    public Boolean ContainsAnnotations => wrappedInstance.ContainsAnnotations;
+    public Int32 RawKind => wrappedInstance.RawKind;
+    public TextSpan Span => wrappedInstance.Span;
+    public Int32 SpanStart => wrappedInstance.SpanStart;
+    public TypeSyntax Type => wrappedInstance.Type;
 
     public ArgumentListSyntax ArgumentList => ArgumentListAccessor(wrappedInstance);
 

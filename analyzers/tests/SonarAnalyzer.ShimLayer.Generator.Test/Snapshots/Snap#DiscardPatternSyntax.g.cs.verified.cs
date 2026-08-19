@@ -32,7 +32,7 @@ public readonly partial struct DiscardPatternSyntaxWrapper : ISyntaxWrapper<CSha
     private static readonly Type WrappedType = TypeRegister.LatestType(typeof(DiscardPatternSyntaxWrapper));
     private readonly CSharpSyntaxNode wrappedInstance;
 
-    private static readonly Func<CSharpSyntaxNode, SyntaxToken> UnderscoreTokenAccessor = LightupHelpers.CreatePropertyAccessor<CSharpSyntaxNode, SyntaxToken>(WrappedType, "UnderscoreToken");
+    private static readonly Func<CSharpSyntaxNode, SyntaxToken> UnderscoreTokenAccessor = AccessorFactory.CreateProperty<Func<CSharpSyntaxNode, SyntaxToken>>(WrappedType, "UnderscoreToken");
 
     private DiscardPatternSyntaxWrapper(CSharpSyntaxNode wrappedInstance) =>
         this.wrappedInstance = wrappedInstance;
@@ -45,22 +45,22 @@ public readonly partial struct DiscardPatternSyntaxWrapper : ISyntaxWrapper<CSha
 
     public CSharpSyntaxNode WrappedInstance => wrappedInstance;
 
-    public String Language => wrappedInstance.Language;
-    public Int32 RawKind => wrappedInstance.RawKind;
-    public TextSpan FullSpan => wrappedInstance.FullSpan;
-    public TextSpan Span => wrappedInstance.Span;
-    public Int32 SpanStart => wrappedInstance.SpanStart;
-    public Boolean IsMissing => wrappedInstance.IsMissing;
-    public Boolean IsStructuredTrivia => wrappedInstance.IsStructuredTrivia;
-    public Boolean HasStructuredTrivia => wrappedInstance.HasStructuredTrivia;
-    public Boolean ContainsSkippedText => wrappedInstance.ContainsSkippedText;
+    public Boolean ContainsAnnotations => wrappedInstance.ContainsAnnotations;
     public Boolean ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
     public Boolean ContainsDirectives => wrappedInstance.ContainsDirectives;
+    public Boolean ContainsSkippedText => wrappedInstance.ContainsSkippedText;
+    public TextSpan FullSpan => wrappedInstance.FullSpan;
     public Boolean HasLeadingTrivia => wrappedInstance.HasLeadingTrivia;
+    public Boolean HasStructuredTrivia => wrappedInstance.HasStructuredTrivia;
     public Boolean HasTrailingTrivia => wrappedInstance.HasTrailingTrivia;
+    public Boolean IsMissing => wrappedInstance.IsMissing;
+    public Boolean IsStructuredTrivia => wrappedInstance.IsStructuredTrivia;
+    public String Language => wrappedInstance.Language;
     public SyntaxNode Parent => wrappedInstance.Parent;
     public SyntaxTrivia ParentTrivia => wrappedInstance.ParentTrivia;
-    public Boolean ContainsAnnotations => wrappedInstance.ContainsAnnotations;
+    public Int32 RawKind => wrappedInstance.RawKind;
+    public TextSpan Span => wrappedInstance.Span;
+    public Int32 SpanStart => wrappedInstance.SpanStart;
 
     public SyntaxToken UnderscoreToken => (SyntaxToken)UnderscoreTokenAccessor(wrappedInstance);
 
