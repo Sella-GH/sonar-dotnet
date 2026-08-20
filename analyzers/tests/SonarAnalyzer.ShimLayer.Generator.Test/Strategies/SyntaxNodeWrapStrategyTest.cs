@@ -58,6 +58,7 @@ public class SyntaxNodeWrapStrategyTest
             using Microsoft.CodeAnalysis.Text;
             using System;
             using System.Collections.Immutable;
+            using System.Text;
 
             namespace SonarAnalyzer.ShimLayer;
 
@@ -118,7 +119,11 @@ public class SyntaxNodeWrapStrategyTest
             [
                 new(typeof(RecordDeclarationSyntax).GetMember(nameof(RecordDeclarationSyntax.Span))[0], true, "SpanAccessor"),
                 new(typeof(RecordDeclarationSyntax).GetMember(nameof(RecordDeclarationSyntax.ClassOrStructKeyword))[0], false, "ClassOrStructKeywordAccessor"),
-                new(skippedPropertyTypeMember, false, "ConstraintClausesAccessor") // PropertyType is skipped and this should not render anything
+                new(skippedPropertyTypeMember, false, "ConstraintClausesAccessor"),     // PropertyType is skipped and this should not render anything
+                new(typeof(RecordDeclarationSyntax).GetMember(nameof(RecordDeclarationSyntax.Accept))[0], true, "AcceptAccessor"), // ToDo: NET-4372 Add support for Void
+                new(typeof(RecordDeclarationSyntax).GetMember(nameof(RecordDeclarationSyntax.FindTrivia))[0], true, "AcceptAccessor"),              // Passtrough method - with Func<..> parameter
+                new(typeof(RecordDeclarationSyntax).GetMember(nameof(RecordDeclarationSyntax.FindTrivia))[1], true, "AcceptAccessor_Overload2"),    // Passtrough method - normal
+                new(typeof(RecordDeclarationSyntax).GetMember(nameof(RecordDeclarationSyntax.WithParameterList))[0], false, "WithParameterListAccessor"),   // Wrapped method
             ]);
         var model = new StrategyModel(new() { { skippedPropertyTypeMember.PropertyType, new SkipStrategy(skippedPropertyTypeMember.PropertyType) } });
 
@@ -148,6 +153,7 @@ public class SyntaxNodeWrapStrategyTest
             using Microsoft.CodeAnalysis.Text;
             using System;
             using System.Collections.Immutable;
+            using System.Text;
 
             namespace SonarAnalyzer.ShimLayer;
 
@@ -159,6 +165,8 @@ public class SyntaxNodeWrapStrategyTest
                 private readonly TypeDeclarationSyntax wrappedInstance;
 
                 private static readonly Func<TypeDeclarationSyntax, SyntaxToken> ClassOrStructKeywordAccessor = AccessorFactory.CreateProperty<Func<TypeDeclarationSyntax, SyntaxToken>>(WrappedType, "ClassOrStructKeyword");
+
+                private static readonly Func<TypeDeclarationSyntax, ParameterListSyntax, RecordDeclarationSyntax> WithParameterListAccessor = AccessorFactory.CreateMethod<Func<TypeDeclarationSyntax, ParameterListSyntax, RecordDeclarationSyntax>>(WrappedType, "WithParameterList");
 
                 private RecordDeclarationSyntaxWrapper(TypeDeclarationSyntax wrappedInstance) =>
                     this.wrappedInstance = wrappedInstance;
@@ -174,6 +182,11 @@ public class SyntaxNodeWrapStrategyTest
                 public TextSpan Span => wrappedInstance.Span;
 
                 public SyntaxToken ClassOrStructKeyword => (SyntaxToken)ClassOrStructKeywordAccessor(wrappedInstance);
+
+                public SyntaxTrivia FindTrivia(Int32 position, Func<SyntaxTrivia, Boolean> stepInto) => wrappedInstance.FindTrivia(position, stepInto);
+                public SyntaxTrivia FindTrivia(Int32 position, Boolean findInsideTrivia) => wrappedInstance.FindTrivia(position, findInsideTrivia);
+
+                public RecordDeclarationSyntax WithParameterList(ParameterListSyntax parameterList) => (RecordDeclarationSyntax)WithParameterListAccessor(wrappedInstance, parameterList);
 
                 public static explicit operator RecordDeclarationSyntaxWrapper(SyntaxNode node) =>
                     From(node);
@@ -242,6 +255,7 @@ public class SyntaxNodeWrapStrategyTest
             using Microsoft.CodeAnalysis.Text;
             using System;
             using System.Collections.Immutable;
+            using System.Text;
 
             namespace SonarAnalyzer.ShimLayer;
 
@@ -333,6 +347,7 @@ public class SyntaxNodeWrapStrategyTest
             using Microsoft.CodeAnalysis.Text;
             using System;
             using System.Collections.Immutable;
+            using System.Text;
 
             namespace SonarAnalyzer.ShimLayer;
 
@@ -425,6 +440,7 @@ public class SyntaxNodeWrapStrategyTest
             using Microsoft.CodeAnalysis.Text;
             using System;
             using System.Collections.Immutable;
+            using System.Text;
 
             namespace SonarAnalyzer.ShimLayer;
 
@@ -482,8 +498,10 @@ public class SyntaxNodeWrapStrategyTest
             typeof(IndexerDeclarationSyntax),
             typeof(SyntaxNode),
             [
-                new(typeof(IndexerDeclarationSyntax).GetMember("Semicolon")[0], true, "SemicolonAccessor"), // Has ObsoleteAttribute to render
-                new(typeof(AliasQualifiedNameSyntax).GetMember("Parent")[0], true, "ParentAccessor")        // Has NullableAttribute to ignore
+                new(typeof(IndexerDeclarationSyntax).GetMember("Semicolon")[0], true, "SemicolonAccessor"),         // Has ObsoleteAttribute to render
+                new(typeof(AliasQualifiedNameSyntax).GetMember("Parent")[0], true, "ParentAccessor"),               // Has NullableAttribute to ignore
+                new(typeof(AllowsConstraintClauseSyntax).GetMember("Contains")[0], true, "ContainsAccessor"),       // Has NullableContextAttribute to ignore
+                new(typeof(AllowsConstraintClauseSyntax).GetMember("ChildNodes")[0], true, "ChildNodesAccessor"),   // Has IteratorStateMachineAttribute to ignore
             ]);
         var result = sut.Generate([]);
         result.Should().BeIgnoringLineEndings("""
@@ -511,6 +529,7 @@ public class SyntaxNodeWrapStrategyTest
             using Microsoft.CodeAnalysis.Text;
             using System;
             using System.Collections.Immutable;
+            using System.Text;
 
             namespace SonarAnalyzer.ShimLayer;
 
@@ -536,6 +555,9 @@ public class SyntaxNodeWrapStrategyTest
                 [System.ObsoleteAttribute("This member is obsolete.", true)]
                 public SyntaxToken Semicolon => wrappedInstance.Semicolon;
                 public SyntaxNode Parent => wrappedInstance.Parent;
+
+                public Boolean Contains(SyntaxNode node) => wrappedInstance.Contains(node);
+                public IEnumerable<SyntaxNode> ChildNodes() => wrappedInstance.ChildNodes();
 
                 public static explicit operator IndexerDeclarationSyntaxWrapper(SyntaxNode node) =>
                     From(node);
@@ -606,6 +628,7 @@ public class SyntaxNodeWrapStrategyTest
             using Microsoft.CodeAnalysis.Text;
             using System;
             using System.Collections.Immutable;
+            using System.Text;
 
             namespace SonarAnalyzer.ShimLayer;
 
@@ -618,7 +641,7 @@ public class SyntaxNodeWrapStrategyTest
 
                 private static readonly Func<TypeDeclarationSyntax, SyntaxList<MemberDeclarationSyntax>> MembersAccessor = AccessorFactory.CreateProperty<Func<TypeDeclarationSyntax, SyntaxList<MemberDeclarationSyntax>>>(WrappedType, "Members");
                 private static readonly Func<TypeDeclarationSyntax, SeparatedSyntaxList<ArgumentSyntax>> ArgumentsAccessor = AccessorFactory.CreateProperty<Func<TypeDeclarationSyntax, SeparatedSyntaxList<ArgumentSyntax>>>(WrappedType, "Arguments");
-                private static readonly Func<TypeDeclarationSyntax, SeparatedSyntaxListWrapper<SwitchExpressionArmSyntaxWrapper>> ArmsAccessor = LightupHelpers.CreateSeparatedSyntaxListPropertyAccessor<TypeDeclarationSyntax, SwitchExpressionArmSyntaxWrapper>(WrappedType, nameof(Arms));
+                private static readonly Func<TypeDeclarationSyntax, SeparatedSyntaxListWrapper<SwitchExpressionArmSyntaxWrapper>> ArmsAccessor = AccessorFactory.CreateProperty<Func<TypeDeclarationSyntax, SeparatedSyntaxListWrapper<SwitchExpressionArmSyntaxWrapper>>>(WrappedType, "Arms");
 
                 private RecordDeclarationSyntaxWrapper(TypeDeclarationSyntax wrappedInstance) =>
                     this.wrappedInstance = wrappedInstance;

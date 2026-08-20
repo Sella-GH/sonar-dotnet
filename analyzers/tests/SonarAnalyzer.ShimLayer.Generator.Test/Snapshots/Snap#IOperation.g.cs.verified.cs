@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System;
 using System.Collections.Immutable;
+using System.Text;
 
 namespace SonarAnalyzer.ShimLayer;
 
@@ -43,5 +44,6 @@ public static partial class IOperationShimExtensions
         public String Language => (String)LanguageAccessor(wrappedInstance);
         public IOperation Parent => ParentAccessor(wrappedInstance);
         public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(wrappedInstance);
+
     }
 }

@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System;
 using System.Collections.Immutable;
+using System.Text;
 
 namespace SonarAnalyzer.ShimLayer;
 
@@ -34,11 +35,17 @@ public static partial class ArrayTypeSyntaxShimExtensions
     private static readonly Func<ArrayTypeSyntax, Boolean> IsNuintAccessor = AccessorFactory.CreateProperty<Func<ArrayTypeSyntax, Boolean>>(WrappedType, "IsNuint");
     private static readonly Func<ArrayTypeSyntax, Boolean> IsUnmanagedAccessor = AccessorFactory.CreateProperty<Func<ArrayTypeSyntax, Boolean>>(WrappedType, "IsUnmanaged");
 
+    private static readonly Func<ArrayTypeSyntax, Int32, Boolean> ContainsDirectiveAccessor = AccessorFactory.CreateMethod<Func<ArrayTypeSyntax, Int32, Boolean>>(WrappedType, "ContainsDirective");
+    private static readonly Func<ArrayTypeSyntax, SyntaxNode, Boolean> IsIncrementallyIdenticalToAccessor = AccessorFactory.CreateMethod<Func<ArrayTypeSyntax, SyntaxNode, Boolean>>(WrappedType, "IsIncrementallyIdenticalTo");
+
     extension(ArrayTypeSyntax wrappedInstance)
     {
         public Boolean IsNint => (Boolean)IsNintAccessor(wrappedInstance);
         public Boolean IsNotNull => (Boolean)IsNotNullAccessor(wrappedInstance);
         public Boolean IsNuint => (Boolean)IsNuintAccessor(wrappedInstance);
         public Boolean IsUnmanaged => (Boolean)IsUnmanagedAccessor(wrappedInstance);
+
+        public Boolean ContainsDirective(Int32 rawKind) => (Boolean)ContainsDirectiveAccessor(wrappedInstance, rawKind);
+        public Boolean IsIncrementallyIdenticalTo(SyntaxNode other) => (Boolean)IsIncrementallyIdenticalToAccessor(wrappedInstance, other);
     }
 }

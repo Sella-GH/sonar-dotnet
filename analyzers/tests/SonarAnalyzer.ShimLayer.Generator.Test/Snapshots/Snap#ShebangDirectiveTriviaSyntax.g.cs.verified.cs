@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System;
 using System.Collections.Immutable;
+using System.Text;
 
 namespace SonarAnalyzer.ShimLayer;
 
@@ -31,8 +32,16 @@ public static partial class ShebangDirectiveTriviaSyntaxShimExtensions
 
     private static readonly Func<ShebangDirectiveTriviaSyntax, SyntaxToken> ContentAccessor = AccessorFactory.CreateProperty<Func<ShebangDirectiveTriviaSyntax, SyntaxToken>>(WrappedType, "Content");
 
+    private static readonly Func<ShebangDirectiveTriviaSyntax, Int32, Boolean> ContainsDirectiveAccessor = AccessorFactory.CreateMethod<Func<ShebangDirectiveTriviaSyntax, Int32, Boolean>>(WrappedType, "ContainsDirective");
+    private static readonly Func<ShebangDirectiveTriviaSyntax, SyntaxNode, Boolean> IsIncrementallyIdenticalToAccessor = AccessorFactory.CreateMethod<Func<ShebangDirectiveTriviaSyntax, SyntaxNode, Boolean>>(WrappedType, "IsIncrementallyIdenticalTo");
+    private static readonly Func<ShebangDirectiveTriviaSyntax, SyntaxToken, ShebangDirectiveTriviaSyntax> WithContentAccessor = AccessorFactory.CreateMethod<Func<ShebangDirectiveTriviaSyntax, SyntaxToken, ShebangDirectiveTriviaSyntax>>(WrappedType, "WithContent");
+
     extension(ShebangDirectiveTriviaSyntax wrappedInstance)
     {
         public SyntaxToken Content => (SyntaxToken)ContentAccessor(wrappedInstance);
+
+        public Boolean ContainsDirective(Int32 rawKind) => (Boolean)ContainsDirectiveAccessor(wrappedInstance, rawKind);
+        public Boolean IsIncrementallyIdenticalTo(SyntaxNode other) => (Boolean)IsIncrementallyIdenticalToAccessor(wrappedInstance, other);
+        public ShebangDirectiveTriviaSyntax WithContent(SyntaxToken content) => WithContentAccessor(wrappedInstance, content);
     }
 }

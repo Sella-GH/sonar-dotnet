@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System;
 using System.Collections.Immutable;
+using System.Text;
 
 namespace SonarAnalyzer.ShimLayer;
 
@@ -37,6 +38,17 @@ public readonly partial struct ExtensionMemberCrefSyntaxWrapper : ISyntaxWrapper
     private static readonly Func<MemberCrefSyntax, MemberCrefSyntax> MemberAccessor = AccessorFactory.CreateProperty<Func<MemberCrefSyntax, MemberCrefSyntax>>(WrappedType, "Member");
     private static readonly Func<MemberCrefSyntax, CrefParameterListSyntax> ParametersAccessor = AccessorFactory.CreateProperty<Func<MemberCrefSyntax, CrefParameterListSyntax>>(WrappedType, "Parameters");
     private static readonly Func<MemberCrefSyntax, TypeArgumentListSyntax> TypeArgumentListAccessor = AccessorFactory.CreateProperty<Func<MemberCrefSyntax, TypeArgumentListSyntax>>(WrappedType, "TypeArgumentList");
+
+    private static readonly Func<MemberCrefSyntax, CrefParameterSyntax[], MemberCrefSyntax> AddParametersParametersAccessor = AccessorFactory.CreateMethod<Func<MemberCrefSyntax, CrefParameterSyntax[], MemberCrefSyntax>>(WrappedType, "AddParametersParameters");
+    private static readonly Func<MemberCrefSyntax, TypeSyntax[], MemberCrefSyntax> AddTypeArgumentListArgumentsAccessor = AccessorFactory.CreateMethod<Func<MemberCrefSyntax, TypeSyntax[], MemberCrefSyntax>>(WrappedType, "AddTypeArgumentListArguments");
+    private static readonly Func<MemberCrefSyntax, Int32, Boolean> ContainsDirectiveAccessor = AccessorFactory.CreateMethod<Func<MemberCrefSyntax, Int32, Boolean>>(WrappedType, "ContainsDirective");
+    private static readonly Func<MemberCrefSyntax, SyntaxNode, Boolean> IsIncrementallyIdenticalToAccessor = AccessorFactory.CreateMethod<Func<MemberCrefSyntax, SyntaxNode, Boolean>>(WrappedType, "IsIncrementallyIdenticalTo");
+    private static readonly Func<MemberCrefSyntax, SyntaxToken, TypeArgumentListSyntax, CrefParameterListSyntax, SyntaxToken, MemberCrefSyntax, MemberCrefSyntax> UpdateAccessor = AccessorFactory.CreateMethod<Func<MemberCrefSyntax, SyntaxToken, TypeArgumentListSyntax, CrefParameterListSyntax, SyntaxToken, MemberCrefSyntax, MemberCrefSyntax>>(WrappedType, "Update");
+    private static readonly Func<MemberCrefSyntax, SyntaxToken, MemberCrefSyntax> WithDotTokenAccessor = AccessorFactory.CreateMethod<Func<MemberCrefSyntax, SyntaxToken, MemberCrefSyntax>>(WrappedType, "WithDotToken");
+    private static readonly Func<MemberCrefSyntax, SyntaxToken, MemberCrefSyntax> WithExtensionKeywordAccessor = AccessorFactory.CreateMethod<Func<MemberCrefSyntax, SyntaxToken, MemberCrefSyntax>>(WrappedType, "WithExtensionKeyword");
+    private static readonly Func<MemberCrefSyntax, MemberCrefSyntax, MemberCrefSyntax> WithMemberAccessor = AccessorFactory.CreateMethod<Func<MemberCrefSyntax, MemberCrefSyntax, MemberCrefSyntax>>(WrappedType, "WithMember");
+    private static readonly Func<MemberCrefSyntax, CrefParameterListSyntax, MemberCrefSyntax> WithParametersAccessor = AccessorFactory.CreateMethod<Func<MemberCrefSyntax, CrefParameterListSyntax, MemberCrefSyntax>>(WrappedType, "WithParameters");
+    private static readonly Func<MemberCrefSyntax, TypeArgumentListSyntax, MemberCrefSyntax> WithTypeArgumentListAccessor = AccessorFactory.CreateMethod<Func<MemberCrefSyntax, TypeArgumentListSyntax, MemberCrefSyntax>>(WrappedType, "WithTypeArgumentList");
 
     private ExtensionMemberCrefSyntaxWrapper(MemberCrefSyntax wrappedInstance) =>
         this.wrappedInstance = wrappedInstance;
@@ -71,6 +83,71 @@ public readonly partial struct ExtensionMemberCrefSyntaxWrapper : ISyntaxWrapper
     public MemberCrefSyntax Member => MemberAccessor(wrappedInstance);
     public CrefParameterListSyntax Parameters => ParametersAccessor(wrappedInstance);
     public TypeArgumentListSyntax TypeArgumentList => TypeArgumentListAccessor(wrappedInstance);
+
+    public IEnumerable<SyntaxNode> Ancestors(Boolean ascendOutOfTrivia) => wrappedInstance.Ancestors(ascendOutOfTrivia);
+    public IEnumerable<SyntaxNode> AncestorsAndSelf(Boolean ascendOutOfTrivia) => wrappedInstance.AncestorsAndSelf(ascendOutOfTrivia);
+    public IEnumerable<SyntaxNode> ChildNodes() => wrappedInstance.ChildNodes();
+    public ChildSyntaxList ChildNodesAndTokens() => wrappedInstance.ChildNodesAndTokens();
+    public SyntaxNodeOrToken ChildThatContainsPosition(Int32 position) => wrappedInstance.ChildThatContainsPosition(position);
+    public IEnumerable<SyntaxToken> ChildTokens() => wrappedInstance.ChildTokens();
+    public Boolean Contains(SyntaxNode node) => wrappedInstance.Contains(node);
+    public IEnumerable<SyntaxNode> DescendantNodes(TextSpan span, Func<SyntaxNode, Boolean> descendIntoChildren, Boolean descendIntoTrivia) => wrappedInstance.DescendantNodes(span, descendIntoChildren, descendIntoTrivia);
+    public IEnumerable<SyntaxNode> DescendantNodes(Func<SyntaxNode, Boolean> descendIntoChildren, Boolean descendIntoTrivia) => wrappedInstance.DescendantNodes(descendIntoChildren, descendIntoTrivia);
+    public IEnumerable<SyntaxNode> DescendantNodesAndSelf(TextSpan span, Func<SyntaxNode, Boolean> descendIntoChildren, Boolean descendIntoTrivia) => wrappedInstance.DescendantNodesAndSelf(span, descendIntoChildren, descendIntoTrivia);
+    public IEnumerable<SyntaxNode> DescendantNodesAndSelf(Func<SyntaxNode, Boolean> descendIntoChildren, Boolean descendIntoTrivia) => wrappedInstance.DescendantNodesAndSelf(descendIntoChildren, descendIntoTrivia);
+    public IEnumerable<SyntaxNodeOrToken> DescendantNodesAndTokens(TextSpan span, Func<SyntaxNode, Boolean> descendIntoChildren, Boolean descendIntoTrivia) => wrappedInstance.DescendantNodesAndTokens(span, descendIntoChildren, descendIntoTrivia);
+    public IEnumerable<SyntaxNodeOrToken> DescendantNodesAndTokens(Func<SyntaxNode, Boolean> descendIntoChildren, Boolean descendIntoTrivia) => wrappedInstance.DescendantNodesAndTokens(descendIntoChildren, descendIntoTrivia);
+    public IEnumerable<SyntaxNodeOrToken> DescendantNodesAndTokensAndSelf(TextSpan span, Func<SyntaxNode, Boolean> descendIntoChildren, Boolean descendIntoTrivia) => wrappedInstance.DescendantNodesAndTokensAndSelf(span, descendIntoChildren, descendIntoTrivia);
+    public IEnumerable<SyntaxNodeOrToken> DescendantNodesAndTokensAndSelf(Func<SyntaxNode, Boolean> descendIntoChildren, Boolean descendIntoTrivia) => wrappedInstance.DescendantNodesAndTokensAndSelf(descendIntoChildren, descendIntoTrivia);
+    public IEnumerable<SyntaxToken> DescendantTokens(TextSpan span, Func<SyntaxNode, Boolean> descendIntoChildren, Boolean descendIntoTrivia) => wrappedInstance.DescendantTokens(span, descendIntoChildren, descendIntoTrivia);
+    public IEnumerable<SyntaxToken> DescendantTokens(Func<SyntaxNode, Boolean> descendIntoChildren, Boolean descendIntoTrivia) => wrappedInstance.DescendantTokens(descendIntoChildren, descendIntoTrivia);
+    public IEnumerable<SyntaxTrivia> DescendantTrivia(TextSpan span, Func<SyntaxNode, Boolean> descendIntoChildren, Boolean descendIntoTrivia) => wrappedInstance.DescendantTrivia(span, descendIntoChildren, descendIntoTrivia);
+    public IEnumerable<SyntaxTrivia> DescendantTrivia(Func<SyntaxNode, Boolean> descendIntoChildren, Boolean descendIntoTrivia) => wrappedInstance.DescendantTrivia(descendIntoChildren, descendIntoTrivia);
+    public SyntaxNode FindNode(TextSpan span, Boolean findInsideTrivia, Boolean getInnermostNodeForTie) => wrappedInstance.FindNode(span, findInsideTrivia, getInnermostNodeForTie);
+    public SyntaxToken FindToken(Int32 position, Boolean findInsideTrivia) => wrappedInstance.FindToken(position, findInsideTrivia);
+    public SyntaxTrivia FindTrivia(Int32 position, Boolean findInsideTrivia) => wrappedInstance.FindTrivia(position, findInsideTrivia);
+    public SyntaxTrivia FindTrivia(Int32 position, Func<SyntaxTrivia, Boolean> stepInto) => wrappedInstance.FindTrivia(position, stepInto);
+    public IEnumerable<SyntaxNode> GetAnnotatedNodes(SyntaxAnnotation syntaxAnnotation) => wrappedInstance.GetAnnotatedNodes(syntaxAnnotation);
+    public IEnumerable<SyntaxNode> GetAnnotatedNodes(String annotationKind) => wrappedInstance.GetAnnotatedNodes(annotationKind);
+    public IEnumerable<SyntaxNodeOrToken> GetAnnotatedNodesAndTokens(SyntaxAnnotation annotation) => wrappedInstance.GetAnnotatedNodesAndTokens(annotation);
+    public IEnumerable<SyntaxNodeOrToken> GetAnnotatedNodesAndTokens(String annotationKind) => wrappedInstance.GetAnnotatedNodesAndTokens(annotationKind);
+    public IEnumerable<SyntaxNodeOrToken> GetAnnotatedNodesAndTokens(String[] annotationKinds) => wrappedInstance.GetAnnotatedNodesAndTokens(annotationKinds);
+    public IEnumerable<SyntaxToken> GetAnnotatedTokens(SyntaxAnnotation syntaxAnnotation) => wrappedInstance.GetAnnotatedTokens(syntaxAnnotation);
+    public IEnumerable<SyntaxToken> GetAnnotatedTokens(String annotationKind) => wrappedInstance.GetAnnotatedTokens(annotationKind);
+    public IEnumerable<SyntaxTrivia> GetAnnotatedTrivia(SyntaxAnnotation annotation) => wrappedInstance.GetAnnotatedTrivia(annotation);
+    public IEnumerable<SyntaxTrivia> GetAnnotatedTrivia(String annotationKind) => wrappedInstance.GetAnnotatedTrivia(annotationKind);
+    public IEnumerable<SyntaxTrivia> GetAnnotatedTrivia(String[] annotationKinds) => wrappedInstance.GetAnnotatedTrivia(annotationKinds);
+    public IEnumerable<SyntaxAnnotation> GetAnnotations(IEnumerable<String> annotationKinds) => wrappedInstance.GetAnnotations(annotationKinds);
+    public IEnumerable<SyntaxAnnotation> GetAnnotations(String annotationKind) => wrappedInstance.GetAnnotations(annotationKind);
+    public IEnumerable<Diagnostic> GetDiagnostics() => wrappedInstance.GetDiagnostics();
+    public DirectiveTriviaSyntax GetFirstDirective(Func<DirectiveTriviaSyntax, Boolean> predicate) => wrappedInstance.GetFirstDirective(predicate);
+    public SyntaxToken GetFirstToken(Boolean includeZeroWidth, Boolean includeSkipped, Boolean includeDirectives, Boolean includeDocumentationComments) => wrappedInstance.GetFirstToken(includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
+    public DirectiveTriviaSyntax GetLastDirective(Func<DirectiveTriviaSyntax, Boolean> predicate) => wrappedInstance.GetLastDirective(predicate);
+    public SyntaxToken GetLastToken(Boolean includeZeroWidth, Boolean includeSkipped, Boolean includeDirectives, Boolean includeDocumentationComments) => wrappedInstance.GetLastToken(includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
+    public SyntaxTriviaList GetLeadingTrivia() => wrappedInstance.GetLeadingTrivia();
+    public Location GetLocation() => wrappedInstance.GetLocation();
+    public SyntaxReference GetReference() => wrappedInstance.GetReference();
+    public SourceText GetText(Encoding encoding, SourceHashAlgorithm checksumAlgorithm) => wrappedInstance.GetText(encoding, checksumAlgorithm);
+    public SyntaxTriviaList GetTrailingTrivia() => wrappedInstance.GetTrailingTrivia();
+    public Boolean HasAnnotation(SyntaxAnnotation annotation) => wrappedInstance.HasAnnotation(annotation);
+    public Boolean HasAnnotations(IEnumerable<String> annotationKinds) => wrappedInstance.HasAnnotations(annotationKinds);
+    public Boolean HasAnnotations(String annotationKind) => wrappedInstance.HasAnnotations(annotationKind);
+    public Boolean IsEquivalentTo(SyntaxNode other) => wrappedInstance.IsEquivalentTo(other);
+    public Boolean IsEquivalentTo(SyntaxNode node, Boolean topLevel) => wrappedInstance.IsEquivalentTo(node, topLevel);
+    public Boolean IsPartOfStructuredTrivia() => wrappedInstance.IsPartOfStructuredTrivia();
+    public SyntaxKind Kind() => wrappedInstance.Kind();
+    public String ToFullString() => wrappedInstance.ToFullString();
+
+    public ExtensionMemberCrefSyntaxWrapper AddParametersParameters(CrefParameterSyntax[] items) => ExtensionMemberCrefSyntaxWrapper.From(AddParametersParametersAccessor(wrappedInstance, items));
+    public ExtensionMemberCrefSyntaxWrapper AddTypeArgumentListArguments(TypeSyntax[] items) => ExtensionMemberCrefSyntaxWrapper.From(AddTypeArgumentListArgumentsAccessor(wrappedInstance, items));
+    public Boolean ContainsDirective(Int32 rawKind) => (Boolean)ContainsDirectiveAccessor(wrappedInstance, rawKind);
+    public Boolean IsIncrementallyIdenticalTo(SyntaxNode other) => (Boolean)IsIncrementallyIdenticalToAccessor(wrappedInstance, other);
+    public ExtensionMemberCrefSyntaxWrapper Update(SyntaxToken extensionKeyword, TypeArgumentListSyntax typeArgumentList, CrefParameterListSyntax parameters, SyntaxToken dotToken, MemberCrefSyntax member) => ExtensionMemberCrefSyntaxWrapper.From(UpdateAccessor(wrappedInstance, extensionKeyword, typeArgumentList, parameters, dotToken, member));
+    public ExtensionMemberCrefSyntaxWrapper WithDotToken(SyntaxToken dotToken) => ExtensionMemberCrefSyntaxWrapper.From(WithDotTokenAccessor(wrappedInstance, dotToken));
+    public ExtensionMemberCrefSyntaxWrapper WithExtensionKeyword(SyntaxToken extensionKeyword) => ExtensionMemberCrefSyntaxWrapper.From(WithExtensionKeywordAccessor(wrappedInstance, extensionKeyword));
+    public ExtensionMemberCrefSyntaxWrapper WithMember(MemberCrefSyntax member) => ExtensionMemberCrefSyntaxWrapper.From(WithMemberAccessor(wrappedInstance, member));
+    public ExtensionMemberCrefSyntaxWrapper WithParameters(CrefParameterListSyntax parameters) => ExtensionMemberCrefSyntaxWrapper.From(WithParametersAccessor(wrappedInstance, parameters));
+    public ExtensionMemberCrefSyntaxWrapper WithTypeArgumentList(TypeArgumentListSyntax typeArgumentList) => ExtensionMemberCrefSyntaxWrapper.From(WithTypeArgumentListAccessor(wrappedInstance, typeArgumentList));
 
     public static explicit operator ExtensionMemberCrefSyntaxWrapper(SyntaxNode node) =>
         From(node);

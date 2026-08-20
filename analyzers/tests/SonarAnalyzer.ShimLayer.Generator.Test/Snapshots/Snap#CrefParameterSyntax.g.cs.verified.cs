@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System;
 using System.Collections.Immutable;
+using System.Text;
 
 namespace SonarAnalyzer.ShimLayer;
 
@@ -32,9 +33,21 @@ public static partial class CrefParameterSyntaxShimExtensions
     private static readonly Func<CrefParameterSyntax, SyntaxToken> ReadOnlyKeywordAccessor = AccessorFactory.CreateProperty<Func<CrefParameterSyntax, SyntaxToken>>(WrappedType, "ReadOnlyKeyword");
     private static readonly Func<CrefParameterSyntax, SyntaxToken> RefKindKeywordAccessor = AccessorFactory.CreateProperty<Func<CrefParameterSyntax, SyntaxToken>>(WrappedType, "RefKindKeyword");
 
+    private static readonly Func<CrefParameterSyntax, Int32, Boolean> ContainsDirectiveAccessor = AccessorFactory.CreateMethod<Func<CrefParameterSyntax, Int32, Boolean>>(WrappedType, "ContainsDirective");
+    private static readonly Func<CrefParameterSyntax, SyntaxNode, Boolean> IsIncrementallyIdenticalToAccessor = AccessorFactory.CreateMethod<Func<CrefParameterSyntax, SyntaxNode, Boolean>>(WrappedType, "IsIncrementallyIdenticalTo");
+    private static readonly Func<CrefParameterSyntax, SyntaxToken, SyntaxToken, TypeSyntax, CrefParameterSyntax> UpdateAccessor_Overload2 = AccessorFactory.CreateMethod<Func<CrefParameterSyntax, SyntaxToken, SyntaxToken, TypeSyntax, CrefParameterSyntax>>(WrappedType, "Update");
+    private static readonly Func<CrefParameterSyntax, SyntaxToken, CrefParameterSyntax> WithReadOnlyKeywordAccessor = AccessorFactory.CreateMethod<Func<CrefParameterSyntax, SyntaxToken, CrefParameterSyntax>>(WrappedType, "WithReadOnlyKeyword");
+    private static readonly Func<CrefParameterSyntax, SyntaxToken, CrefParameterSyntax> WithRefKindKeywordAccessor = AccessorFactory.CreateMethod<Func<CrefParameterSyntax, SyntaxToken, CrefParameterSyntax>>(WrappedType, "WithRefKindKeyword");
+
     extension(CrefParameterSyntax wrappedInstance)
     {
         public SyntaxToken ReadOnlyKeyword => (SyntaxToken)ReadOnlyKeywordAccessor(wrappedInstance);
         public SyntaxToken RefKindKeyword => (SyntaxToken)RefKindKeywordAccessor(wrappedInstance);
+
+        public Boolean ContainsDirective(Int32 rawKind) => (Boolean)ContainsDirectiveAccessor(wrappedInstance, rawKind);
+        public Boolean IsIncrementallyIdenticalTo(SyntaxNode other) => (Boolean)IsIncrementallyIdenticalToAccessor(wrappedInstance, other);
+        public CrefParameterSyntax Update(SyntaxToken refKindKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type) => UpdateAccessor_Overload2(wrappedInstance, refKindKeyword, readOnlyKeyword, type);
+        public CrefParameterSyntax WithReadOnlyKeyword(SyntaxToken readOnlyKeyword) => WithReadOnlyKeywordAccessor(wrappedInstance, readOnlyKeyword);
+        public CrefParameterSyntax WithRefKindKeyword(SyntaxToken refKindKeyword) => WithRefKindKeywordAccessor(wrappedInstance, refKindKeyword);
     }
 }
