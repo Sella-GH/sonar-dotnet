@@ -24,6 +24,7 @@ namespace SonarAnalyzer.ShimLayer.Common;
 internal static class AccessorFactory
 {
     private static readonly MethodInfo UnboundEnumerableSelectMethod = typeof(Enumerable).GetMethods().Single(IsEnumerableSelect);
+    private static readonly MethodInfo UnboundEnumerableToArrayMethod = typeof(Enumerable).GetMethod(nameof(Enumerable.ToArray));
 
     public static TFunc CreateMethod<TFunc>(Type runtimeSenderType, string methodName) where TFunc : Delegate
     {
@@ -34,8 +35,13 @@ internal static class AccessorFactory
             method.Name == methodName
             && types.ResultType.IsAssignableFrom(method.ReturnType)
             && method.GetParameters() is var parameters
-            && parameters.Length == types.AllTypes.Length - 2       // Except the first TSender and last TResult
-            && parameters.Select((x, i) => x.ParameterType.Equals(types.AllTypes[i + 1])).All(x => x);
+            && parameters.Length == types.ParameterTypes.Length
+            && parameters.Select((x, i) => IsParameterMatch(types.ParameterTypes[i], x.ParameterType)).All(x => x);
+
+        static bool IsParameterMatch(Type compiletime, Type runtime) =>
+            compiletime.Equals(runtime)
+            || (compiletime.IsArray && runtime.IsArray && IsParameterMatch(compiletime.GetElementType(), runtime.GetElementType()))
+            || TypeRegister.LatestType(compiletime) == runtime;
     }
 
     public static TFunc CreateProperty<TFunc>(Type runtimeSenderType, string propertyName) where TFunc : Delegate
@@ -61,11 +67,7 @@ internal static class AccessorFactory
 
     private static TFunc CreateAccessor<TFunc>(AccessorTypes types, Type runtimeSenderType, string memberName, MethodInfo method) where TFunc : Delegate
     {
-        if (!typeof(TFunc).Name.StartsWith("Func`"))
-        {
-            throw new NotSupportedException("This method only supports Func<..., TResult>");    // We assume the last one is TResult, and fallback returns "default".
-        }
-        var lambdaParameters = types.AllTypes.Take(types.AllTypes.Length - 1).Select((x, i) => Expression.Parameter(x, i == 0 ? "sender" : "p" + i)).ToArray();
+        var lambdaParameters = types.ParameterTypes.Prepend(types.SenderType).Select((x, i) => Expression.Parameter(x, i == 0 ? "sender" : "p" + i)).ToArray();
         var senderLambdaParameter = lambdaParameters.First();
         var lambdaReturnValue = runtimeSenderType is null || method is null
             ? CreateFallback()                                      // Fallback: return default;
@@ -104,7 +106,7 @@ internal static class AccessorFactory
         {
             var sender = WrapConvert(senderLambdaParameter, runtimeSenderType);
             var methodParameters = method.GetParameters();
-            var result = Expression.Call(sender, method, lambdaParameters.Skip(1).Select((x, i) => WrapConvert(x, methodParameters[i].ParameterType)));
+            var result = Expression.Call(sender, method, lambdaParameters.Skip(1).Select((x, i) => ConvertArgument(x, methodParameters[i].ParameterType)));
             if (types.ResultType.IsGenericType && types.ResultType.GetGenericTypeDefinition() == typeof(ImmutableArray<>) && method.ReturnType.GenericTypeArguments.Single() is var runtimeTypeArgument && typeof(IOperation).IsAssignableFrom(runtimeTypeArgument))
             {
                 var castUp = typeof(ImmutableArray<IOperation>).GetMethod(nameof(ImmutableArray<>.CastUp)).MakeGenericMethod(runtimeTypeArgument);
@@ -132,8 +134,35 @@ internal static class AccessorFactory
         }
     }
 
-    private static Expression WrapConvert(Expression expression, Type type) =>
-        type.IsAssignableFrom(expression.Type) ? expression : Expression.Convert(expression, type);
+    private static Expression ConvertArgument(Expression expression, Type type)
+    {
+        if (type.IsArray    // XxxWrapper[] => Xxx[]
+            && !type.IsAssignableFrom(expression.Type)
+            && expression.Type.GetElementType() is var elementWrapperType
+            && elementWrapperType.GetProperty("WrappedInstance") is { } elementWrappedInstance)
+        {
+            // Generate: result.Select(x => (Xxx)x.WrappedInstance).ToArray()
+            var itemRuntimeType = type.GetElementType();
+            var selectorParameter = Expression.Parameter(elementWrapperType, "x");
+            var selectorLambda = Expression.Lambda(WrapConvert(Expression.Property(selectorParameter, elementWrappedInstance), itemRuntimeType), selectorParameter);
+            var items = Expression.Call(UnboundEnumerableSelectMethod.MakeGenericMethod(elementWrapperType, itemRuntimeType), expression, selectorLambda);
+            return Expression.Call(UnboundEnumerableToArrayMethod.MakeGenericMethod(itemRuntimeType), items);
+        }
+        else if (expression.Type.GetProperty("WrappedInstance") is { } wrappedInstance)
+        {
+            return WrapConvert(Expression.Property(expression, wrappedInstance), type);
+        }
+        else
+        {
+            return WrapConvert(expression, type);
+        }
+    }
+
+    private static Expression WrapConvert(Expression expression, Type type)
+    {
+        var underlayingType = type.IsByRef ? type.GetElementType() : type;
+        return underlayingType.IsAssignableFrom(expression.Type) ? expression : Expression.Convert(expression, underlayingType);
+    }
 
     private static bool IsEnumerableSelect(MethodInfo method) =>
         method.Name == nameof(Enumerable.Select)
@@ -142,15 +171,21 @@ internal static class AccessorFactory
 
     private readonly struct AccessorTypes
     {
-        public readonly Type[] AllTypes;
         public readonly Type SenderType;
+        public readonly Type[] ParameterTypes;
         public readonly Type ResultType;
 
-        public AccessorTypes(Type func)
+        public AccessorTypes(Type methodDelegate)
         {
-            AllTypes = func.GenericTypeArguments;   // First one is TSender (compile time), followed by lambda parameters. Last lambda parameter is TResult.
-            SenderType = AllTypes.First();
-            ResultType = AllTypes.Last();
+            var invoke = methodDelegate.GetMethod("Invoke");
+            if (invoke.ReturnType.FullName == typeof(void).FullName)
+            {
+                throw new NotSupportedException("This method only supports Func<..., TResult> and delegates with non-void return type");    // Fallback logic returns "default" expressin
+            }
+            var parameters = invoke.GetParameters();    // As declared in our delegates, has additional TSender compared to the runtime method
+            SenderType = parameters.First().ParameterType;
+            ParameterTypes = parameters.Skip(1).Select(x => x.ParameterType).ToArray(); // Without TSender and TResult
+            ResultType = invoke.ReturnType;
         }
     }
 }

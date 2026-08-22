@@ -183,8 +183,8 @@ public class SyntaxNodeWrapStrategyTest
 
                 public SyntaxToken ClassOrStructKeyword => (SyntaxToken)ClassOrStructKeywordAccessor(wrappedInstance);
 
-                public SyntaxTrivia FindTrivia(Int32 position, Func<SyntaxTrivia, Boolean> stepInto) => wrappedInstance.FindTrivia(position, stepInto);
-                public SyntaxTrivia FindTrivia(Int32 position, Boolean findInsideTrivia) => wrappedInstance.FindTrivia(position, findInsideTrivia);
+                public SyntaxTrivia FindTrivia(int position, Func<SyntaxTrivia, bool> stepInto) => wrappedInstance.FindTrivia(position, stepInto);
+                public SyntaxTrivia FindTrivia(int position, bool findInsideTrivia) => wrappedInstance.FindTrivia(position, findInsideTrivia);
 
                 public RecordDeclarationSyntax WithParameterList(ParameterListSyntax parameterList) => (RecordDeclarationSyntax)WithParameterListAccessor(wrappedInstance, parameterList);
 
@@ -411,7 +411,7 @@ public class SyntaxNodeWrapStrategyTest
         var sut = new SyntaxNodeWrapStrategy(
             typeof(SyntaxNode),
             typeof(SyntaxNode),
-            Enumerable.Repeat(unsupportedMember, 20).ToList());    // This should not produce 20 empty lines
+            Enumerable.Repeat(unsupportedMember, 20).ToArray());    // This should not produce 20 empty lines
 
         var result = sut.Generate(new() { { typeof(PatternSyntax), sut } });
         result.Should().BeIgnoringLineEndings(
@@ -556,7 +556,7 @@ public class SyntaxNodeWrapStrategyTest
                 public SyntaxToken Semicolon => wrappedInstance.Semicolon;
                 public SyntaxNode Parent => wrappedInstance.Parent;
 
-                public Boolean Contains(SyntaxNode node) => wrappedInstance.Contains(node);
+                public bool Contains(SyntaxNode node) => wrappedInstance.Contains(node);
                 public IEnumerable<SyntaxNode> ChildNodes() => wrappedInstance.ChildNodes();
 
                 public static explicit operator IndexerDeclarationSyntaxWrapper(SyntaxNode node) =>

@@ -19,21 +19,13 @@ namespace SonarAnalyzer.ShimLayer.Generator.Strategies;
 
 public class NoChangeStrategy : Strategy
 {
-    private readonly string type;
-
-    public NoChangeStrategy(Type latest) : base(latest) =>
-        type = latest.IsGenericType
-            ? latest.Name.Replace("`1", null).Replace("`2", null) + "<" + string.Join(", ", latest.GetGenericArguments().Select(x => x.Name)) + ">"
-            : latest.Name;
+    public NoChangeStrategy(Type latest) : base(latest) { }
 
     public override string ReturnTypeSnippet() =>
-        type;
-
-    public override string CompiletimeTypeSnippet() =>
-        type;
+        Latest.Name;
 
     public override string ToConversionSnippet(string from) =>
-        $"({type}){from}";
+        $"({Latest.Name}){from}";
 
     protected override string GenerateCore(StrategyModel model) => null;
 }
