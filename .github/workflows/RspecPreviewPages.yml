@@ -179,6 +179,8 @@ jobs:
                     -e 's|data-diff-type="compliant">|data-diff-type="compliant" aria-label="Compliant solution">|g' \
                     -e 's|<table>|<div class="table-scroll" role="region" aria-label="Scrollable table" tabindex="0"><table>|g' \
                     -e 's|</table>|</table></div>|g' \
+                    -e 's|{rule:csharpsquid:\(S[0-9][0-9]*\)}|<a href="../cs/\1.html">\1</a>|g' \
+                    -e 's|{rule:vbnet:\(S[0-9][0-9]*\)}|<a href="../vbnet/\1.html">\1</a>|g' \
                     -e "s|<pre\([^>]*\)>|<pre tabindex=\"0\"\1><code class=\"language-$hl\">|g" \
                     -e 's|</pre>|</code></pre>|g' "$html_src"
                 cat "$TEMPLATES/rule-foot.html"
