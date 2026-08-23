@@ -48,7 +48,7 @@ not in scope.</p>
 <p>Multiple issues can appear when the Single Responsibility Principle (SRP) is violated.</p>
 <h3>Harder to read and understand</h3>
 <p>A controller violating SRP is <strong>harder to read and understand</strong> since its Cognitive Complexity is generally above average (see
-{rule:csharpsquid:S3776}).</p>
+<a href="../cs/S3776.html">S3776</a>).</p>
 <p><em>For example, a controller <code>MediaController</code> that is in charge of both the "movies" and "photos" APIs would need to define all the
 actions dealing with movies, alongside the ones dealing with photos, all defined in the same controller class.</em></p>
 <p><em>The alternative is to define two controllers: a <code>MovieController</code> and a <code>PhotoController</code>, each in charge of a smaller
@@ -259,7 +259,7 @@ public class PhotoController(
 </ul>
 <h3>Related rules</h3>
 <ul>
-  <li>{rule:csharpsquid:S3776} - Cognitive Complexity of functions should not be too high</li>
+  <li><a href="../cs/S3776.html">S3776</a> - Cognitive Complexity of functions should not be too high</li>
 </ul>
 
 </main>

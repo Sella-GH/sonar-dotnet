@@ -41,7 +41,7 @@ as <a href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.trac
 <code>false</code>.</p>
 <p>Moreover, unlike <code>Trace.TraceError</code>, <code>Trace.WriteLineIf(switch.TraceError, …​)</code> would behave like
 <code>Trace.WriteLine(…​)</code> when <code>switch.TraceError</code> is <code>true</code>, writing unfiltered to the underlying trace listeners and
-not categorizing the log entry by level, as described more in detail in {rule:csharpsquid:S6670}.</p>
+not categorizing the log entry by level, as described more in detail in <a href="../cs/S6670.html">S6670</a>.</p>
 <h2>How to fix it</h2>
 <p>The fix depends on the intent behind the use of <a
 href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.traceswitch"><code>TraceSwitch</code></a> levels with <a

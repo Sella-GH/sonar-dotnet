@@ -98,7 +98,7 @@ End If
 </code></pre>
 <p>But this exception does not apply to <code>If</code> chains without <code>Else</code>-s, or to <code>Select</code>-s without <code>Case Else</code>
 clauses when all branches have the same single line of code. In the case of <code>If</code> chains with <code>Else</code>-s, or of
-<code>Select</code>-es with <code>Case Else</code> clauses, rule {rule:vbnet:S3923} raises a bug.</p>
+<code>Select</code>-es with <code>Case Else</code> clauses, rule <a href="../vbnet/S3923.html">S3923</a> raises a bug.</p>
 <pre tabindex="0"><code class="language-vbnet">
 If a == 1 Then
   DoTheThing() ' Noncompliant, this might have been done on purpose but probably not
@@ -109,7 +109,7 @@ End If
 <h2>Resources</h2>
 <h3>Related rules</h3>
 <ul>
-  <li>{rule:vbnet:S3923} - All branches in a conditional structure should not have exactly the same implementation</li>
+  <li><a href="../vbnet/S3923.html">S3923</a> - All branches in a conditional structure should not have exactly the same implementation</li>
 </ul>
 
 </main>
