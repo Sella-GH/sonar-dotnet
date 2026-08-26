@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct IUsingOperationWrapper : IOperationWrapper
+public readonly struct IUsingOperationWrapper : IOperationWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.Operations.IUsingOperation";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(IUsingOperationWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.Operations.IUsingOperation");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly IOperation wrappedInstance;
 
     private static readonly Func<IOperation, IOperation> BodyAccessor = AccessorFactory.CreateProperty<Func<IOperation, IOperation>>(WrappedType, "Body");
@@ -67,27 +58,30 @@ public readonly partial struct IUsingOperationWrapper : IOperationWrapper
     public IOperation Resources => ResourcesAccessor(wrappedInstance);
     public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(wrappedInstance);
 
-    [Obsolete("Use From instead")]
-    public static IUsingOperationWrapper FromOperation(IOperation operation) =>
-        From(operation);
+    public static IUsingOperationWrapper? FromOrDefault(IOperation instance) =>
+        IsInstance(instance) ? From(instance) : null;
 
-    public static IUsingOperationWrapper From(IOperation operation)
+    [Obsolete("Use From instead")]
+    public static IUsingOperationWrapper FromOperation(IOperation instance) =>
+        From(instance);
+
+    public static IUsingOperationWrapper From(IOperation instance)
     {
-        if (operation is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(operation))
+        else if (IsInstance(instance))
         {
-            return new IUsingOperationWrapper(operation);
+            return new IUsingOperationWrapper((IOperation)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{operation.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.Operations.IUsingOperation'");
         }
     }
 
-    public static bool IsInstance(IOperation operation) =>
-        operation is not null && LightupHelpers.CanWrapOperation(operation, WrappedType);
+    public static bool IsInstance(IOperation instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }

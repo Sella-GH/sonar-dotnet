@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct IDiscardPatternOperationWrapper : IOperationWrapper
+public readonly struct IDiscardPatternOperationWrapper : IOperationWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.Operations.IDiscardPatternOperation";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(IDiscardPatternOperationWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.Operations.IDiscardPatternOperation");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly IOperation wrappedInstance;
 
     private static readonly Func<IOperation, IEnumerable<IOperation>> ChildrenAccessor = AccessorFactory.CreateProperty<Func<IOperation, IEnumerable<IOperation>>>(WrappedType, "Children");
@@ -63,28 +54,31 @@ public readonly partial struct IDiscardPatternOperationWrapper : IOperationWrapp
     public IOperation Parent => ParentAccessor(wrappedInstance);
     public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(wrappedInstance);
 
-    [Obsolete("Use From instead")]
-    public static IDiscardPatternOperationWrapper FromOperation(IOperation operation) =>
-        From(operation);
+    public static IDiscardPatternOperationWrapper? FromOrDefault(IOperation instance) =>
+        IsInstance(instance) ? From(instance) : null;
 
-    public static IDiscardPatternOperationWrapper From(IOperation operation)
+    [Obsolete("Use From instead")]
+    public static IDiscardPatternOperationWrapper FromOperation(IOperation instance) =>
+        From(instance);
+
+    public static IDiscardPatternOperationWrapper From(IOperation instance)
     {
-        if (operation is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(operation))
+        else if (IsInstance(instance))
         {
-            return new IDiscardPatternOperationWrapper(operation);
+            return new IDiscardPatternOperationWrapper((IOperation)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{operation.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.Operations.IDiscardPatternOperation'");
         }
     }
 
-    public static bool IsInstance(IOperation operation) =>
-        operation is not null && LightupHelpers.CanWrapOperation(operation, WrappedType);
+    public static bool IsInstance(IOperation instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
     public static implicit operator IPatternOperationWrapper(IDiscardPatternOperationWrapper up) => IPatternOperationWrapper.From(up.WrappedInstance);
     public static explicit operator IDiscardPatternOperationWrapper(IPatternOperationWrapper down) => IDiscardPatternOperationWrapper.From(down.WrappedInstance);

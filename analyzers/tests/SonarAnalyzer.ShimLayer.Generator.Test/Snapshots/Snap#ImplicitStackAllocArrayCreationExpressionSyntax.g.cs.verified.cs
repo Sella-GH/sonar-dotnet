@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct ImplicitStackAllocArrayCreationExpressionSyntaxWrapper : ISyntaxWrapper<ExpressionSyntax>
+public readonly struct ImplicitStackAllocArrayCreationExpressionSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.ImplicitStackAllocArrayCreationExpressionSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(ImplicitStackAllocArrayCreationExpressionSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.ImplicitStackAllocArrayCreationExpressionSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly ExpressionSyntax wrappedInstance;
 
     private static readonly Func<ExpressionSyntax, SyntaxToken> CloseBracketTokenAccessor = AccessorFactory.CreateProperty<Func<ExpressionSyntax, SyntaxToken>>(WrappedType, "CloseBracketToken");
@@ -143,29 +134,29 @@ public readonly partial struct ImplicitStackAllocArrayCreationExpressionSyntaxWr
     public ImplicitStackAllocArrayCreationExpressionSyntaxWrapper WithOpenBracketToken(SyntaxToken openBracketToken) => ImplicitStackAllocArrayCreationExpressionSyntaxWrapper.From(WithOpenBracketTokenAccessor(wrappedInstance, openBracketToken));
     public ImplicitStackAllocArrayCreationExpressionSyntaxWrapper WithStackAllocKeyword(SyntaxToken stackAllocKeyword) => ImplicitStackAllocArrayCreationExpressionSyntaxWrapper.From(WithStackAllocKeywordAccessor(wrappedInstance, stackAllocKeyword));
 
-    public static explicit operator ImplicitStackAllocArrayCreationExpressionSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator ImplicitStackAllocArrayCreationExpressionSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator ExpressionSyntax(ImplicitStackAllocArrayCreationExpressionSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static ImplicitStackAllocArrayCreationExpressionSyntaxWrapper From(SyntaxNode node)
+    public static ImplicitStackAllocArrayCreationExpressionSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new ImplicitStackAllocArrayCreationExpressionSyntaxWrapper((ExpressionSyntax)node);
+            return new ImplicitStackAllocArrayCreationExpressionSyntaxWrapper((ExpressionSyntax)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.ImplicitStackAllocArrayCreationExpressionSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }

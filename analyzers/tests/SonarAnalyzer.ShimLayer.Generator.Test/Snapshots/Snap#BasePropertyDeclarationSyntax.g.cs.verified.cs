@@ -16,13 +16,7 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
 
 namespace SonarAnalyzer.ShimLayer;
 
@@ -54,5 +48,6 @@ public static partial class BasePropertyDeclarationSyntaxShimExtensions
         public BasePropertyDeclarationSyntax WithExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier) => WithExplicitInterfaceSpecifierAccessor(wrappedInstance, explicitInterfaceSpecifier);
         public BasePropertyDeclarationSyntax WithModifiers(SyntaxTokenList modifiers) => WithModifiersAccessor(wrappedInstance, modifiers);
         public BasePropertyDeclarationSyntax WithType(TypeSyntax type) => WithTypeAccessor(wrappedInstance, type);
+
     }
 }

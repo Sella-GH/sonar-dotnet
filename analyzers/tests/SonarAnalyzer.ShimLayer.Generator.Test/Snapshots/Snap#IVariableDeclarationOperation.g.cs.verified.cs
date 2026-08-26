@@ -16,25 +16,16 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct IVariableDeclarationOperationWrapper : IOperationWrapper
+public readonly struct IVariableDeclarationOperationWrapper : IOperationWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.Operations.IVariableDeclarationOperation";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(IVariableDeclarationOperationWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.Operations.IVariableDeclarationOperation");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly IOperation wrappedInstance;
 
     private static readonly Func<IOperation, IEnumerable<IOperation>> ChildrenAccessor = AccessorFactory.CreateProperty<Func<IOperation, IEnumerable<IOperation>>>(WrappedType, "Children");
-    private static readonly Func<IOperation, ImmutableArray<IOperation>> DeclaratorsAccessor = AccessorFactory.CreateProperty<Func<IOperation, ImmutableArray<IOperation>>>(WrappedType, "Declarators");
+    private static readonly Func<IOperation, ImmutableArray<IVariableDeclaratorOperationWrapper>> DeclaratorsAccessor = AccessorFactory.CreateProperty<Func<IOperation, ImmutableArray<IVariableDeclaratorOperationWrapper>>>(WrappedType, "Declarators");
     private static readonly Func<IOperation, ImmutableArray<IOperation>> IgnoredDimensionsAccessor = AccessorFactory.CreateProperty<Func<IOperation, ImmutableArray<IOperation>>>(WrappedType, "IgnoredDimensions");
     private static readonly Func<IOperation, IOperation> InitializerAccessor = AccessorFactory.CreateProperty<Func<IOperation, IOperation>>(WrappedType, "Initializer");
     private static readonly Func<IOperation, bool> IsImplicitAccessor = AccessorFactory.CreateProperty<Func<IOperation, bool>>(WrappedType, "IsImplicit");
@@ -57,7 +48,7 @@ public readonly partial struct IVariableDeclarationOperationWrapper : IOperation
 
     [System.ObsoleteAttribute("This API has performance penalties, please use ChildOperations instead.", false)]
     public IEnumerable<IOperation> Children => (IEnumerable<IOperation>)ChildrenAccessor(wrappedInstance);
-    public ImmutableArray<IOperation> Declarators => DeclaratorsAccessor(wrappedInstance);
+    public ImmutableArray<IVariableDeclaratorOperationWrapper> Declarators => DeclaratorsAccessor(wrappedInstance);
     public ImmutableArray<IOperation> IgnoredDimensions => (ImmutableArray<IOperation>)IgnoredDimensionsAccessor(wrappedInstance);
     public IVariableInitializerOperationWrapper Initializer => IVariableInitializerOperationWrapper.From(InitializerAccessor(wrappedInstance));
     public bool IsImplicit => (bool)IsImplicitAccessor(wrappedInstance);
@@ -65,27 +56,30 @@ public readonly partial struct IVariableDeclarationOperationWrapper : IOperation
     public IOperation Parent => ParentAccessor(wrappedInstance);
     public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(wrappedInstance);
 
-    [Obsolete("Use From instead")]
-    public static IVariableDeclarationOperationWrapper FromOperation(IOperation operation) =>
-        From(operation);
+    public static IVariableDeclarationOperationWrapper? FromOrDefault(IOperation instance) =>
+        IsInstance(instance) ? From(instance) : null;
 
-    public static IVariableDeclarationOperationWrapper From(IOperation operation)
+    [Obsolete("Use From instead")]
+    public static IVariableDeclarationOperationWrapper FromOperation(IOperation instance) =>
+        From(instance);
+
+    public static IVariableDeclarationOperationWrapper From(IOperation instance)
     {
-        if (operation is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(operation))
+        else if (IsInstance(instance))
         {
-            return new IVariableDeclarationOperationWrapper(operation);
+            return new IVariableDeclarationOperationWrapper((IOperation)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{operation.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.Operations.IVariableDeclarationOperation'");
         }
     }
 
-    public static bool IsInstance(IOperation operation) =>
-        operation is not null && LightupHelpers.CanWrapOperation(operation, WrappedType);
+    public static bool IsInstance(IOperation instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }

@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct SpreadElementSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
+public readonly struct SpreadElementSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.SpreadElementSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(SpreadElementSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.SpreadElementSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly CSharpSyntaxNode wrappedInstance;
 
     private static readonly Func<CSharpSyntaxNode, ExpressionSyntax> ExpressionAccessor = AccessorFactory.CreateProperty<Func<CSharpSyntaxNode, ExpressionSyntax>>(WrappedType, "Expression");
@@ -133,30 +124,30 @@ public readonly partial struct SpreadElementSyntaxWrapper : ISyntaxWrapper<CShar
     public SpreadElementSyntaxWrapper WithExpression(ExpressionSyntax expression) => SpreadElementSyntaxWrapper.From(WithExpressionAccessor(wrappedInstance, expression));
     public SpreadElementSyntaxWrapper WithOperatorToken(SyntaxToken operatorToken) => SpreadElementSyntaxWrapper.From(WithOperatorTokenAccessor(wrappedInstance, operatorToken));
 
-    public static explicit operator SpreadElementSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator SpreadElementSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator CSharpSyntaxNode(SpreadElementSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static SpreadElementSyntaxWrapper From(SyntaxNode node)
+    public static SpreadElementSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new SpreadElementSyntaxWrapper((CSharpSyntaxNode)node);
+            return new SpreadElementSyntaxWrapper((CSharpSyntaxNode)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.SpreadElementSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
     public static implicit operator CollectionElementSyntaxWrapper(SpreadElementSyntaxWrapper up) => CollectionElementSyntaxWrapper.From(up.WrappedInstance);
     public static explicit operator SpreadElementSyntaxWrapper(CollectionElementSyntaxWrapper down) => SpreadElementSyntaxWrapper.From(down.WrappedInstance);

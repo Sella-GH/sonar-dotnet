@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct ExpressionElementSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
+public readonly struct ExpressionElementSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionElementSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(ExpressionElementSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionElementSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly CSharpSyntaxNode wrappedInstance;
 
     private static readonly Func<CSharpSyntaxNode, ExpressionSyntax> ExpressionAccessor = AccessorFactory.CreateProperty<Func<CSharpSyntaxNode, ExpressionSyntax>>(WrappedType, "Expression");
@@ -129,30 +120,30 @@ public readonly partial struct ExpressionElementSyntaxWrapper : ISyntaxWrapper<C
     public ExpressionElementSyntaxWrapper Update(ExpressionSyntax expression) => ExpressionElementSyntaxWrapper.From(UpdateAccessor(wrappedInstance, expression));
     public ExpressionElementSyntaxWrapper WithExpression(ExpressionSyntax expression) => ExpressionElementSyntaxWrapper.From(WithExpressionAccessor(wrappedInstance, expression));
 
-    public static explicit operator ExpressionElementSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator ExpressionElementSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator CSharpSyntaxNode(ExpressionElementSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static ExpressionElementSyntaxWrapper From(SyntaxNode node)
+    public static ExpressionElementSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new ExpressionElementSyntaxWrapper((CSharpSyntaxNode)node);
+            return new ExpressionElementSyntaxWrapper((CSharpSyntaxNode)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionElementSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
     public static implicit operator CollectionElementSyntaxWrapper(ExpressionElementSyntaxWrapper up) => CollectionElementSyntaxWrapper.From(up.WrappedInstance);
     public static explicit operator ExpressionElementSyntaxWrapper(CollectionElementSyntaxWrapper down) => ExpressionElementSyntaxWrapper.From(down.WrappedInstance);

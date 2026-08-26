@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct SlicePatternSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
+public readonly struct SlicePatternSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.SlicePatternSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(SlicePatternSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.SlicePatternSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly CSharpSyntaxNode wrappedInstance;
 
     private static readonly Func<CSharpSyntaxNode, SyntaxToken> DotDotTokenAccessor = AccessorFactory.CreateProperty<Func<CSharpSyntaxNode, SyntaxToken>>(WrappedType, "DotDotToken");
@@ -133,30 +124,30 @@ public readonly partial struct SlicePatternSyntaxWrapper : ISyntaxWrapper<CSharp
     public SlicePatternSyntaxWrapper WithDotDotToken(SyntaxToken dotDotToken) => SlicePatternSyntaxWrapper.From(WithDotDotTokenAccessor(wrappedInstance, dotDotToken));
     public SlicePatternSyntaxWrapper WithPattern(PatternSyntaxWrapper pattern) => SlicePatternSyntaxWrapper.From(WithPatternAccessor(wrappedInstance, pattern));
 
-    public static explicit operator SlicePatternSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator SlicePatternSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator CSharpSyntaxNode(SlicePatternSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static SlicePatternSyntaxWrapper From(SyntaxNode node)
+    public static SlicePatternSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new SlicePatternSyntaxWrapper((CSharpSyntaxNode)node);
+            return new SlicePatternSyntaxWrapper((CSharpSyntaxNode)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.SlicePatternSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
     public static implicit operator PatternSyntaxWrapper(SlicePatternSyntaxWrapper up) => PatternSyntaxWrapper.From(up.WrappedInstance);
     public static explicit operator SlicePatternSyntaxWrapper(PatternSyntaxWrapper down) => SlicePatternSyntaxWrapper.From(down.WrappedInstance);

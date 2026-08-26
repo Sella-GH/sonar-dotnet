@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct PropertyPatternClauseSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
+public readonly struct PropertyPatternClauseSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternClauseSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(PropertyPatternClauseSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternClauseSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly CSharpSyntaxNode wrappedInstance;
 
     private static readonly Func<CSharpSyntaxNode, SyntaxToken> CloseBraceTokenAccessor = AccessorFactory.CreateProperty<Func<CSharpSyntaxNode, SyntaxToken>>(WrappedType, "CloseBraceToken");
@@ -139,29 +130,29 @@ public readonly partial struct PropertyPatternClauseSyntaxWrapper : ISyntaxWrapp
     public PropertyPatternClauseSyntaxWrapper WithOpenBraceToken(SyntaxToken openBraceToken) => PropertyPatternClauseSyntaxWrapper.From(WithOpenBraceTokenAccessor(wrappedInstance, openBraceToken));
     public PropertyPatternClauseSyntaxWrapper WithSubpatterns(SeparatedSyntaxListWrapper<SubpatternSyntaxWrapper> subpatterns) => PropertyPatternClauseSyntaxWrapper.From(WithSubpatternsAccessor(wrappedInstance, subpatterns));
 
-    public static explicit operator PropertyPatternClauseSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator PropertyPatternClauseSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator CSharpSyntaxNode(PropertyPatternClauseSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static PropertyPatternClauseSyntaxWrapper From(SyntaxNode node)
+    public static PropertyPatternClauseSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new PropertyPatternClauseSyntaxWrapper((CSharpSyntaxNode)node);
+            return new PropertyPatternClauseSyntaxWrapper((CSharpSyntaxNode)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternClauseSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }

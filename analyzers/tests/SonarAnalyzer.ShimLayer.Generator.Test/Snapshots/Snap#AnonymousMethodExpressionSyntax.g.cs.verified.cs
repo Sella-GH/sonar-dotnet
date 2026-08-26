@@ -16,13 +16,7 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
 
 namespace SonarAnalyzer.ShimLayer;
 
@@ -55,5 +49,6 @@ public static partial class AnonymousMethodExpressionSyntaxShimExtensions
         public AnonymousMethodExpressionSyntax Update(SyntaxTokenList modifiers, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, BlockSyntax block, ExpressionSyntax expressionBody) => UpdateAccessor_Overload3(wrappedInstance, modifiers, delegateKeyword, parameterList, block, expressionBody);
         public AnonymousMethodExpressionSyntax WithExpressionBody(ExpressionSyntax expressionBody) => WithExpressionBodyAccessor(wrappedInstance, expressionBody);
         public AnonymousMethodExpressionSyntax WithModifiers(SyntaxTokenList modifiers) => WithModifiersAccessor(wrappedInstance, modifiers);
+
     }
 }

@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct IStaticLocalInitializationSemaphoreOperationWrapper : IOperationWrapper
+public readonly struct IStaticLocalInitializationSemaphoreOperationWrapper : IOperationWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(IStaticLocalInitializationSemaphoreOperationWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly IOperation wrappedInstance;
 
     private static readonly Func<IOperation, IEnumerable<IOperation>> ChildrenAccessor = AccessorFactory.CreateProperty<Func<IOperation, IEnumerable<IOperation>>>(WrappedType, "Children");
@@ -61,27 +52,30 @@ public readonly partial struct IStaticLocalInitializationSemaphoreOperationWrapp
     public IOperation Parent => ParentAccessor(wrappedInstance);
     public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(wrappedInstance);
 
-    [Obsolete("Use From instead")]
-    public static IStaticLocalInitializationSemaphoreOperationWrapper FromOperation(IOperation operation) =>
-        From(operation);
+    public static IStaticLocalInitializationSemaphoreOperationWrapper? FromOrDefault(IOperation instance) =>
+        IsInstance(instance) ? From(instance) : null;
 
-    public static IStaticLocalInitializationSemaphoreOperationWrapper From(IOperation operation)
+    [Obsolete("Use From instead")]
+    public static IStaticLocalInitializationSemaphoreOperationWrapper FromOperation(IOperation instance) =>
+        From(instance);
+
+    public static IStaticLocalInitializationSemaphoreOperationWrapper From(IOperation instance)
     {
-        if (operation is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(operation))
+        else if (IsInstance(instance))
         {
-            return new IStaticLocalInitializationSemaphoreOperationWrapper(operation);
+            return new IStaticLocalInitializationSemaphoreOperationWrapper((IOperation)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{operation.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation'");
         }
     }
 
-    public static bool IsInstance(IOperation operation) =>
-        operation is not null && LightupHelpers.CanWrapOperation(operation, WrappedType);
+    public static bool IsInstance(IOperation instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }

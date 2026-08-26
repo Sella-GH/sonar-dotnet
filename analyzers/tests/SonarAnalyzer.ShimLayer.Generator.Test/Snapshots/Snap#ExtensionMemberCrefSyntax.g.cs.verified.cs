@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct ExtensionMemberCrefSyntaxWrapper : ISyntaxWrapper<MemberCrefSyntax>
+public readonly struct ExtensionMemberCrefSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionMemberCrefSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(ExtensionMemberCrefSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionMemberCrefSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly MemberCrefSyntax wrappedInstance;
 
     private static readonly Func<MemberCrefSyntax, SyntaxToken> DotTokenAccessor = AccessorFactory.CreateProperty<Func<MemberCrefSyntax, SyntaxToken>>(WrappedType, "DotToken");
@@ -149,29 +140,29 @@ public readonly partial struct ExtensionMemberCrefSyntaxWrapper : ISyntaxWrapper
     public ExtensionMemberCrefSyntaxWrapper WithParameters(CrefParameterListSyntax parameters) => ExtensionMemberCrefSyntaxWrapper.From(WithParametersAccessor(wrappedInstance, parameters));
     public ExtensionMemberCrefSyntaxWrapper WithTypeArgumentList(TypeArgumentListSyntax typeArgumentList) => ExtensionMemberCrefSyntaxWrapper.From(WithTypeArgumentListAccessor(wrappedInstance, typeArgumentList));
 
-    public static explicit operator ExtensionMemberCrefSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator ExtensionMemberCrefSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator MemberCrefSyntax(ExtensionMemberCrefSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static ExtensionMemberCrefSyntaxWrapper From(SyntaxNode node)
+    public static ExtensionMemberCrefSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new ExtensionMemberCrefSyntaxWrapper((MemberCrefSyntax)node);
+            return new ExtensionMemberCrefSyntaxWrapper((MemberCrefSyntax)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionMemberCrefSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }

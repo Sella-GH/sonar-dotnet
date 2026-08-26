@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct RelationalPatternSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
+public readonly struct RelationalPatternSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.RelationalPatternSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(RelationalPatternSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.RelationalPatternSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly CSharpSyntaxNode wrappedInstance;
 
     private static readonly Func<CSharpSyntaxNode, ExpressionSyntax> ExpressionAccessor = AccessorFactory.CreateProperty<Func<CSharpSyntaxNode, ExpressionSyntax>>(WrappedType, "Expression");
@@ -133,30 +124,30 @@ public readonly partial struct RelationalPatternSyntaxWrapper : ISyntaxWrapper<C
     public RelationalPatternSyntaxWrapper WithExpression(ExpressionSyntax expression) => RelationalPatternSyntaxWrapper.From(WithExpressionAccessor(wrappedInstance, expression));
     public RelationalPatternSyntaxWrapper WithOperatorToken(SyntaxToken operatorToken) => RelationalPatternSyntaxWrapper.From(WithOperatorTokenAccessor(wrappedInstance, operatorToken));
 
-    public static explicit operator RelationalPatternSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator RelationalPatternSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator CSharpSyntaxNode(RelationalPatternSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static RelationalPatternSyntaxWrapper From(SyntaxNode node)
+    public static RelationalPatternSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new RelationalPatternSyntaxWrapper((CSharpSyntaxNode)node);
+            return new RelationalPatternSyntaxWrapper((CSharpSyntaxNode)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.RelationalPatternSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
     public static implicit operator PatternSyntaxWrapper(RelationalPatternSyntaxWrapper up) => PatternSyntaxWrapper.From(up.WrappedInstance);
     public static explicit operator RelationalPatternSyntaxWrapper(PatternSyntaxWrapper down) => RelationalPatternSyntaxWrapper.From(down.WrappedInstance);

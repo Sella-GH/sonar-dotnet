@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct LineSpanDirectiveTriviaSyntaxWrapper : ISyntaxWrapper<DirectiveTriviaSyntax>
+public readonly struct LineSpanDirectiveTriviaSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.LineSpanDirectiveTriviaSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(LineSpanDirectiveTriviaSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.LineSpanDirectiveTriviaSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly DirectiveTriviaSyntax wrappedInstance;
 
     private static readonly Func<DirectiveTriviaSyntax, SyntaxToken> CharacterOffsetAccessor = AccessorFactory.CreateProperty<Func<DirectiveTriviaSyntax, SyntaxToken>>(WrappedType, "CharacterOffset");
@@ -162,30 +153,30 @@ public readonly partial struct LineSpanDirectiveTriviaSyntaxWrapper : ISyntaxWra
     public LineSpanDirectiveTriviaSyntaxWrapper WithMinusToken(SyntaxToken minusToken) => LineSpanDirectiveTriviaSyntaxWrapper.From(WithMinusTokenAccessor(wrappedInstance, minusToken));
     public LineSpanDirectiveTriviaSyntaxWrapper WithStart(LineDirectivePositionSyntaxWrapper start) => LineSpanDirectiveTriviaSyntaxWrapper.From(WithStartAccessor(wrappedInstance, start));
 
-    public static explicit operator LineSpanDirectiveTriviaSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator LineSpanDirectiveTriviaSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator DirectiveTriviaSyntax(LineSpanDirectiveTriviaSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static LineSpanDirectiveTriviaSyntaxWrapper From(SyntaxNode node)
+    public static LineSpanDirectiveTriviaSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new LineSpanDirectiveTriviaSyntaxWrapper((DirectiveTriviaSyntax)node);
+            return new LineSpanDirectiveTriviaSyntaxWrapper((DirectiveTriviaSyntax)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.LineSpanDirectiveTriviaSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
     public static implicit operator LineOrSpanDirectiveTriviaSyntaxWrapper(LineSpanDirectiveTriviaSyntaxWrapper up) => LineOrSpanDirectiveTriviaSyntaxWrapper.From(up.WrappedInstance);
     public static explicit operator LineSpanDirectiveTriviaSyntaxWrapper(LineOrSpanDirectiveTriviaSyntaxWrapper down) => LineSpanDirectiveTriviaSyntaxWrapper.From(down.WrappedInstance);

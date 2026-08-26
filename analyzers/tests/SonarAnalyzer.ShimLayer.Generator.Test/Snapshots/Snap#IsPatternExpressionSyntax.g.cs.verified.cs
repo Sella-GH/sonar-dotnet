@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct IsPatternExpressionSyntaxWrapper : ISyntaxWrapper<ExpressionSyntax>
+public readonly struct IsPatternExpressionSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.IsPatternExpressionSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(IsPatternExpressionSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.IsPatternExpressionSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly ExpressionSyntax wrappedInstance;
 
     private static readonly Func<ExpressionSyntax, ExpressionSyntax> ExpressionAccessor = AccessorFactory.CreateProperty<Func<ExpressionSyntax, ExpressionSyntax>>(WrappedType, "Expression");
@@ -137,29 +128,29 @@ public readonly partial struct IsPatternExpressionSyntaxWrapper : ISyntaxWrapper
     public IsPatternExpressionSyntaxWrapper WithIsKeyword(SyntaxToken isKeyword) => IsPatternExpressionSyntaxWrapper.From(WithIsKeywordAccessor(wrappedInstance, isKeyword));
     public IsPatternExpressionSyntaxWrapper WithPattern(PatternSyntaxWrapper pattern) => IsPatternExpressionSyntaxWrapper.From(WithPatternAccessor(wrappedInstance, pattern));
 
-    public static explicit operator IsPatternExpressionSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator IsPatternExpressionSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator ExpressionSyntax(IsPatternExpressionSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static IsPatternExpressionSyntaxWrapper From(SyntaxNode node)
+    public static IsPatternExpressionSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new IsPatternExpressionSyntaxWrapper((ExpressionSyntax)node);
+            return new IsPatternExpressionSyntaxWrapper((ExpressionSyntax)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.IsPatternExpressionSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }

@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct VarPatternSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
+public readonly struct VarPatternSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.VarPatternSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(VarPatternSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.VarPatternSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly CSharpSyntaxNode wrappedInstance;
 
     private static readonly Func<CSharpSyntaxNode, CSharpSyntaxNode> DesignationAccessor = AccessorFactory.CreateProperty<Func<CSharpSyntaxNode, CSharpSyntaxNode>>(WrappedType, "Designation");
@@ -133,30 +124,30 @@ public readonly partial struct VarPatternSyntaxWrapper : ISyntaxWrapper<CSharpSy
     public VarPatternSyntaxWrapper WithDesignation(VariableDesignationSyntaxWrapper designation) => VarPatternSyntaxWrapper.From(WithDesignationAccessor(wrappedInstance, designation));
     public VarPatternSyntaxWrapper WithVarKeyword(SyntaxToken varKeyword) => VarPatternSyntaxWrapper.From(WithVarKeywordAccessor(wrappedInstance, varKeyword));
 
-    public static explicit operator VarPatternSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator VarPatternSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator CSharpSyntaxNode(VarPatternSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static VarPatternSyntaxWrapper From(SyntaxNode node)
+    public static VarPatternSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new VarPatternSyntaxWrapper((CSharpSyntaxNode)node);
+            return new VarPatternSyntaxWrapper((CSharpSyntaxNode)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.VarPatternSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
     public static implicit operator PatternSyntaxWrapper(VarPatternSyntaxWrapper up) => PatternSyntaxWrapper.From(up.WrappedInstance);
     public static explicit operator VarPatternSyntaxWrapper(PatternSyntaxWrapper down) => VarPatternSyntaxWrapper.From(down.WrappedInstance);

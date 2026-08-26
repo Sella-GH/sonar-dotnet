@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct PositionalPatternClauseSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
+public readonly struct PositionalPatternClauseSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.PositionalPatternClauseSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(PositionalPatternClauseSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.PositionalPatternClauseSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly CSharpSyntaxNode wrappedInstance;
 
     private static readonly Func<CSharpSyntaxNode, SyntaxToken> CloseParenTokenAccessor = AccessorFactory.CreateProperty<Func<CSharpSyntaxNode, SyntaxToken>>(WrappedType, "CloseParenToken");
@@ -139,29 +130,29 @@ public readonly partial struct PositionalPatternClauseSyntaxWrapper : ISyntaxWra
     public PositionalPatternClauseSyntaxWrapper WithOpenParenToken(SyntaxToken openParenToken) => PositionalPatternClauseSyntaxWrapper.From(WithOpenParenTokenAccessor(wrappedInstance, openParenToken));
     public PositionalPatternClauseSyntaxWrapper WithSubpatterns(SeparatedSyntaxListWrapper<SubpatternSyntaxWrapper> subpatterns) => PositionalPatternClauseSyntaxWrapper.From(WithSubpatternsAccessor(wrappedInstance, subpatterns));
 
-    public static explicit operator PositionalPatternClauseSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator PositionalPatternClauseSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator CSharpSyntaxNode(PositionalPatternClauseSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static PositionalPatternClauseSyntaxWrapper From(SyntaxNode node)
+    public static PositionalPatternClauseSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new PositionalPatternClauseSyntaxWrapper((CSharpSyntaxNode)node);
+            return new PositionalPatternClauseSyntaxWrapper((CSharpSyntaxNode)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.PositionalPatternClauseSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }

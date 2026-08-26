@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct SwitchExpressionArmSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
+public readonly struct SwitchExpressionArmSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(SwitchExpressionArmSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly CSharpSyntaxNode wrappedInstance;
 
     private static readonly Func<CSharpSyntaxNode, SyntaxToken> EqualsGreaterThanTokenAccessor = AccessorFactory.CreateProperty<Func<CSharpSyntaxNode, SyntaxToken>>(WrappedType, "EqualsGreaterThanToken");
@@ -141,29 +132,29 @@ public readonly partial struct SwitchExpressionArmSyntaxWrapper : ISyntaxWrapper
     public SwitchExpressionArmSyntaxWrapper WithPattern(PatternSyntaxWrapper pattern) => SwitchExpressionArmSyntaxWrapper.From(WithPatternAccessor(wrappedInstance, pattern));
     public SwitchExpressionArmSyntaxWrapper WithWhenClause(WhenClauseSyntaxWrapper whenClause) => SwitchExpressionArmSyntaxWrapper.From(WithWhenClauseAccessor(wrappedInstance, whenClause));
 
-    public static explicit operator SwitchExpressionArmSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator SwitchExpressionArmSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator CSharpSyntaxNode(SwitchExpressionArmSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static SwitchExpressionArmSyntaxWrapper From(SyntaxNode node)
+    public static SwitchExpressionArmSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new SwitchExpressionArmSyntaxWrapper((CSharpSyntaxNode)node);
+            return new SwitchExpressionArmSyntaxWrapper((CSharpSyntaxNode)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionArmSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }

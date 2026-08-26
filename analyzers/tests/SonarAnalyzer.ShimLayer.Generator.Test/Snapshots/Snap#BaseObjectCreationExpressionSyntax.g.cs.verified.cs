@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct BaseObjectCreationExpressionSyntaxWrapper : ISyntaxWrapper<ExpressionSyntax>
+public readonly struct BaseObjectCreationExpressionSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(BaseObjectCreationExpressionSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax", "Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly ExpressionSyntax wrappedInstance;
 
     private static readonly Func<ExpressionSyntax, ArgumentListSyntax> ArgumentListAccessor = AccessorFactory.CreateProperty<Func<ExpressionSyntax, ArgumentListSyntax>>(WrappedType, "ArgumentList");
@@ -137,29 +128,31 @@ public readonly partial struct BaseObjectCreationExpressionSyntaxWrapper : ISynt
     public BaseObjectCreationExpressionSyntaxWrapper WithInitializer(InitializerExpressionSyntax initializer) => BaseObjectCreationExpressionSyntaxWrapper.From(WithInitializerAccessor(wrappedInstance, initializer));
     public BaseObjectCreationExpressionSyntaxWrapper WithNewKeyword(SyntaxToken newKeyword) => BaseObjectCreationExpressionSyntaxWrapper.From(WithNewKeywordAccessor(wrappedInstance, newKeyword));
 
-    public static explicit operator BaseObjectCreationExpressionSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator BaseObjectCreationExpressionSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator ExpressionSyntax(BaseObjectCreationExpressionSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static BaseObjectCreationExpressionSyntaxWrapper From(SyntaxNode node)
+    public static BaseObjectCreationExpressionSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new BaseObjectCreationExpressionSyntaxWrapper((ExpressionSyntax)node);
+            return new BaseObjectCreationExpressionSyntaxWrapper((ExpressionSyntax)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
+
+    public static implicit operator BaseObjectCreationExpressionSyntaxWrapper(ObjectCreationExpressionSyntax instance) => new(instance);
 
 }

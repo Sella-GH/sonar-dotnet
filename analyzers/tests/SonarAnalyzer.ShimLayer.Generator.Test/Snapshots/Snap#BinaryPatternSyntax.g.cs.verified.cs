@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct BinaryPatternSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
+public readonly struct BinaryPatternSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.BinaryPatternSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(BinaryPatternSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.BinaryPatternSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly CSharpSyntaxNode wrappedInstance;
 
     private static readonly Func<CSharpSyntaxNode, CSharpSyntaxNode> LeftAccessor = AccessorFactory.CreateProperty<Func<CSharpSyntaxNode, CSharpSyntaxNode>>(WrappedType, "Left");
@@ -137,30 +128,30 @@ public readonly partial struct BinaryPatternSyntaxWrapper : ISyntaxWrapper<CShar
     public BinaryPatternSyntaxWrapper WithOperatorToken(SyntaxToken operatorToken) => BinaryPatternSyntaxWrapper.From(WithOperatorTokenAccessor(wrappedInstance, operatorToken));
     public BinaryPatternSyntaxWrapper WithRight(PatternSyntaxWrapper right) => BinaryPatternSyntaxWrapper.From(WithRightAccessor(wrappedInstance, right));
 
-    public static explicit operator BinaryPatternSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator BinaryPatternSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator CSharpSyntaxNode(BinaryPatternSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static BinaryPatternSyntaxWrapper From(SyntaxNode node)
+    public static BinaryPatternSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new BinaryPatternSyntaxWrapper((CSharpSyntaxNode)node);
+            return new BinaryPatternSyntaxWrapper((CSharpSyntaxNode)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.BinaryPatternSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
     public static implicit operator PatternSyntaxWrapper(BinaryPatternSyntaxWrapper up) => PatternSyntaxWrapper.From(up.WrappedInstance);
     public static explicit operator BinaryPatternSyntaxWrapper(PatternSyntaxWrapper down) => BinaryPatternSyntaxWrapper.From(down.WrappedInstance);

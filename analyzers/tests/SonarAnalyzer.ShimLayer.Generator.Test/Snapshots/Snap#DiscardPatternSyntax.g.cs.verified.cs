@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct DiscardPatternSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
+public readonly struct DiscardPatternSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.DiscardPatternSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(DiscardPatternSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.DiscardPatternSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly CSharpSyntaxNode wrappedInstance;
 
     private static readonly Func<CSharpSyntaxNode, SyntaxToken> UnderscoreTokenAccessor = AccessorFactory.CreateProperty<Func<CSharpSyntaxNode, SyntaxToken>>(WrappedType, "UnderscoreToken");
@@ -129,30 +120,30 @@ public readonly partial struct DiscardPatternSyntaxWrapper : ISyntaxWrapper<CSha
     public DiscardPatternSyntaxWrapper Update(SyntaxToken underscoreToken) => DiscardPatternSyntaxWrapper.From(UpdateAccessor(wrappedInstance, underscoreToken));
     public DiscardPatternSyntaxWrapper WithUnderscoreToken(SyntaxToken underscoreToken) => DiscardPatternSyntaxWrapper.From(WithUnderscoreTokenAccessor(wrappedInstance, underscoreToken));
 
-    public static explicit operator DiscardPatternSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator DiscardPatternSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator CSharpSyntaxNode(DiscardPatternSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static DiscardPatternSyntaxWrapper From(SyntaxNode node)
+    public static DiscardPatternSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new DiscardPatternSyntaxWrapper((CSharpSyntaxNode)node);
+            return new DiscardPatternSyntaxWrapper((CSharpSyntaxNode)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.DiscardPatternSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
     public static implicit operator PatternSyntaxWrapper(DiscardPatternSyntaxWrapper up) => PatternSyntaxWrapper.From(up.WrappedInstance);
     public static explicit operator DiscardPatternSyntaxWrapper(PatternSyntaxWrapper down) => DiscardPatternSyntaxWrapper.From(down.WrappedInstance);

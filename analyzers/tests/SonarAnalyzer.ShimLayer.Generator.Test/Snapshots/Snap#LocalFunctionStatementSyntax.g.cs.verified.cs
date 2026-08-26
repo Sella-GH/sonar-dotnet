@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct LocalFunctionStatementSyntaxWrapper : ISyntaxWrapper<StatementSyntax>
+public readonly struct LocalFunctionStatementSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(LocalFunctionStatementSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly StatementSyntax wrappedInstance;
 
     private static readonly Func<StatementSyntax, SyntaxList<AttributeListSyntax>> AttributeListsAccessor = AccessorFactory.CreateProperty<Func<StatementSyntax, SyntaxList<AttributeListSyntax>>>(WrappedType, "AttributeLists");
@@ -181,29 +172,29 @@ public readonly partial struct LocalFunctionStatementSyntaxWrapper : ISyntaxWrap
     public LocalFunctionStatementSyntaxWrapper WithSemicolonToken(SyntaxToken semicolonToken) => LocalFunctionStatementSyntaxWrapper.From(WithSemicolonTokenAccessor(wrappedInstance, semicolonToken));
     public LocalFunctionStatementSyntaxWrapper WithTypeParameterList(TypeParameterListSyntax typeParameterList) => LocalFunctionStatementSyntaxWrapper.From(WithTypeParameterListAccessor(wrappedInstance, typeParameterList));
 
-    public static explicit operator LocalFunctionStatementSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator LocalFunctionStatementSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator StatementSyntax(LocalFunctionStatementSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static LocalFunctionStatementSyntaxWrapper From(SyntaxNode node)
+    public static LocalFunctionStatementSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new LocalFunctionStatementSyntaxWrapper((StatementSyntax)node);
+            return new LocalFunctionStatementSyntaxWrapper((StatementSyntax)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }

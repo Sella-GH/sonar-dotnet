@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct DeclarationPatternSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
+public readonly struct DeclarationPatternSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationPatternSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(DeclarationPatternSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationPatternSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly CSharpSyntaxNode wrappedInstance;
 
     private static readonly Func<CSharpSyntaxNode, CSharpSyntaxNode> DesignationAccessor = AccessorFactory.CreateProperty<Func<CSharpSyntaxNode, CSharpSyntaxNode>>(WrappedType, "Designation");
@@ -133,30 +124,30 @@ public readonly partial struct DeclarationPatternSyntaxWrapper : ISyntaxWrapper<
     public DeclarationPatternSyntaxWrapper WithDesignation(VariableDesignationSyntaxWrapper designation) => DeclarationPatternSyntaxWrapper.From(WithDesignationAccessor(wrappedInstance, designation));
     public DeclarationPatternSyntaxWrapper WithType(TypeSyntax type) => DeclarationPatternSyntaxWrapper.From(WithTypeAccessor(wrappedInstance, type));
 
-    public static explicit operator DeclarationPatternSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator DeclarationPatternSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator CSharpSyntaxNode(DeclarationPatternSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static DeclarationPatternSyntaxWrapper From(SyntaxNode node)
+    public static DeclarationPatternSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new DeclarationPatternSyntaxWrapper((CSharpSyntaxNode)node);
+            return new DeclarationPatternSyntaxWrapper((CSharpSyntaxNode)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.DeclarationPatternSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
     public static implicit operator PatternSyntaxWrapper(DeclarationPatternSyntaxWrapper up) => PatternSyntaxWrapper.From(up.WrappedInstance);
     public static explicit operator DeclarationPatternSyntaxWrapper(PatternSyntaxWrapper down) => DeclarationPatternSyntaxWrapper.From(down.WrappedInstance);

@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct TupleExpressionSyntaxWrapper : ISyntaxWrapper<ExpressionSyntax>
+public readonly struct TupleExpressionSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.TupleExpressionSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(TupleExpressionSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.TupleExpressionSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly ExpressionSyntax wrappedInstance;
 
     private static readonly Func<ExpressionSyntax, SeparatedSyntaxList<ArgumentSyntax>> ArgumentsAccessor = AccessorFactory.CreateProperty<Func<ExpressionSyntax, SeparatedSyntaxList<ArgumentSyntax>>>(WrappedType, "Arguments");
@@ -139,29 +130,29 @@ public readonly partial struct TupleExpressionSyntaxWrapper : ISyntaxWrapper<Exp
     public TupleExpressionSyntaxWrapper WithCloseParenToken(SyntaxToken closeParenToken) => TupleExpressionSyntaxWrapper.From(WithCloseParenTokenAccessor(wrappedInstance, closeParenToken));
     public TupleExpressionSyntaxWrapper WithOpenParenToken(SyntaxToken openParenToken) => TupleExpressionSyntaxWrapper.From(WithOpenParenTokenAccessor(wrappedInstance, openParenToken));
 
-    public static explicit operator TupleExpressionSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator TupleExpressionSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator ExpressionSyntax(TupleExpressionSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static TupleExpressionSyntaxWrapper From(SyntaxNode node)
+    public static TupleExpressionSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new TupleExpressionSyntaxWrapper((ExpressionSyntax)node);
+            return new TupleExpressionSyntaxWrapper((ExpressionSyntax)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.TupleExpressionSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }

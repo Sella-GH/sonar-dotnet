@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct ExpressionColonSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
+public readonly struct ExpressionColonSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionColonSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(ExpressionColonSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionColonSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly CSharpSyntaxNode wrappedInstance;
 
     private static readonly Func<CSharpSyntaxNode, SyntaxToken> ColonTokenAccessor = AccessorFactory.CreateProperty<Func<CSharpSyntaxNode, SyntaxToken>>(WrappedType, "ColonToken");
@@ -133,30 +124,30 @@ public readonly partial struct ExpressionColonSyntaxWrapper : ISyntaxWrapper<CSh
     public ExpressionColonSyntaxWrapper WithColonToken(SyntaxToken colonToken) => ExpressionColonSyntaxWrapper.From(WithColonTokenAccessor(wrappedInstance, colonToken));
     public ExpressionColonSyntaxWrapper WithExpression(ExpressionSyntax expression) => ExpressionColonSyntaxWrapper.From(WithExpressionAccessor(wrappedInstance, expression));
 
-    public static explicit operator ExpressionColonSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator ExpressionColonSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator CSharpSyntaxNode(ExpressionColonSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static ExpressionColonSyntaxWrapper From(SyntaxNode node)
+    public static ExpressionColonSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new ExpressionColonSyntaxWrapper((CSharpSyntaxNode)node);
+            return new ExpressionColonSyntaxWrapper((CSharpSyntaxNode)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionColonSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
     public static implicit operator BaseExpressionColonSyntaxWrapper(ExpressionColonSyntaxWrapper up) => BaseExpressionColonSyntaxWrapper.From(up.WrappedInstance);
     public static explicit operator ExpressionColonSyntaxWrapper(BaseExpressionColonSyntaxWrapper down) => ExpressionColonSyntaxWrapper.From(down.WrappedInstance);

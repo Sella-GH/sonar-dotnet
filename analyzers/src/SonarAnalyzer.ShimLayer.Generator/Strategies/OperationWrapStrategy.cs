@@ -20,38 +20,23 @@ namespace SonarAnalyzer.ShimLayer.Generator.Strategies;
 public class OperationWrapStrategy : WrapStrategy
 {
     protected override string BaseTypeSnippet => "IOperationWrapper";
+    protected override string FromTypeName => "IOperation";
 
     protected override string ObsoletePropertiesSnippet => $"""
             [Obsolete("Use WrappedInstance instead")]
             public {CompiletimeTypeSnippet()} WrappedOperation => wrappedInstance;
         """;
 
-    protected override string ConversionSnippet => $$"""
+    protected override string ConversionSnippet => $"""
+            public static {ReturnTypeSnippet()}? FromOrDefault(IOperation instance) =>
+                IsInstance(instance) ? From(instance) : null;
+
             [Obsolete("Use From instead")]
-            public static {{Latest.Name}}Wrapper FromOperation(IOperation operation) =>
-                From(operation);
-
-            public static {{Latest.Name}}Wrapper From(IOperation operation)
-            {
-                if (operation is null)
-                {
-                    return default;
-                }
-                else if (IsInstance(operation))
-                {
-                    return new {{Latest.Name}}Wrapper(operation);
-                }
-                else
-                {
-                    throw new InvalidCastException($"Cannot cast '{operation.GetType().FullName}' to '{WrappedTypeName}'");
-                }
-            }
-
-            public static bool IsInstance(IOperation operation) =>
-                operation is not null && LightupHelpers.CanWrapOperation(operation, WrappedType);
+            public static {ReturnTypeSnippet()} FromOperation(IOperation instance) =>
+                From(instance);
         """;
 
-    public OperationWrapStrategy(Type latest, MemberDescriptor[] members) : base(latest, typeof(IOperation), members) { }
+    public OperationWrapStrategy(Type latest, MemberDescriptor[] members) : base(latest, typeof(IOperation), null, members) { }
 
     protected override string WrapperToWrapperConversions(StrategyModel model) =>
         WrapperToWrapperConversions(Latest.GetInterfaces().Where(x => model[x] is OperationWrapStrategy));

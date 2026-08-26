@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct TupleElementSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
+public readonly struct TupleElementSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(TupleElementSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly CSharpSyntaxNode wrappedInstance;
 
     private static readonly Func<CSharpSyntaxNode, SyntaxToken> IdentifierAccessor = AccessorFactory.CreateProperty<Func<CSharpSyntaxNode, SyntaxToken>>(WrappedType, "Identifier");
@@ -133,29 +124,29 @@ public readonly partial struct TupleElementSyntaxWrapper : ISyntaxWrapper<CSharp
     public TupleElementSyntaxWrapper WithIdentifier(SyntaxToken identifier) => TupleElementSyntaxWrapper.From(WithIdentifierAccessor(wrappedInstance, identifier));
     public TupleElementSyntaxWrapper WithType(TypeSyntax type) => TupleElementSyntaxWrapper.From(WithTypeAccessor(wrappedInstance, type));
 
-    public static explicit operator TupleElementSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator TupleElementSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator CSharpSyntaxNode(TupleElementSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static TupleElementSyntaxWrapper From(SyntaxNode node)
+    public static TupleElementSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new TupleElementSyntaxWrapper((CSharpSyntaxNode)node);
+            return new TupleElementSyntaxWrapper((CSharpSyntaxNode)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }

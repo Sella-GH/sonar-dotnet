@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct FieldExpressionSyntaxWrapper : ISyntaxWrapper<ExpressionSyntax>
+public readonly struct FieldExpressionSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(FieldExpressionSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly ExpressionSyntax wrappedInstance;
 
     private static readonly Func<ExpressionSyntax, SyntaxToken> TokenAccessor = AccessorFactory.CreateProperty<Func<ExpressionSyntax, SyntaxToken>>(WrappedType, "Token");
@@ -129,29 +120,29 @@ public readonly partial struct FieldExpressionSyntaxWrapper : ISyntaxWrapper<Exp
     public FieldExpressionSyntaxWrapper Update(SyntaxToken token) => FieldExpressionSyntaxWrapper.From(UpdateAccessor(wrappedInstance, token));
     public FieldExpressionSyntaxWrapper WithToken(SyntaxToken token) => FieldExpressionSyntaxWrapper.From(WithTokenAccessor(wrappedInstance, token));
 
-    public static explicit operator FieldExpressionSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator FieldExpressionSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator ExpressionSyntax(FieldExpressionSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static FieldExpressionSyntaxWrapper From(SyntaxNode node)
+    public static FieldExpressionSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new FieldExpressionSyntaxWrapper((ExpressionSyntax)node);
+            return new FieldExpressionSyntaxWrapper((ExpressionSyntax)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }

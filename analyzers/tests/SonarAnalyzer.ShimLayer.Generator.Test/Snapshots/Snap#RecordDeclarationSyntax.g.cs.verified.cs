@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct RecordDeclarationSyntaxWrapper : ISyntaxWrapper<TypeDeclarationSyntax>
+public readonly struct RecordDeclarationSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.RecordDeclarationSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(RecordDeclarationSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.RecordDeclarationSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly TypeDeclarationSyntax wrappedInstance;
 
     private static readonly Func<TypeDeclarationSyntax, SyntaxToken> ClassOrStructKeywordAccessor = AccessorFactory.CreateProperty<Func<TypeDeclarationSyntax, SyntaxToken>>(WrappedType, "ClassOrStructKeyword");
@@ -183,29 +174,29 @@ public readonly partial struct RecordDeclarationSyntaxWrapper : ISyntaxWrapper<T
     public RecordDeclarationSyntaxWrapper WithSemicolonToken(SyntaxToken semicolonToken) => RecordDeclarationSyntaxWrapper.From(WithSemicolonTokenAccessor(wrappedInstance, semicolonToken));
     public RecordDeclarationSyntaxWrapper WithTypeParameterList(TypeParameterListSyntax typeParameterList) => RecordDeclarationSyntaxWrapper.From(WithTypeParameterListAccessor(wrappedInstance, typeParameterList));
 
-    public static explicit operator RecordDeclarationSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator RecordDeclarationSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator TypeDeclarationSyntax(RecordDeclarationSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static RecordDeclarationSyntaxWrapper From(SyntaxNode node)
+    public static RecordDeclarationSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new RecordDeclarationSyntaxWrapper((TypeDeclarationSyntax)node);
+            return new RecordDeclarationSyntaxWrapper((TypeDeclarationSyntax)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.RecordDeclarationSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }

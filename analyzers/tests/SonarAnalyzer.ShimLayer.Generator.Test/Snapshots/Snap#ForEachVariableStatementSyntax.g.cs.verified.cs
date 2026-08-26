@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct ForEachVariableStatementSyntaxWrapper : ISyntaxWrapper<StatementSyntax>
+public readonly struct ForEachVariableStatementSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.ForEachVariableStatementSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(ForEachVariableStatementSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.ForEachVariableStatementSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly StatementSyntax wrappedInstance;
 
     private static readonly Func<StatementSyntax, SyntaxList<AttributeListSyntax>> AttributeListsAccessor = AccessorFactory.CreateProperty<Func<StatementSyntax, SyntaxList<AttributeListSyntax>>>(WrappedType, "AttributeLists");
@@ -167,30 +158,30 @@ public readonly partial struct ForEachVariableStatementSyntaxWrapper : ISyntaxWr
     public ForEachVariableStatementSyntaxWrapper WithStatement(StatementSyntax statement) => ForEachVariableStatementSyntaxWrapper.From(WithStatementAccessor(wrappedInstance, statement));
     public ForEachVariableStatementSyntaxWrapper WithVariable(ExpressionSyntax variable) => ForEachVariableStatementSyntaxWrapper.From(WithVariableAccessor(wrappedInstance, variable));
 
-    public static explicit operator ForEachVariableStatementSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator ForEachVariableStatementSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator StatementSyntax(ForEachVariableStatementSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static ForEachVariableStatementSyntaxWrapper From(SyntaxNode node)
+    public static ForEachVariableStatementSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new ForEachVariableStatementSyntaxWrapper((StatementSyntax)node);
+            return new ForEachVariableStatementSyntaxWrapper((StatementSyntax)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.ForEachVariableStatementSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
     public static implicit operator CommonForEachStatementSyntaxWrapper(ForEachVariableStatementSyntaxWrapper up) => CommonForEachStatementSyntaxWrapper.From(up.WrappedInstance);
     public static explicit operator ForEachVariableStatementSyntaxWrapper(CommonForEachStatementSyntaxWrapper down) => ForEachVariableStatementSyntaxWrapper.From(down.WrappedInstance);

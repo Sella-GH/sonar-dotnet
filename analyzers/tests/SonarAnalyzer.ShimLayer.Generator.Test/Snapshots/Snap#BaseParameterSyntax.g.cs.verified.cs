@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct BaseParameterSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
+public readonly struct BaseParameterSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.BaseParameterSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(BaseParameterSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.BaseParameterSyntax", "Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly CSharpSyntaxNode wrappedInstance;
 
     private static readonly Func<CSharpSyntaxNode, SyntaxList<AttributeListSyntax>> AttributeListsAccessor = AccessorFactory.CreateProperty<Func<CSharpSyntaxNode, SyntaxList<AttributeListSyntax>>>(WrappedType, "AttributeLists");
@@ -139,29 +130,31 @@ public readonly partial struct BaseParameterSyntaxWrapper : ISyntaxWrapper<CShar
     public BaseParameterSyntaxWrapper WithModifiers(SyntaxTokenList modifiers) => BaseParameterSyntaxWrapper.From(WithModifiersAccessor(wrappedInstance, modifiers));
     public BaseParameterSyntaxWrapper WithType(TypeSyntax type) => BaseParameterSyntaxWrapper.From(WithTypeAccessor(wrappedInstance, type));
 
-    public static explicit operator BaseParameterSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator BaseParameterSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator CSharpSyntaxNode(BaseParameterSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static BaseParameterSyntaxWrapper From(SyntaxNode node)
+    public static BaseParameterSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new BaseParameterSyntaxWrapper((CSharpSyntaxNode)node);
+            return new BaseParameterSyntaxWrapper((CSharpSyntaxNode)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.BaseParameterSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
+
+    public static implicit operator BaseParameterSyntaxWrapper(ParameterSyntax instance) => new(instance);
 
 }

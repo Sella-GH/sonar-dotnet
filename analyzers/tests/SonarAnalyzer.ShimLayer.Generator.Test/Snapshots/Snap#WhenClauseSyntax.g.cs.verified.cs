@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct WhenClauseSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
+public readonly struct WhenClauseSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(WhenClauseSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly CSharpSyntaxNode wrappedInstance;
 
     private static readonly Func<CSharpSyntaxNode, ExpressionSyntax> ConditionAccessor = AccessorFactory.CreateProperty<Func<CSharpSyntaxNode, ExpressionSyntax>>(WrappedType, "Condition");
@@ -133,29 +124,29 @@ public readonly partial struct WhenClauseSyntaxWrapper : ISyntaxWrapper<CSharpSy
     public WhenClauseSyntaxWrapper WithCondition(ExpressionSyntax condition) => WhenClauseSyntaxWrapper.From(WithConditionAccessor(wrappedInstance, condition));
     public WhenClauseSyntaxWrapper WithWhenKeyword(SyntaxToken whenKeyword) => WhenClauseSyntaxWrapper.From(WithWhenKeywordAccessor(wrappedInstance, whenKeyword));
 
-    public static explicit operator WhenClauseSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator WhenClauseSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator CSharpSyntaxNode(WhenClauseSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static WhenClauseSyntaxWrapper From(SyntaxNode node)
+    public static WhenClauseSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new WhenClauseSyntaxWrapper((CSharpSyntaxNode)node);
+            return new WhenClauseSyntaxWrapper((CSharpSyntaxNode)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }

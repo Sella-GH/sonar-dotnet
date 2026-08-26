@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct PrimaryConstructorBaseTypeSyntaxWrapper : ISyntaxWrapper<BaseTypeSyntax>
+public readonly struct PrimaryConstructorBaseTypeSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.PrimaryConstructorBaseTypeSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(PrimaryConstructorBaseTypeSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.PrimaryConstructorBaseTypeSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly BaseTypeSyntax wrappedInstance;
 
     private static readonly Func<BaseTypeSyntax, ArgumentListSyntax> ArgumentListAccessor = AccessorFactory.CreateProperty<Func<BaseTypeSyntax, ArgumentListSyntax>>(WrappedType, "ArgumentList");
@@ -134,29 +125,29 @@ public readonly partial struct PrimaryConstructorBaseTypeSyntaxWrapper : ISyntax
     public PrimaryConstructorBaseTypeSyntaxWrapper WithArgumentList(ArgumentListSyntax argumentList) => PrimaryConstructorBaseTypeSyntaxWrapper.From(WithArgumentListAccessor(wrappedInstance, argumentList));
     public PrimaryConstructorBaseTypeSyntaxWrapper WithType(TypeSyntax type) => PrimaryConstructorBaseTypeSyntaxWrapper.From(WithTypeAccessor(wrappedInstance, type));
 
-    public static explicit operator PrimaryConstructorBaseTypeSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator PrimaryConstructorBaseTypeSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator BaseTypeSyntax(PrimaryConstructorBaseTypeSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static PrimaryConstructorBaseTypeSyntaxWrapper From(SyntaxNode node)
+    public static PrimaryConstructorBaseTypeSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new PrimaryConstructorBaseTypeSyntaxWrapper((BaseTypeSyntax)node);
+            return new PrimaryConstructorBaseTypeSyntaxWrapper((BaseTypeSyntax)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.PrimaryConstructorBaseTypeSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }

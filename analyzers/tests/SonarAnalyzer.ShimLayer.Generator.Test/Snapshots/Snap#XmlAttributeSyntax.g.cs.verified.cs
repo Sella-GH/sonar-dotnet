@@ -16,13 +16,7 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
 
 namespace SonarAnalyzer.ShimLayer;
 
@@ -46,5 +40,6 @@ public static partial class XmlAttributeSyntaxShimExtensions
         public XmlAttributeSyntax WithEqualsToken(SyntaxToken equalsToken) => WithEqualsTokenAccessor(wrappedInstance, equalsToken);
         public XmlAttributeSyntax WithName(XmlNameSyntax name) => WithNameAccessor(wrappedInstance, name);
         public XmlAttributeSyntax WithStartQuoteToken(SyntaxToken startQuoteToken) => WithStartQuoteTokenAccessor(wrappedInstance, startQuoteToken);
+
     }
 }

@@ -16,13 +16,7 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
 
 namespace SonarAnalyzer.ShimLayer;
 
@@ -57,5 +51,6 @@ public static partial class LocalDeclarationStatementSyntaxShimExtensions
         public LocalDeclarationStatementSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeListsAccessor(wrappedInstance, attributeLists);
         public LocalDeclarationStatementSyntax WithAwaitKeyword(SyntaxToken awaitKeyword) => WithAwaitKeywordAccessor(wrappedInstance, awaitKeyword);
         public LocalDeclarationStatementSyntax WithUsingKeyword(SyntaxToken usingKeyword) => WithUsingKeywordAccessor(wrappedInstance, usingKeyword);
+
     }
 }

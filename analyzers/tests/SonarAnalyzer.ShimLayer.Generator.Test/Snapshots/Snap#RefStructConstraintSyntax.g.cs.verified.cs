@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct RefStructConstraintSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
+public readonly struct RefStructConstraintSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.RefStructConstraintSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(RefStructConstraintSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.RefStructConstraintSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly CSharpSyntaxNode wrappedInstance;
 
     private static readonly Func<CSharpSyntaxNode, SyntaxToken> RefKeywordAccessor = AccessorFactory.CreateProperty<Func<CSharpSyntaxNode, SyntaxToken>>(WrappedType, "RefKeyword");
@@ -133,30 +124,30 @@ public readonly partial struct RefStructConstraintSyntaxWrapper : ISyntaxWrapper
     public RefStructConstraintSyntaxWrapper WithRefKeyword(SyntaxToken refKeyword) => RefStructConstraintSyntaxWrapper.From(WithRefKeywordAccessor(wrappedInstance, refKeyword));
     public RefStructConstraintSyntaxWrapper WithStructKeyword(SyntaxToken structKeyword) => RefStructConstraintSyntaxWrapper.From(WithStructKeywordAccessor(wrappedInstance, structKeyword));
 
-    public static explicit operator RefStructConstraintSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator RefStructConstraintSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator CSharpSyntaxNode(RefStructConstraintSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static RefStructConstraintSyntaxWrapper From(SyntaxNode node)
+    public static RefStructConstraintSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new RefStructConstraintSyntaxWrapper((CSharpSyntaxNode)node);
+            return new RefStructConstraintSyntaxWrapper((CSharpSyntaxNode)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.RefStructConstraintSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
     public static implicit operator AllowsConstraintSyntaxWrapper(RefStructConstraintSyntaxWrapper up) => AllowsConstraintSyntaxWrapper.From(up.WrappedInstance);
     public static explicit operator RefStructConstraintSyntaxWrapper(AllowsConstraintSyntaxWrapper down) => RefStructConstraintSyntaxWrapper.From(down.WrappedInstance);

@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct IListPatternOperationWrapper : IOperationWrapper
+public readonly struct IListPatternOperationWrapper : IOperationWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.Operations.IListPatternOperation";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(IListPatternOperationWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.Operations.IListPatternOperation");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly IOperation wrappedInstance;
 
     private static readonly Func<IOperation, IEnumerable<IOperation>> ChildrenAccessor = AccessorFactory.CreateProperty<Func<IOperation, IEnumerable<IOperation>>>(WrappedType, "Children");
@@ -42,7 +33,7 @@ public readonly partial struct IListPatternOperationWrapper : IOperationWrapper
     private static readonly Func<IOperation, ISymbol> LengthSymbolAccessor = AccessorFactory.CreateProperty<Func<IOperation, ISymbol>>(WrappedType, "LengthSymbol");
     private static readonly Func<IOperation, ITypeSymbol> NarrowedTypeAccessor = AccessorFactory.CreateProperty<Func<IOperation, ITypeSymbol>>(WrappedType, "NarrowedType");
     private static readonly Func<IOperation, IOperation> ParentAccessor = AccessorFactory.CreateProperty<Func<IOperation, IOperation>>(WrappedType, "Parent");
-    private static readonly Func<IOperation, ImmutableArray<IOperation>> PatternsAccessor = AccessorFactory.CreateProperty<Func<IOperation, ImmutableArray<IOperation>>>(WrappedType, "Patterns");
+    private static readonly Func<IOperation, ImmutableArray<IPatternOperationWrapper>> PatternsAccessor = AccessorFactory.CreateProperty<Func<IOperation, ImmutableArray<IPatternOperationWrapper>>>(WrappedType, "Patterns");
     private static readonly Func<IOperation, SemanticModel> SemanticModelAccessor = AccessorFactory.CreateProperty<Func<IOperation, SemanticModel>>(WrappedType, "SemanticModel");
 
     private IListPatternOperationWrapper(IOperation wrappedInstance) =>
@@ -68,31 +59,34 @@ public readonly partial struct IListPatternOperationWrapper : IOperationWrapper
     public ISymbol LengthSymbol => (ISymbol)LengthSymbolAccessor(wrappedInstance);
     public ITypeSymbol NarrowedType => (ITypeSymbol)NarrowedTypeAccessor(wrappedInstance);
     public IOperation Parent => ParentAccessor(wrappedInstance);
-    public ImmutableArray<IOperation> Patterns => PatternsAccessor(wrappedInstance);
+    public ImmutableArray<IPatternOperationWrapper> Patterns => PatternsAccessor(wrappedInstance);
     public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(wrappedInstance);
 
-    [Obsolete("Use From instead")]
-    public static IListPatternOperationWrapper FromOperation(IOperation operation) =>
-        From(operation);
+    public static IListPatternOperationWrapper? FromOrDefault(IOperation instance) =>
+        IsInstance(instance) ? From(instance) : null;
 
-    public static IListPatternOperationWrapper From(IOperation operation)
+    [Obsolete("Use From instead")]
+    public static IListPatternOperationWrapper FromOperation(IOperation instance) =>
+        From(instance);
+
+    public static IListPatternOperationWrapper From(IOperation instance)
     {
-        if (operation is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(operation))
+        else if (IsInstance(instance))
         {
-            return new IListPatternOperationWrapper(operation);
+            return new IListPatternOperationWrapper((IOperation)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{operation.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.Operations.IListPatternOperation'");
         }
     }
 
-    public static bool IsInstance(IOperation operation) =>
-        operation is not null && LightupHelpers.CanWrapOperation(operation, WrappedType);
+    public static bool IsInstance(IOperation instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
     public static implicit operator IPatternOperationWrapper(IListPatternOperationWrapper up) => IPatternOperationWrapper.From(up.WrappedInstance);
     public static explicit operator IListPatternOperationWrapper(IPatternOperationWrapper down) => IListPatternOperationWrapper.From(down.WrappedInstance);

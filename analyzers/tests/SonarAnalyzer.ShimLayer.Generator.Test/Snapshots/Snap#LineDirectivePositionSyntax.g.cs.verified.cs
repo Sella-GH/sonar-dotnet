@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct LineDirectivePositionSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
+public readonly struct LineDirectivePositionSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.LineDirectivePositionSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(LineDirectivePositionSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.LineDirectivePositionSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly CSharpSyntaxNode wrappedInstance;
 
     private static readonly Func<CSharpSyntaxNode, SyntaxToken> CharacterAccessor = AccessorFactory.CreateProperty<Func<CSharpSyntaxNode, SyntaxToken>>(WrappedType, "Character");
@@ -145,29 +136,29 @@ public readonly partial struct LineDirectivePositionSyntaxWrapper : ISyntaxWrapp
     public LineDirectivePositionSyntaxWrapper WithLine(SyntaxToken line) => LineDirectivePositionSyntaxWrapper.From(WithLineAccessor(wrappedInstance, line));
     public LineDirectivePositionSyntaxWrapper WithOpenParenToken(SyntaxToken openParenToken) => LineDirectivePositionSyntaxWrapper.From(WithOpenParenTokenAccessor(wrappedInstance, openParenToken));
 
-    public static explicit operator LineDirectivePositionSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator LineDirectivePositionSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator CSharpSyntaxNode(LineDirectivePositionSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static LineDirectivePositionSyntaxWrapper From(SyntaxNode node)
+    public static LineDirectivePositionSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new LineDirectivePositionSyntaxWrapper((CSharpSyntaxNode)node);
+            return new LineDirectivePositionSyntaxWrapper((CSharpSyntaxNode)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.LineDirectivePositionSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }

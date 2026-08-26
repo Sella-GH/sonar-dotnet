@@ -49,21 +49,12 @@ public class OperationWrapStrategyTest
              * along with this program; if not, see https://sonarsource.com/license/ssal/
              */
 
-            using Microsoft.CodeAnalysis;
-            using Microsoft.CodeAnalysis.CSharp;
-            using Microsoft.CodeAnalysis.CSharp.Syntax;
-            using Microsoft.CodeAnalysis.Text;
-            using System;
-            using System.Collections.Immutable;
-            using System.Text;
-
             namespace SonarAnalyzer.ShimLayer;
 
-            public readonly partial struct IFieldInitializerOperationWrapper : IOperationWrapper
+            public readonly struct IFieldInitializerOperationWrapper : IOperationWrapper
             {
-                public const string WrappedTypeName = "Microsoft.CodeAnalysis.Operations.IFieldInitializerOperation";
-
-                private static readonly Type WrappedType = TypeRegister.LatestType(typeof(IFieldInitializerOperationWrapper));
+                private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.Operations.IFieldInitializerOperation");
+                private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
                 private readonly IOperation wrappedInstance;
 
                 private IFieldInitializerOperationWrapper(IOperation wrappedInstance) =>
@@ -74,28 +65,31 @@ public class OperationWrapStrategyTest
 
                 public IOperation WrappedInstance => wrappedInstance;
 
-                [Obsolete("Use From instead")]
-                public static IFieldInitializerOperationWrapper FromOperation(IOperation operation) =>
-                    From(operation);
+                public static IFieldInitializerOperationWrapper? FromOrDefault(IOperation instance) =>
+                    IsInstance(instance) ? From(instance) : null;
 
-                public static IFieldInitializerOperationWrapper From(IOperation operation)
+                [Obsolete("Use From instead")]
+                public static IFieldInitializerOperationWrapper FromOperation(IOperation instance) =>
+                    From(instance);
+
+                public static IFieldInitializerOperationWrapper From(IOperation instance)
                 {
-                    if (operation is null)
+                    if (instance is null)
                     {
                         return default;
                     }
-                    else if (IsInstance(operation))
+                    else if (IsInstance(instance))
                     {
-                        return new IFieldInitializerOperationWrapper(operation);
+                        return new IFieldInitializerOperationWrapper((IOperation)instance);
                     }
                     else
                     {
-                        throw new InvalidCastException($"Cannot cast '{operation.GetType().FullName}' to '{WrappedTypeName}'");
+                        throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.Operations.IFieldInitializerOperation'");
                     }
                 }
 
-                public static bool IsInstance(IOperation operation) =>
-                    operation is not null && LightupHelpers.CanWrapOperation(operation, WrappedType);
+                public static bool IsInstance(IOperation instance) =>
+                    WrappedType.CanWrap(CanWrapCache, instance);
 
             }
             """);
@@ -132,21 +126,12 @@ public class OperationWrapStrategyTest
              * along with this program; if not, see https://sonarsource.com/license/ssal/
              */
 
-            using Microsoft.CodeAnalysis;
-            using Microsoft.CodeAnalysis.CSharp;
-            using Microsoft.CodeAnalysis.CSharp.Syntax;
-            using Microsoft.CodeAnalysis.Text;
-            using System;
-            using System.Collections.Immutable;
-            using System.Text;
-
             namespace SonarAnalyzer.ShimLayer;
 
-            public readonly partial struct IFieldReferenceOperationWrapper : IOperationWrapper
+            public readonly struct IFieldReferenceOperationWrapper : IOperationWrapper
             {
-                public const string WrappedTypeName = "Microsoft.CodeAnalysis.Operations.IFieldReferenceOperation";
-
-                private static readonly Type WrappedType = TypeRegister.LatestType(typeof(IFieldReferenceOperationWrapper));
+                private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.Operations.IFieldReferenceOperation");
+                private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
                 private readonly IOperation wrappedInstance;
 
                 private IFieldReferenceOperationWrapper(IOperation wrappedInstance) =>
@@ -157,28 +142,31 @@ public class OperationWrapStrategyTest
 
                 public IOperation WrappedInstance => wrappedInstance;
 
-                [Obsolete("Use From instead")]
-                public static IFieldReferenceOperationWrapper FromOperation(IOperation operation) =>
-                    From(operation);
+                public static IFieldReferenceOperationWrapper? FromOrDefault(IOperation instance) =>
+                    IsInstance(instance) ? From(instance) : null;
 
-                public static IFieldReferenceOperationWrapper From(IOperation operation)
+                [Obsolete("Use From instead")]
+                public static IFieldReferenceOperationWrapper FromOperation(IOperation instance) =>
+                    From(instance);
+
+                public static IFieldReferenceOperationWrapper From(IOperation instance)
                 {
-                    if (operation is null)
+                    if (instance is null)
                     {
                         return default;
                     }
-                    else if (IsInstance(operation))
+                    else if (IsInstance(instance))
                     {
-                        return new IFieldReferenceOperationWrapper(operation);
+                        return new IFieldReferenceOperationWrapper((IOperation)instance);
                     }
                     else
                     {
-                        throw new InvalidCastException($"Cannot cast '{operation.GetType().FullName}' to '{WrappedTypeName}'");
+                        throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.Operations.IFieldReferenceOperation'");
                     }
                 }
 
-                public static bool IsInstance(IOperation operation) =>
-                    operation is not null && LightupHelpers.CanWrapOperation(operation, WrappedType);
+                public static bool IsInstance(IOperation instance) =>
+                    WrappedType.CanWrap(CanWrapCache, instance);
 
                 public static implicit operator IMemberReferenceOperationWrapper(IFieldReferenceOperationWrapper up) => IMemberReferenceOperationWrapper.From(up.WrappedInstance);
                 public static explicit operator IFieldReferenceOperationWrapper(IMemberReferenceOperationWrapper down) => IFieldReferenceOperationWrapper.From(down.WrappedInstance);
@@ -195,7 +183,8 @@ public class OperationWrapStrategyTest
             [
                 new(typeof(ITupleOperation).GetMember(nameof(ITupleOperation.Elements))[0], false, "ElementsAccessor"),
                 new(typeof(ITupleOperation).GetMember(nameof(ITupleOperation.NaturalType))[0], false, "NaturalTypeAccessor"),
-                new(typeof(IOperation).GetMember(nameof(IOperation.Type))[0], true, "TypeAccessor")
+                new(typeof(IOperation).GetMember(nameof(IOperation.Type))[0], true, "TypeAccessor"),
+                new(typeof(IInvocationOperation).GetMember(nameof(IInvocationOperation.Arguments))[0], false, "ArgumentsAccessor"),
             ]);
         var result = sut.Generate([]);
         result.Should().BeIgnoringLineEndings(
@@ -218,25 +207,17 @@ public class OperationWrapStrategyTest
              * along with this program; if not, see https://sonarsource.com/license/ssal/
              */
 
-            using Microsoft.CodeAnalysis;
-            using Microsoft.CodeAnalysis.CSharp;
-            using Microsoft.CodeAnalysis.CSharp.Syntax;
-            using Microsoft.CodeAnalysis.Text;
-            using System;
-            using System.Collections.Immutable;
-            using System.Text;
-
             namespace SonarAnalyzer.ShimLayer;
 
-            public readonly partial struct ITupleOperationWrapper : IOperationWrapper
+            public readonly struct ITupleOperationWrapper : IOperationWrapper
             {
-                public const string WrappedTypeName = "Microsoft.CodeAnalysis.Operations.ITupleOperation";
-
-                private static readonly Type WrappedType = TypeRegister.LatestType(typeof(ITupleOperationWrapper));
+                private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.Operations.ITupleOperation");
+                private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
                 private readonly IOperation wrappedInstance;
 
                 private static readonly Func<IOperation, ImmutableArray<IOperation>> ElementsAccessor = AccessorFactory.CreateProperty<Func<IOperation, ImmutableArray<IOperation>>>(WrappedType, "Elements");
                 private static readonly Func<IOperation, ITypeSymbol> NaturalTypeAccessor = AccessorFactory.CreateProperty<Func<IOperation, ITypeSymbol>>(WrappedType, "NaturalType");
+                private static readonly Func<IOperation, ImmutableArray<IArgumentOperation>> ArgumentsAccessor = AccessorFactory.CreateProperty<Func<IOperation, ImmutableArray<IArgumentOperation>>>(WrappedType, "Arguments");
 
                 private ITupleOperationWrapper(IOperation wrappedInstance) =>
                     this.wrappedInstance = wrappedInstance;
@@ -250,29 +231,33 @@ public class OperationWrapStrategyTest
 
                 public ImmutableArray<IOperation> Elements => (ImmutableArray<IOperation>)ElementsAccessor(wrappedInstance);
                 public ITypeSymbol NaturalType => (ITypeSymbol)NaturalTypeAccessor(wrappedInstance);
+                public ImmutableArray<IArgumentOperation> Arguments => (ImmutableArray<IArgumentOperation>)ArgumentsAccessor(wrappedInstance);
+
+                public static ITupleOperationWrapper? FromOrDefault(IOperation instance) =>
+                    IsInstance(instance) ? From(instance) : null;
 
                 [Obsolete("Use From instead")]
-                public static ITupleOperationWrapper FromOperation(IOperation operation) =>
-                    From(operation);
+                public static ITupleOperationWrapper FromOperation(IOperation instance) =>
+                    From(instance);
 
-                public static ITupleOperationWrapper From(IOperation operation)
+                public static ITupleOperationWrapper From(IOperation instance)
                 {
-                    if (operation is null)
+                    if (instance is null)
                     {
                         return default;
                     }
-                    else if (IsInstance(operation))
+                    else if (IsInstance(instance))
                     {
-                        return new ITupleOperationWrapper(operation);
+                        return new ITupleOperationWrapper((IOperation)instance);
                     }
                     else
                     {
-                        throw new InvalidCastException($"Cannot cast '{operation.GetType().FullName}' to '{WrappedTypeName}'");
+                        throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.Operations.ITupleOperation'");
                     }
                 }
 
-                public static bool IsInstance(IOperation operation) =>
-                    operation is not null && LightupHelpers.CanWrapOperation(operation, WrappedType);
+                public static bool IsInstance(IOperation instance) =>
+                    WrappedType.CanWrap(CanWrapCache, instance);
 
             }
             """);
@@ -311,21 +296,12 @@ public class OperationWrapStrategyTest
              * along with this program; if not, see https://sonarsource.com/license/ssal/
              */
 
-            using Microsoft.CodeAnalysis;
-            using Microsoft.CodeAnalysis.CSharp;
-            using Microsoft.CodeAnalysis.CSharp.Syntax;
-            using Microsoft.CodeAnalysis.Text;
-            using System;
-            using System.Collections.Immutable;
-            using System.Text;
-
             namespace SonarAnalyzer.ShimLayer;
 
-            public readonly partial struct ControlFlowGraphWrapper : IOperationWrapper
+            public readonly struct ControlFlowGraphWrapper : IOperationWrapper
             {
-                public const string WrappedTypeName = "Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph";
-
-                private static readonly Type WrappedType = TypeRegister.LatestType(typeof(ControlFlowGraphWrapper));
+                private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph");
+                private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
                 private readonly IOperation wrappedInstance;
 
                 private static readonly Func<IOperation, IAttributeOperationWrapper, CancellationToken, IOperation> CreateAccessor = AccessorFactory.CreateMethod<Func<IOperation, IAttributeOperationWrapper, CancellationToken, IOperation>>(WrappedType, "Create");
@@ -342,28 +318,31 @@ public class OperationWrapStrategyTest
                 public ControlFlowGraphWrapper Create(IAttributeOperationWrapper attribute, CancellationToken cancellationToken) => ControlFlowGraphWrapper.From(CreateAccessor(wrappedInstance, attribute, cancellationToken));
                 public ControlFlowGraphWrapper Create(IBlockOperationWrapper body, CancellationToken cancellationToken) => ControlFlowGraphWrapper.From(CreateAccessor_Overload2(wrappedInstance, body, cancellationToken));
 
-                [Obsolete("Use From instead")]
-                public static ControlFlowGraphWrapper FromOperation(IOperation operation) =>
-                    From(operation);
+                public static ControlFlowGraphWrapper? FromOrDefault(IOperation instance) =>
+                    IsInstance(instance) ? From(instance) : null;
 
-                public static ControlFlowGraphWrapper From(IOperation operation)
+                [Obsolete("Use From instead")]
+                public static ControlFlowGraphWrapper FromOperation(IOperation instance) =>
+                    From(instance);
+
+                public static ControlFlowGraphWrapper From(IOperation instance)
                 {
-                    if (operation is null)
+                    if (instance is null)
                     {
                         return default;
                     }
-                    else if (IsInstance(operation))
+                    else if (IsInstance(instance))
                     {
-                        return new ControlFlowGraphWrapper(operation);
+                        return new ControlFlowGraphWrapper((IOperation)instance);
                     }
                     else
                     {
-                        throw new InvalidCastException($"Cannot cast '{operation.GetType().FullName}' to '{WrappedTypeName}'");
+                        throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph'");
                     }
                 }
 
-                public static bool IsInstance(IOperation operation) =>
-                    operation is not null && LightupHelpers.CanWrapOperation(operation, WrappedType);
+                public static bool IsInstance(IOperation instance) =>
+                    WrappedType.CanWrap(CanWrapCache, instance);
 
             }
             """);

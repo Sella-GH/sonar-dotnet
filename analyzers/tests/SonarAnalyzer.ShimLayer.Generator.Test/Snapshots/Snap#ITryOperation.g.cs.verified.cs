@@ -16,25 +16,16 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct ITryOperationWrapper : IOperationWrapper
+public readonly struct ITryOperationWrapper : IOperationWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.Operations.ITryOperation";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(ITryOperationWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.Operations.ITryOperation");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly IOperation wrappedInstance;
 
     private static readonly Func<IOperation, IOperation> BodyAccessor = AccessorFactory.CreateProperty<Func<IOperation, IOperation>>(WrappedType, "Body");
-    private static readonly Func<IOperation, ImmutableArray<IOperation>> CatchesAccessor = AccessorFactory.CreateProperty<Func<IOperation, ImmutableArray<IOperation>>>(WrappedType, "Catches");
+    private static readonly Func<IOperation, ImmutableArray<ICatchClauseOperationWrapper>> CatchesAccessor = AccessorFactory.CreateProperty<Func<IOperation, ImmutableArray<ICatchClauseOperationWrapper>>>(WrappedType, "Catches");
     private static readonly Func<IOperation, IEnumerable<IOperation>> ChildrenAccessor = AccessorFactory.CreateProperty<Func<IOperation, IEnumerable<IOperation>>>(WrappedType, "Children");
     private static readonly Func<IOperation, ILabelSymbol> ExitLabelAccessor = AccessorFactory.CreateProperty<Func<IOperation, ILabelSymbol>>(WrappedType, "ExitLabel");
     private static readonly Func<IOperation, IOperation> FinallyAccessor = AccessorFactory.CreateProperty<Func<IOperation, IOperation>>(WrappedType, "Finally");
@@ -57,7 +48,7 @@ public readonly partial struct ITryOperationWrapper : IOperationWrapper
     public ITypeSymbol Type => wrappedInstance.Type;
 
     public IBlockOperationWrapper Body => IBlockOperationWrapper.From(BodyAccessor(wrappedInstance));
-    public ImmutableArray<IOperation> Catches => CatchesAccessor(wrappedInstance);
+    public ImmutableArray<ICatchClauseOperationWrapper> Catches => CatchesAccessor(wrappedInstance);
     [System.ObsoleteAttribute("This API has performance penalties, please use ChildOperations instead.", false)]
     public IEnumerable<IOperation> Children => (IEnumerable<IOperation>)ChildrenAccessor(wrappedInstance);
     public ILabelSymbol ExitLabel => (ILabelSymbol)ExitLabelAccessor(wrappedInstance);
@@ -67,27 +58,30 @@ public readonly partial struct ITryOperationWrapper : IOperationWrapper
     public IOperation Parent => ParentAccessor(wrappedInstance);
     public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(wrappedInstance);
 
-    [Obsolete("Use From instead")]
-    public static ITryOperationWrapper FromOperation(IOperation operation) =>
-        From(operation);
+    public static ITryOperationWrapper? FromOrDefault(IOperation instance) =>
+        IsInstance(instance) ? From(instance) : null;
 
-    public static ITryOperationWrapper From(IOperation operation)
+    [Obsolete("Use From instead")]
+    public static ITryOperationWrapper FromOperation(IOperation instance) =>
+        From(instance);
+
+    public static ITryOperationWrapper From(IOperation instance)
     {
-        if (operation is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(operation))
+        else if (IsInstance(instance))
         {
-            return new ITryOperationWrapper(operation);
+            return new ITryOperationWrapper((IOperation)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{operation.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.Operations.ITryOperation'");
         }
     }
 
-    public static bool IsInstance(IOperation operation) =>
-        operation is not null && LightupHelpers.CanWrapOperation(operation, WrappedType);
+    public static bool IsInstance(IOperation instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }

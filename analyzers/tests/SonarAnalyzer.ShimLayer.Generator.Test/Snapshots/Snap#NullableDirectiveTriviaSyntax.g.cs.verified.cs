@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct NullableDirectiveTriviaSyntaxWrapper : ISyntaxWrapper<DirectiveTriviaSyntax>
+public readonly struct NullableDirectiveTriviaSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.NullableDirectiveTriviaSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(NullableDirectiveTriviaSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.NullableDirectiveTriviaSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly DirectiveTriviaSyntax wrappedInstance;
 
     private static readonly Func<DirectiveTriviaSyntax, SyntaxToken> NullableKeywordAccessor = AccessorFactory.CreateProperty<Func<DirectiveTriviaSyntax, SyntaxToken>>(WrappedType, "NullableKeyword");
@@ -150,29 +141,29 @@ public readonly partial struct NullableDirectiveTriviaSyntaxWrapper : ISyntaxWra
     public NullableDirectiveTriviaSyntaxWrapper WithSettingToken(SyntaxToken settingToken) => NullableDirectiveTriviaSyntaxWrapper.From(WithSettingTokenAccessor(wrappedInstance, settingToken));
     public NullableDirectiveTriviaSyntaxWrapper WithTargetToken(SyntaxToken targetToken) => NullableDirectiveTriviaSyntaxWrapper.From(WithTargetTokenAccessor(wrappedInstance, targetToken));
 
-    public static explicit operator NullableDirectiveTriviaSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator NullableDirectiveTriviaSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator DirectiveTriviaSyntax(NullableDirectiveTriviaSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static NullableDirectiveTriviaSyntaxWrapper From(SyntaxNode node)
+    public static NullableDirectiveTriviaSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new NullableDirectiveTriviaSyntaxWrapper((DirectiveTriviaSyntax)node);
+            return new NullableDirectiveTriviaSyntaxWrapper((DirectiveTriviaSyntax)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.NullableDirectiveTriviaSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }

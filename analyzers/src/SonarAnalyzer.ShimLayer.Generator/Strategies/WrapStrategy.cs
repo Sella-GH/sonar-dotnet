@@ -20,15 +20,19 @@ namespace SonarAnalyzer.ShimLayer.Generator.Strategies;
 public abstract class WrapStrategy : MemberStrategy
 {
     protected abstract string BaseTypeSnippet { get; }
+    protected abstract string FromTypeName { get; }
     [Obsolete("This should be removed once we remove the obsolete usages from the generated code")]
     protected abstract string ObsoletePropertiesSnippet { get; }
     protected abstract string ConversionSnippet { get; }
-    protected abstract string WrapperToWrapperConversions(StrategyModel model);
 
     public Type BaseType { get; }
+    public Type FallbackBaseType { get; }
 
-    protected WrapStrategy(Type latest, Type baseType, MemberDescriptor[] members) : base(latest, members) =>
+    protected WrapStrategy(Type latest, Type baseType, Type fallbackBaseType, MemberDescriptor[] members) : base(latest, members)
+    {
         BaseType = baseType;
+        FallbackBaseType = fallbackBaseType;
+    }
 
     public override string ReturnTypeSnippet() =>
         $"{Latest.Name}Wrapper";
@@ -45,11 +49,10 @@ public abstract class WrapStrategy : MemberStrategy
         var wrap = WrapMembers(model);
         return $$"""
             {{Preamble()}}
-            public readonly partial struct {{Latest.Name}}Wrapper{{(BaseTypeSnippet is null ? null : $" : {BaseTypeSnippet}")}}
+            public readonly struct {{Latest.Name}}Wrapper{{(BaseTypeSnippet is null ? null : $" : {BaseTypeSnippet}")}}
             {
-                public const string WrappedTypeName = "{{Latest.FullName}}";
-
-                private static readonly Type WrappedType = TypeRegister.LatestType(typeof({{Latest.Name}}Wrapper));
+                private static readonly Type WrappedType = TypeRegister.LatestType("{{Latest.FullName}}"{{FallbackBaseTypeSnippet()}});
+                private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
                 private readonly {{CompiletimeTypeSnippet()}} wrappedInstance;
 
             {{JoinLines(wrap.Properties.Select(x => x.AccessorDeclaration()))}}
@@ -73,9 +76,45 @@ public abstract class WrapStrategy : MemberStrategy
 
             {{ConversionSnippet}}
 
+                public static {{Latest.Name}}Wrapper From({{FromTypeName}} instance)
+                {
+                    if (instance is null)
+                    {
+                        return default;
+                    }
+                    else if (IsInstance(instance))
+                    {
+                        return new {{Latest.Name}}Wrapper(({{CompiletimeTypeSnippet()}})instance);
+                    }
+                    else
+                    {
+                        throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to '{{Latest.FullName}}'");
+                    }
+                }
+
+                public static bool IsInstance({{FromTypeName}} instance) =>
+                    WrappedType.CanWrap(CanWrapCache, instance);
+
+            {{FallbackBaseTypeConversionSnippet()}}
+
             {{WrapperToWrapperConversions(model)}}
             }
             """;
+    }
+
+    protected virtual string WrapperToWrapperConversions(StrategyModel model)
+    {
+        return WrapperToWrapperConversions(WrappedBaseTypes());
+
+        IEnumerable<Type> WrappedBaseTypes()
+        {
+            var baseType = Latest.BaseType;
+            while (baseType is not null && model[baseType] is WrapStrategy) // BaseType is also wrapped
+            {
+                yield return baseType;
+                baseType = baseType.BaseType;
+            }
+        }
     }
 
     protected string WrapperToWrapperConversions(IEnumerable<Type> baseTypes)
@@ -92,4 +131,16 @@ public abstract class WrapStrategy : MemberStrategy
         }
         return sb?.ToString();
     }
+
+    private string FallbackBaseTypeSnippet() =>
+        FallbackBaseType is null
+            ? null
+            : $"""
+                , "{FallbackBaseType.FullName}"
+                """;
+
+    private string FallbackBaseTypeConversionSnippet() =>
+        FallbackBaseType is null
+            ? null
+            : $"""    public static implicit operator {Latest.Name}Wrapper({FallbackBaseType.Name} instance) => new(instance);""";
 }

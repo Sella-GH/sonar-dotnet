@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct FunctionPointerParameterListSyntaxWrapper : ISyntaxWrapper<CSharpSyntaxNode>
+public readonly struct FunctionPointerParameterListSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(FunctionPointerParameterListSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly CSharpSyntaxNode wrappedInstance;
 
     private static readonly Func<CSharpSyntaxNode, SyntaxToken> GreaterThanTokenAccessor = AccessorFactory.CreateProperty<Func<CSharpSyntaxNode, SyntaxToken>>(WrappedType, "GreaterThanToken");
@@ -139,29 +130,29 @@ public readonly partial struct FunctionPointerParameterListSyntaxWrapper : ISynt
     public FunctionPointerParameterListSyntaxWrapper WithLessThanToken(SyntaxToken lessThanToken) => FunctionPointerParameterListSyntaxWrapper.From(WithLessThanTokenAccessor(wrappedInstance, lessThanToken));
     public FunctionPointerParameterListSyntaxWrapper WithParameters(SeparatedSyntaxListWrapper<FunctionPointerParameterSyntaxWrapper> parameters) => FunctionPointerParameterListSyntaxWrapper.From(WithParametersAccessor(wrappedInstance, parameters));
 
-    public static explicit operator FunctionPointerParameterListSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator FunctionPointerParameterListSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator CSharpSyntaxNode(FunctionPointerParameterListSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static FunctionPointerParameterListSyntaxWrapper From(SyntaxNode node)
+    public static FunctionPointerParameterListSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new FunctionPointerParameterListSyntaxWrapper((CSharpSyntaxNode)node);
+            return new FunctionPointerParameterListSyntaxWrapper((CSharpSyntaxNode)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterListSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }

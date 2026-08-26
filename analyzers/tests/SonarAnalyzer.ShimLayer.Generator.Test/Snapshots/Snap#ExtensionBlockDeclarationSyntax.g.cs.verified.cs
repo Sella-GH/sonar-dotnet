@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct ExtensionBlockDeclarationSyntaxWrapper : ISyntaxWrapper<TypeDeclarationSyntax>
+public readonly struct ExtensionBlockDeclarationSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionBlockDeclarationSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(ExtensionBlockDeclarationSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionBlockDeclarationSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly TypeDeclarationSyntax wrappedInstance;
 
     private static readonly Func<TypeDeclarationSyntax, ParameterListSyntax> ParameterListAccessor = AccessorFactory.CreateProperty<Func<TypeDeclarationSyntax, ParameterListSyntax>>(WrappedType, "ParameterList");
@@ -177,29 +168,29 @@ public readonly partial struct ExtensionBlockDeclarationSyntaxWrapper : ISyntaxW
     public ExtensionBlockDeclarationSyntaxWrapper WithSemicolonToken(SyntaxToken semicolonToken) => ExtensionBlockDeclarationSyntaxWrapper.From(WithSemicolonTokenAccessor(wrappedInstance, semicolonToken));
     public ExtensionBlockDeclarationSyntaxWrapper WithTypeParameterList(TypeParameterListSyntax typeParameterList) => ExtensionBlockDeclarationSyntaxWrapper.From(WithTypeParameterListAccessor(wrappedInstance, typeParameterList));
 
-    public static explicit operator ExtensionBlockDeclarationSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator ExtensionBlockDeclarationSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator TypeDeclarationSyntax(ExtensionBlockDeclarationSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static ExtensionBlockDeclarationSyntaxWrapper From(SyntaxNode node)
+    public static ExtensionBlockDeclarationSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new ExtensionBlockDeclarationSyntaxWrapper((TypeDeclarationSyntax)node);
+            return new ExtensionBlockDeclarationSyntaxWrapper((TypeDeclarationSyntax)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionBlockDeclarationSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }

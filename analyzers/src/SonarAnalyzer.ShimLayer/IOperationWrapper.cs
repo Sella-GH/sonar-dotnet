@@ -15,11 +15,19 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public interface ISyntaxWrapper<T> where T : SyntaxNode
+public interface IOperationWrapper
 {
-    T SyntaxNode { get; }
+    IOperation WrappedOperation { get; }
+    IOperation Parent { get; }
+    OperationKind Kind { get; }
+    SyntaxNode Syntax { get; }
+    ITypeSymbol Type { get; }
+    Optional<object> ConstantValue { get; }
+    [Obsolete("This API has performance penalties, please use ChildOperations instead.", false)]
+    IEnumerable<IOperation> Children { get; }
+    string Language { get; }
+    bool IsImplicit { get; }
+    SemanticModel SemanticModel { get; }
 }

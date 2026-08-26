@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct DefaultConstraintSyntaxWrapper : ISyntaxWrapper<TypeParameterConstraintSyntax>
+public readonly struct DefaultConstraintSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.DefaultConstraintSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(DefaultConstraintSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.DefaultConstraintSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly TypeParameterConstraintSyntax wrappedInstance;
 
     private static readonly Func<TypeParameterConstraintSyntax, SyntaxToken> DefaultKeywordAccessor = AccessorFactory.CreateProperty<Func<TypeParameterConstraintSyntax, SyntaxToken>>(WrappedType, "DefaultKeyword");
@@ -129,29 +120,29 @@ public readonly partial struct DefaultConstraintSyntaxWrapper : ISyntaxWrapper<T
     public DefaultConstraintSyntaxWrapper Update(SyntaxToken defaultKeyword) => DefaultConstraintSyntaxWrapper.From(UpdateAccessor(wrappedInstance, defaultKeyword));
     public DefaultConstraintSyntaxWrapper WithDefaultKeyword(SyntaxToken defaultKeyword) => DefaultConstraintSyntaxWrapper.From(WithDefaultKeywordAccessor(wrappedInstance, defaultKeyword));
 
-    public static explicit operator DefaultConstraintSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator DefaultConstraintSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator TypeParameterConstraintSyntax(DefaultConstraintSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static DefaultConstraintSyntaxWrapper From(SyntaxNode node)
+    public static DefaultConstraintSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new DefaultConstraintSyntaxWrapper((TypeParameterConstraintSyntax)node);
+            return new DefaultConstraintSyntaxWrapper((TypeParameterConstraintSyntax)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.DefaultConstraintSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }

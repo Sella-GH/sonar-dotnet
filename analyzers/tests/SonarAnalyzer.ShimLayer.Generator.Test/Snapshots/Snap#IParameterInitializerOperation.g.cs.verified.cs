@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct IParameterInitializerOperationWrapper : IOperationWrapper
+public readonly struct IParameterInitializerOperationWrapper : IOperationWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.Operations.IParameterInitializerOperation";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(IParameterInitializerOperationWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.Operations.IParameterInitializerOperation");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly IOperation wrappedInstance;
 
     private static readonly Func<IOperation, IEnumerable<IOperation>> ChildrenAccessor = AccessorFactory.CreateProperty<Func<IOperation, IEnumerable<IOperation>>>(WrappedType, "Children");
@@ -65,28 +56,31 @@ public readonly partial struct IParameterInitializerOperationWrapper : IOperatio
     public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(wrappedInstance);
     public IOperation Value => ValueAccessor(wrappedInstance);
 
-    [Obsolete("Use From instead")]
-    public static IParameterInitializerOperationWrapper FromOperation(IOperation operation) =>
-        From(operation);
+    public static IParameterInitializerOperationWrapper? FromOrDefault(IOperation instance) =>
+        IsInstance(instance) ? From(instance) : null;
 
-    public static IParameterInitializerOperationWrapper From(IOperation operation)
+    [Obsolete("Use From instead")]
+    public static IParameterInitializerOperationWrapper FromOperation(IOperation instance) =>
+        From(instance);
+
+    public static IParameterInitializerOperationWrapper From(IOperation instance)
     {
-        if (operation is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(operation))
+        else if (IsInstance(instance))
         {
-            return new IParameterInitializerOperationWrapper(operation);
+            return new IParameterInitializerOperationWrapper((IOperation)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{operation.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.Operations.IParameterInitializerOperation'");
         }
     }
 
-    public static bool IsInstance(IOperation operation) =>
-        operation is not null && LightupHelpers.CanWrapOperation(operation, WrappedType);
+    public static bool IsInstance(IOperation instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
     public static implicit operator ISymbolInitializerOperationWrapper(IParameterInitializerOperationWrapper up) => ISymbolInitializerOperationWrapper.From(up.WrappedInstance);
     public static explicit operator IParameterInitializerOperationWrapper(ISymbolInitializerOperationWrapper down) => IParameterInitializerOperationWrapper.From(down.WrappedInstance);

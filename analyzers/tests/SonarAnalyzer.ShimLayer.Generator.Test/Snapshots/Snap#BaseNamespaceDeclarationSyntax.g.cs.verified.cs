@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct BaseNamespaceDeclarationSyntaxWrapper : ISyntaxWrapper<MemberDeclarationSyntax>
+public readonly struct BaseNamespaceDeclarationSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.BaseNamespaceDeclarationSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(BaseNamespaceDeclarationSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.BaseNamespaceDeclarationSyntax", "Microsoft.CodeAnalysis.CSharp.Syntax.NamespaceDeclarationSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly MemberDeclarationSyntax wrappedInstance;
 
     private static readonly Func<MemberDeclarationSyntax, SyntaxList<AttributeListSyntax>> AttributeListsAccessor = AccessorFactory.CreateProperty<Func<MemberDeclarationSyntax, SyntaxList<AttributeListSyntax>>>(WrappedType, "AttributeLists");
@@ -161,29 +152,31 @@ public readonly partial struct BaseNamespaceDeclarationSyntaxWrapper : ISyntaxWr
     public BaseNamespaceDeclarationSyntaxWrapper WithNamespaceKeyword(SyntaxToken namespaceKeyword) => BaseNamespaceDeclarationSyntaxWrapper.From(WithNamespaceKeywordAccessor(wrappedInstance, namespaceKeyword));
     public BaseNamespaceDeclarationSyntaxWrapper WithUsings(SyntaxList<UsingDirectiveSyntax> usings) => BaseNamespaceDeclarationSyntaxWrapper.From(WithUsingsAccessor(wrappedInstance, usings));
 
-    public static explicit operator BaseNamespaceDeclarationSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator BaseNamespaceDeclarationSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator MemberDeclarationSyntax(BaseNamespaceDeclarationSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static BaseNamespaceDeclarationSyntaxWrapper From(SyntaxNode node)
+    public static BaseNamespaceDeclarationSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new BaseNamespaceDeclarationSyntaxWrapper((MemberDeclarationSyntax)node);
+            return new BaseNamespaceDeclarationSyntaxWrapper((MemberDeclarationSyntax)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.BaseNamespaceDeclarationSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
+
+    public static implicit operator BaseNamespaceDeclarationSyntaxWrapper(NamespaceDeclarationSyntax instance) => new(instance);
 
 }

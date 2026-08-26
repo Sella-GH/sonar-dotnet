@@ -15,21 +15,17 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
+namespace SonarAnalyzer.ShimLayer.Generator.Strategies;
 
-namespace SonarAnalyzer.ShimLayer;
-
-public interface IOperationWrapper
+public class ClassWrapStrategy : WrapStrategy
 {
-    IOperation WrappedOperation { get; }
-    IOperation Parent { get; }
-    OperationKind Kind { get; }
-    SyntaxNode Syntax { get; }
-    ITypeSymbol Type { get; }
-    Optional<object> ConstantValue { get; }
-    [Obsolete("This API has performance penalties, please use ChildOperations instead.", false)]
-    IEnumerable<IOperation> Children { get; }
-    string Language { get; }
-    bool IsImplicit { get; }
-    SemanticModel SemanticModel { get; }
+    protected override string BaseTypeSnippet => null;
+
+    protected override string FromTypeName => CompiletimeTypeSnippet();
+
+    protected override string ObsoletePropertiesSnippet => null;
+
+    protected override string ConversionSnippet => null;
+
+    public ClassWrapStrategy(Type latest, Type baseType, MemberDescriptor[] members) : base(latest, baseType, null, members) { }
 }

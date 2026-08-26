@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct AllowsConstraintClauseSyntaxWrapper : ISyntaxWrapper<TypeParameterConstraintSyntax>
+public readonly struct AllowsConstraintClauseSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintClauseSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(AllowsConstraintClauseSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintClauseSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly TypeParameterConstraintSyntax wrappedInstance;
 
     private static readonly Func<TypeParameterConstraintSyntax, SyntaxToken> AllowsKeywordAccessor = AccessorFactory.CreateProperty<Func<TypeParameterConstraintSyntax, SyntaxToken>>(WrappedType, "AllowsKeyword");
@@ -135,29 +126,29 @@ public readonly partial struct AllowsConstraintClauseSyntaxWrapper : ISyntaxWrap
     public AllowsConstraintClauseSyntaxWrapper WithAllowsKeyword(SyntaxToken allowsKeyword) => AllowsConstraintClauseSyntaxWrapper.From(WithAllowsKeywordAccessor(wrappedInstance, allowsKeyword));
     public AllowsConstraintClauseSyntaxWrapper WithConstraints(SeparatedSyntaxListWrapper<AllowsConstraintSyntaxWrapper> constraints) => AllowsConstraintClauseSyntaxWrapper.From(WithConstraintsAccessor(wrappedInstance, constraints));
 
-    public static explicit operator AllowsConstraintClauseSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator AllowsConstraintClauseSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator TypeParameterConstraintSyntax(AllowsConstraintClauseSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static AllowsConstraintClauseSyntaxWrapper From(SyntaxNode node)
+    public static AllowsConstraintClauseSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new AllowsConstraintClauseSyntaxWrapper((TypeParameterConstraintSyntax)node);
+            return new AllowsConstraintClauseSyntaxWrapper((TypeParameterConstraintSyntax)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintClauseSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }

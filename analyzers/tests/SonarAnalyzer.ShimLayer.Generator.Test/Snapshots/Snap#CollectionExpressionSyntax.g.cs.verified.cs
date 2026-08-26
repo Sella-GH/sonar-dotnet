@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct CollectionExpressionSyntaxWrapper : ISyntaxWrapper<ExpressionSyntax>
+public readonly struct CollectionExpressionSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(CollectionExpressionSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly ExpressionSyntax wrappedInstance;
 
     private static readonly Func<ExpressionSyntax, SyntaxToken> CloseBracketTokenAccessor = AccessorFactory.CreateProperty<Func<ExpressionSyntax, SyntaxToken>>(WrappedType, "CloseBracketToken");
@@ -139,29 +130,29 @@ public readonly partial struct CollectionExpressionSyntaxWrapper : ISyntaxWrappe
     public CollectionExpressionSyntaxWrapper WithElements(SeparatedSyntaxListWrapper<CollectionElementSyntaxWrapper> elements) => CollectionExpressionSyntaxWrapper.From(WithElementsAccessor(wrappedInstance, elements));
     public CollectionExpressionSyntaxWrapper WithOpenBracketToken(SyntaxToken openBracketToken) => CollectionExpressionSyntaxWrapper.From(WithOpenBracketTokenAccessor(wrappedInstance, openBracketToken));
 
-    public static explicit operator CollectionExpressionSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator CollectionExpressionSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator ExpressionSyntax(CollectionExpressionSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static CollectionExpressionSyntaxWrapper From(SyntaxNode node)
+    public static CollectionExpressionSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new CollectionExpressionSyntaxWrapper((ExpressionSyntax)node);
+            return new CollectionExpressionSyntaxWrapper((ExpressionSyntax)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.CollectionExpressionSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }

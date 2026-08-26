@@ -16,21 +16,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Immutable;
-using System.Text;
-
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly partial struct RefExpressionSyntaxWrapper : ISyntaxWrapper<ExpressionSyntax>
+public readonly struct RefExpressionSyntaxWrapper
 {
-    public const string WrappedTypeName = "Microsoft.CodeAnalysis.CSharp.Syntax.RefExpressionSyntax";
-
-    private static readonly Type WrappedType = TypeRegister.LatestType(typeof(RefExpressionSyntaxWrapper));
+    private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.RefExpressionSyntax");
+    private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly ExpressionSyntax wrappedInstance;
 
     private static readonly Func<ExpressionSyntax, ExpressionSyntax> ExpressionAccessor = AccessorFactory.CreateProperty<Func<ExpressionSyntax, ExpressionSyntax>>(WrappedType, "Expression");
@@ -133,29 +124,29 @@ public readonly partial struct RefExpressionSyntaxWrapper : ISyntaxWrapper<Expre
     public RefExpressionSyntaxWrapper WithExpression(ExpressionSyntax expression) => RefExpressionSyntaxWrapper.From(WithExpressionAccessor(wrappedInstance, expression));
     public RefExpressionSyntaxWrapper WithRefKeyword(SyntaxToken refKeyword) => RefExpressionSyntaxWrapper.From(WithRefKeywordAccessor(wrappedInstance, refKeyword));
 
-    public static explicit operator RefExpressionSyntaxWrapper(SyntaxNode node) =>
-        From(node);
+    public static explicit operator RefExpressionSyntaxWrapper(SyntaxNode instance) =>
+        From(instance);
 
     public static implicit operator ExpressionSyntax(RefExpressionSyntaxWrapper wrapper) =>
         wrapper.wrappedInstance;
 
-    public static RefExpressionSyntaxWrapper From(SyntaxNode node)
+    public static RefExpressionSyntaxWrapper From(SyntaxNode instance)
     {
-        if (node is null)
+        if (instance is null)
         {
             return default;
         }
-        else if (IsInstance(node))
+        else if (IsInstance(instance))
         {
-            return new RefExpressionSyntaxWrapper((ExpressionSyntax)node);
+            return new RefExpressionSyntaxWrapper((ExpressionSyntax)instance);
         }
         else
         {
-            throw new InvalidCastException($"Cannot cast '{node.GetType().FullName}' to '{WrappedTypeName}'");
+            throw new InvalidCastException($"Cannot cast '{instance.GetType().FullName}' to 'Microsoft.CodeAnalysis.CSharp.Syntax.RefExpressionSyntax'");
         }
     }
 
-    public static bool IsInstance(SyntaxNode node) =>
-        node is not null && LightupHelpers.CanWrapNode(node, WrappedType);
+    public static bool IsInstance(SyntaxNode instance) =>
+        WrappedType.CanWrap(CanWrapCache, instance);
 
 }
