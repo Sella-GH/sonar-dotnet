@@ -34,11 +34,10 @@ public readonly struct IRelationalPatternOperationWrapper : IOperationWrapper
     private static readonly Func<IOperation, SemanticModel> SemanticModelAccessor = AccessorFactory.CreateProperty<Func<IOperation, SemanticModel>>(WrappedType, "SemanticModel");
     private static readonly Func<IOperation, IOperation> ValueAccessor = AccessorFactory.CreateProperty<Func<IOperation, IOperation>>(WrappedType, "Value");
 
+    private static readonly Action<IOperation, OperationVisitorWrapper> AcceptAccessor = AccessorFactory.CreateMethod<Action<IOperation, OperationVisitorWrapper>>(WrappedType, "Accept");
+
     private IRelationalPatternOperationWrapper(IOperation wrappedInstance) =>
         this.wrappedInstance = wrappedInstance;
-
-    [Obsolete("Use WrappedInstance instead")]
-    public IOperation WrappedOperation => wrappedInstance;
 
     public IOperation WrappedInstance => wrappedInstance;
 
@@ -55,15 +54,13 @@ public readonly struct IRelationalPatternOperationWrapper : IOperationWrapper
     public ITypeSymbol NarrowedType => (ITypeSymbol)NarrowedTypeAccessor(wrappedInstance);
     public BinaryOperatorKind OperatorKind => (BinaryOperatorKind)OperatorKindAccessor(wrappedInstance);
     public IOperation Parent => ParentAccessor(wrappedInstance);
-    public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(wrappedInstance);
+    public SemanticModel SemanticModel => SemanticModelAccessor(wrappedInstance);
     public IOperation Value => ValueAccessor(wrappedInstance);
+
+    public void Accept(OperationVisitorWrapper visitor) => AcceptAccessor(wrappedInstance, visitor);
 
     public static IRelationalPatternOperationWrapper? FromOrDefault(IOperation instance) =>
         IsInstance(instance) ? From(instance) : null;
-
-    [Obsolete("Use From instead")]
-    public static IRelationalPatternOperationWrapper FromOperation(IOperation instance) =>
-        From(instance);
 
     public static IRelationalPatternOperationWrapper From(IOperation instance)
     {
@@ -86,5 +83,4 @@ public readonly struct IRelationalPatternOperationWrapper : IOperationWrapper
 
     public static implicit operator IPatternOperationWrapper(IRelationalPatternOperationWrapper up) => IPatternOperationWrapper.From(up.WrappedInstance);
     public static explicit operator IRelationalPatternOperationWrapper(IPatternOperationWrapper down) => IRelationalPatternOperationWrapper.From(down.WrappedInstance);
-
 }

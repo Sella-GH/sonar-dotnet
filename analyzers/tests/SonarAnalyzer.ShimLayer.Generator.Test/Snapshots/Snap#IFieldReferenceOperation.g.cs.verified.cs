@@ -35,11 +35,10 @@ public readonly struct IFieldReferenceOperationWrapper : IOperationWrapper
     private static readonly Func<IOperation, IOperation> ParentAccessor = AccessorFactory.CreateProperty<Func<IOperation, IOperation>>(WrappedType, "Parent");
     private static readonly Func<IOperation, SemanticModel> SemanticModelAccessor = AccessorFactory.CreateProperty<Func<IOperation, SemanticModel>>(WrappedType, "SemanticModel");
 
+    private static readonly Action<IOperation, OperationVisitorWrapper> AcceptAccessor = AccessorFactory.CreateMethod<Action<IOperation, OperationVisitorWrapper>>(WrappedType, "Accept");
+
     private IFieldReferenceOperationWrapper(IOperation wrappedInstance) =>
         this.wrappedInstance = wrappedInstance;
-
-    [Obsolete("Use WrappedInstance instead")]
-    public IOperation WrappedOperation => wrappedInstance;
 
     public IOperation WrappedInstance => wrappedInstance;
 
@@ -58,14 +57,12 @@ public readonly struct IFieldReferenceOperationWrapper : IOperationWrapper
     public string Language => (string)LanguageAccessor(wrappedInstance);
     public ISymbol Member => (ISymbol)MemberAccessor(wrappedInstance);
     public IOperation Parent => ParentAccessor(wrappedInstance);
-    public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(wrappedInstance);
+    public SemanticModel SemanticModel => SemanticModelAccessor(wrappedInstance);
+
+    public void Accept(OperationVisitorWrapper visitor) => AcceptAccessor(wrappedInstance, visitor);
 
     public static IFieldReferenceOperationWrapper? FromOrDefault(IOperation instance) =>
         IsInstance(instance) ? From(instance) : null;
-
-    [Obsolete("Use From instead")]
-    public static IFieldReferenceOperationWrapper FromOperation(IOperation instance) =>
-        From(instance);
 
     public static IFieldReferenceOperationWrapper From(IOperation instance)
     {
@@ -88,5 +85,4 @@ public readonly struct IFieldReferenceOperationWrapper : IOperationWrapper
 
     public static implicit operator IMemberReferenceOperationWrapper(IFieldReferenceOperationWrapper up) => IMemberReferenceOperationWrapper.From(up.WrappedInstance);
     public static explicit operator IFieldReferenceOperationWrapper(IMemberReferenceOperationWrapper down) => IFieldReferenceOperationWrapper.From(down.WrappedInstance);
-
 }

@@ -34,12 +34,6 @@ public readonly struct DiscardDesignationSyntaxWrapper
     private DiscardDesignationSyntaxWrapper(CSharpSyntaxNode wrappedInstance) =>
         this.wrappedInstance = wrappedInstance;
 
-    [Obsolete("Use WrappedInstance instead")]
-    public CSharpSyntaxNode Node => wrappedInstance;
-
-    [Obsolete("Use WrappedInstance instead")]
-    public CSharpSyntaxNode SyntaxNode => wrappedInstance;
-
     public CSharpSyntaxNode WrappedInstance => wrappedInstance;
 
     public bool ContainsAnnotations => wrappedInstance.ContainsAnnotations;
@@ -61,6 +55,7 @@ public readonly struct DiscardDesignationSyntaxWrapper
 
     public SyntaxToken UnderscoreToken => (SyntaxToken)UnderscoreTokenAccessor(wrappedInstance);
 
+    public void Accept(CSharpSyntaxVisitor visitor) => wrappedInstance.Accept(visitor);
     public IEnumerable<SyntaxNode> Ancestors(bool ascendOutOfTrivia) => wrappedInstance.Ancestors(ascendOutOfTrivia);
     public IEnumerable<SyntaxNode> AncestorsAndSelf(bool ascendOutOfTrivia) => wrappedInstance.AncestorsAndSelf(ascendOutOfTrivia);
     public IEnumerable<SyntaxNode> ChildNodes() => wrappedInstance.ChildNodes();
@@ -113,7 +108,10 @@ public readonly struct DiscardDesignationSyntaxWrapper
     public bool IsEquivalentTo(SyntaxNode node, bool topLevel) => wrappedInstance.IsEquivalentTo(node, topLevel);
     public bool IsPartOfStructuredTrivia() => wrappedInstance.IsPartOfStructuredTrivia();
     public SyntaxKind Kind() => wrappedInstance.Kind();
+    [System.ObsoleteAttribute("Syntax serialization support is no longer supported", true)]
+    public void SerializeTo(Stream stream, CancellationToken cancellationToken) => wrappedInstance.SerializeTo(stream, cancellationToken);
     public string ToFullString() => wrappedInstance.ToFullString();
+    public void WriteTo(TextWriter writer) => wrappedInstance.WriteTo(writer);
 
     public bool ContainsDirective(int rawKind) => (bool)ContainsDirectiveAccessor(wrappedInstance, rawKind);
     public bool IsIncrementallyIdenticalTo(SyntaxNode other) => (bool)IsIncrementallyIdenticalToAccessor(wrappedInstance, other);
@@ -147,5 +145,4 @@ public readonly struct DiscardDesignationSyntaxWrapper
 
     public static implicit operator VariableDesignationSyntaxWrapper(DiscardDesignationSyntaxWrapper up) => VariableDesignationSyntaxWrapper.From(up.WrappedInstance);
     public static explicit operator DiscardDesignationSyntaxWrapper(VariableDesignationSyntaxWrapper down) => DiscardDesignationSyntaxWrapper.From(down.WrappedInstance);
-
 }

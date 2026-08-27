@@ -16,7 +16,6 @@
  */
 
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace SonarAnalyzer.ShimLayer.Common;
 
@@ -33,7 +32,7 @@ internal static class AccessorFactory
 
         bool IsMethodMatch(MethodInfo method) =>
             method.Name == methodName
-            && types.ResultType.IsAssignableFrom(method.ReturnType)
+            && IsReturnTypeMatch(method, types)
             && method.GetParameters() is var parameters
             && parameters.Length == types.ParameterTypes.Length
             && parameters.Select((x, i) => IsParameterMatch(types.ParameterTypes[i], x.ParameterType)).All(x => x);
@@ -41,7 +40,15 @@ internal static class AccessorFactory
         static bool IsParameterMatch(Type compiletime, Type runtime) =>
             compiletime.Equals(runtime)
             || (compiletime.IsArray && runtime.IsArray && IsParameterMatch(compiletime.GetElementType(), runtime.GetElementType()))
+            || IsEnumMatch(compiletime, runtime)
             || compiletime.Name == $"{runtime.Name}Wrapper";
+
+        static bool IsReturnTypeMatch(MethodInfo method, AccessorTypes types) =>
+            types.ResultType.IsAssignableFrom(method.ReturnType)
+            || IsEnumMatch(types.ResultType, method.ReturnType);
+
+        static bool IsEnumMatch(Type compiletime, Type runtime) =>
+            compiletime.IsEnum && runtime.IsEnum && compiletime.Name == runtime.Name;
     }
 
     public static TFunc CreateProperty<TFunc>(Type runtimeSenderType, string propertyName) where TFunc : Delegate
@@ -199,14 +206,10 @@ internal static class AccessorFactory
         public AccessorTypes(Type methodDelegate)
         {
             var invoke = methodDelegate.GetMethod("Invoke");
-            if (invoke.ReturnType.FullName == typeof(void).FullName)
-            {
-                throw new NotSupportedException("This method only supports Func<..., TResult> and delegates with non-void return type");    // Fallback logic returns "default" expressin
-            }
             var parameters = invoke.GetParameters();    // As declared in our delegates, has additional TSender compared to the runtime method
             SenderType = parameters.First().ParameterType;
             ParameterTypes = parameters.Skip(1).Select(x => x.ParameterType).ToArray(); // Without TSender and TResult
-            ResultType = invoke.ReturnType;
+            ResultType = invoke.ReturnType;     // Can be also typeof(void)
         }
     }
 }

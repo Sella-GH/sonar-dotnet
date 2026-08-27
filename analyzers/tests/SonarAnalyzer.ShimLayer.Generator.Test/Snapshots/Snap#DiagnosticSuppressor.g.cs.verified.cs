@@ -31,6 +31,8 @@ public readonly struct DiagnosticSuppressorWrapper
 
     public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => wrappedInstance.SupportedDiagnostics;
 
+    public void Initialize(AnalysisContext context) => wrappedInstance.Initialize(context);
+
     public static DiagnosticSuppressorWrapper From(DiagnosticAnalyzer instance)
     {
         if (instance is null)
@@ -49,5 +51,4 @@ public readonly struct DiagnosticSuppressorWrapper
 
     public static bool IsInstance(DiagnosticAnalyzer instance) =>
         WrappedType.CanWrap(CanWrapCache, instance);
-
 }

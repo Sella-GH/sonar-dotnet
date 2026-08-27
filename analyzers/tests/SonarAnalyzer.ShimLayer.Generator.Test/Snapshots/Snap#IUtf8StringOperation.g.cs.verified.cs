@@ -31,11 +31,10 @@ public readonly struct IUtf8StringOperationWrapper : IOperationWrapper
     private static readonly Func<IOperation, SemanticModel> SemanticModelAccessor = AccessorFactory.CreateProperty<Func<IOperation, SemanticModel>>(WrappedType, "SemanticModel");
     private static readonly Func<IOperation, string> ValueAccessor = AccessorFactory.CreateProperty<Func<IOperation, string>>(WrappedType, "Value");
 
+    private static readonly Action<IOperation, OperationVisitorWrapper> AcceptAccessor = AccessorFactory.CreateMethod<Action<IOperation, OperationVisitorWrapper>>(WrappedType, "Accept");
+
     private IUtf8StringOperationWrapper(IOperation wrappedInstance) =>
         this.wrappedInstance = wrappedInstance;
-
-    [Obsolete("Use WrappedInstance instead")]
-    public IOperation WrappedOperation => wrappedInstance;
 
     public IOperation WrappedInstance => wrappedInstance;
 
@@ -49,15 +48,13 @@ public readonly struct IUtf8StringOperationWrapper : IOperationWrapper
     public bool IsImplicit => (bool)IsImplicitAccessor(wrappedInstance);
     public string Language => (string)LanguageAccessor(wrappedInstance);
     public IOperation Parent => ParentAccessor(wrappedInstance);
-    public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(wrappedInstance);
+    public SemanticModel SemanticModel => SemanticModelAccessor(wrappedInstance);
     public string Value => (string)ValueAccessor(wrappedInstance);
+
+    public void Accept(OperationVisitorWrapper visitor) => AcceptAccessor(wrappedInstance, visitor);
 
     public static IUtf8StringOperationWrapper? FromOrDefault(IOperation instance) =>
         IsInstance(instance) ? From(instance) : null;
-
-    [Obsolete("Use From instead")]
-    public static IUtf8StringOperationWrapper FromOperation(IOperation instance) =>
-        From(instance);
 
     public static IUtf8StringOperationWrapper From(IOperation instance)
     {
@@ -77,5 +74,4 @@ public readonly struct IUtf8StringOperationWrapper : IOperationWrapper
 
     public static bool IsInstance(IOperation instance) =>
         WrappedType.CanWrap(CanWrapCache, instance);
-
 }

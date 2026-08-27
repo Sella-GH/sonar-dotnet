@@ -34,11 +34,10 @@ public readonly struct IPatternCaseClauseOperationWrapper : IOperationWrapper
     private static readonly Func<IOperation, IOperation> PatternAccessor = AccessorFactory.CreateProperty<Func<IOperation, IOperation>>(WrappedType, "Pattern");
     private static readonly Func<IOperation, SemanticModel> SemanticModelAccessor = AccessorFactory.CreateProperty<Func<IOperation, SemanticModel>>(WrappedType, "SemanticModel");
 
+    private static readonly Action<IOperation, OperationVisitorWrapper> AcceptAccessor = AccessorFactory.CreateMethod<Action<IOperation, OperationVisitorWrapper>>(WrappedType, "Accept");
+
     private IPatternCaseClauseOperationWrapper(IOperation wrappedInstance) =>
         this.wrappedInstance = wrappedInstance;
-
-    [Obsolete("Use WrappedInstance instead")]
-    public IOperation WrappedOperation => wrappedInstance;
 
     public IOperation WrappedInstance => wrappedInstance;
 
@@ -56,14 +55,12 @@ public readonly struct IPatternCaseClauseOperationWrapper : IOperationWrapper
     public string Language => (string)LanguageAccessor(wrappedInstance);
     public IOperation Parent => ParentAccessor(wrappedInstance);
     public IPatternOperationWrapper Pattern => IPatternOperationWrapper.From(PatternAccessor(wrappedInstance));
-    public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(wrappedInstance);
+    public SemanticModel SemanticModel => SemanticModelAccessor(wrappedInstance);
+
+    public void Accept(OperationVisitorWrapper visitor) => AcceptAccessor(wrappedInstance, visitor);
 
     public static IPatternCaseClauseOperationWrapper? FromOrDefault(IOperation instance) =>
         IsInstance(instance) ? From(instance) : null;
-
-    [Obsolete("Use From instead")]
-    public static IPatternCaseClauseOperationWrapper FromOperation(IOperation instance) =>
-        From(instance);
 
     public static IPatternCaseClauseOperationWrapper From(IOperation instance)
     {
@@ -86,5 +83,4 @@ public readonly struct IPatternCaseClauseOperationWrapper : IOperationWrapper
 
     public static implicit operator ICaseClauseOperationWrapper(IPatternCaseClauseOperationWrapper up) => ICaseClauseOperationWrapper.From(up.WrappedInstance);
     public static explicit operator IPatternCaseClauseOperationWrapper(ICaseClauseOperationWrapper down) => IPatternCaseClauseOperationWrapper.From(down.WrappedInstance);
-
 }

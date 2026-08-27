@@ -49,7 +49,6 @@ public static partial class CSharpCompilationShimExtensions
 
     extension(CSharpCompilation wrappedInstance)
     {
-
         public bool ContainsSymbolsWithName(string name, SymbolFilter filter, CancellationToken cancellationToken) => (bool)ContainsSymbolsWithNameAccessor_Overload2(wrappedInstance, name, filter, cancellationToken);
         public INamedTypeSymbol CreateAnonymousTypeSymbol(ImmutableArray<ITypeSymbol> memberTypes, ImmutableArray<string> memberNames, ImmutableArray<bool> memberIsReadOnly, ImmutableArray<Location> memberLocations) => (INamedTypeSymbol)CreateAnonymousTypeSymbolAccessor(wrappedInstance, memberTypes, memberNames, memberIsReadOnly, memberLocations);
         public INamedTypeSymbol CreateAnonymousTypeSymbol(ImmutableArray<ITypeSymbol> memberTypes, ImmutableArray<string> memberNames, ImmutableArray<bool> memberIsReadOnly, ImmutableArray<Location> memberLocations, ImmutableArray<NullableAnnotation> memberNullableAnnotations) => (INamedTypeSymbol)CreateAnonymousTypeSymbolAccessor_Overload2(wrappedInstance, memberTypes, memberNames, memberIsReadOnly, memberLocations, memberNullableAnnotations);
@@ -64,7 +63,7 @@ public static partial class CSharpCompilationShimExtensions
         public INamedTypeSymbol CreateTupleTypeSymbol(ImmutableArray<ITypeSymbol> elementTypes, ImmutableArray<string> elementNames, ImmutableArray<Location> elementLocations) => (INamedTypeSymbol)CreateTupleTypeSymbolAccessor_Overload3(wrappedInstance, elementTypes, elementNames, elementLocations);
         public INamedTypeSymbol CreateTupleTypeSymbol(ImmutableArray<ITypeSymbol> elementTypes, ImmutableArray<string> elementNames, ImmutableArray<Location> elementLocations, ImmutableArray<NullableAnnotation> elementNullableAnnotations) => (INamedTypeSymbol)CreateTupleTypeSymbolAccessor_Overload4(wrappedInstance, elementTypes, elementNames, elementLocations, elementNullableAnnotations);
         public EmitDifferenceResult EmitDifference(EmitBaseline baseline, IEnumerable<SemanticEdit> edits, Func<ISymbol, bool> isAddedSymbol, Stream metadataStream, Stream ilStream, Stream pdbStream, CancellationToken cancellationToken) => EmitDifferenceAccessor_Overload3(wrappedInstance, baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, cancellationToken);
-        public SemanticModel GetSemanticModel(SyntaxTree syntaxTree, SemanticModelOptions options) => (SemanticModel)GetSemanticModelAccessor(wrappedInstance, syntaxTree, options);
+        public SemanticModel GetSemanticModel(SyntaxTree syntaxTree, SemanticModelOptions options) => GetSemanticModelAccessor(wrappedInstance, syntaxTree, options);
         public IEnumerable<ISymbol> GetSymbolsWithName(string name, SymbolFilter filter, CancellationToken cancellationToken) => (IEnumerable<ISymbol>)GetSymbolsWithNameAccessor_Overload2(wrappedInstance, name, filter, cancellationToken);
         public ImmutableArray<INamedTypeSymbol> GetTypesByMetadataName(string fullyQualifiedMetadataName) => (ImmutableArray<INamedTypeSymbol>)GetTypesByMetadataNameAccessor(wrappedInstance, fullyQualifiedMetadataName);
         public ImmutableArray<AssemblyIdentity> GetUnreferencedAssemblyIdentities(Diagnostic diagnostic) => (ImmutableArray<AssemblyIdentity>)GetUnreferencedAssemblyIdentitiesAccessor(wrappedInstance, diagnostic);
@@ -72,6 +71,5 @@ public static partial class CSharpCompilationShimExtensions
         public bool HasImplicitConversion(ITypeSymbol fromType, ITypeSymbol toType) => (bool)HasImplicitConversionAccessor(wrappedInstance, fromType, toType);
         public bool IsSymbolAccessibleWithin(ISymbol symbol, ISymbol within, ITypeSymbol throughType) => (bool)IsSymbolAccessibleWithinAccessor(wrappedInstance, symbol, within, throughType);
         public bool SupportsRuntimeCapability(RuntimeCapability capability) => (bool)SupportsRuntimeCapabilityAccessor(wrappedInstance, capability);
-
     }
 }

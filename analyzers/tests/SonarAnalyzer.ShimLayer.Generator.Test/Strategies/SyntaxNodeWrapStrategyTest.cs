@@ -64,12 +64,6 @@ public class SyntaxNodeWrapStrategyTest
                 private RecordDeclarationSyntaxWrapper(TypeDeclarationSyntax wrappedInstance) =>
                     this.wrappedInstance = wrappedInstance;
 
-                [Obsolete("Use WrappedInstance instead")]
-                public TypeDeclarationSyntax Node => wrappedInstance;
-
-                [Obsolete("Use WrappedInstance instead")]
-                public TypeDeclarationSyntax SyntaxNode => wrappedInstance;
-
                 public TypeDeclarationSyntax WrappedInstance => wrappedInstance;
 
                 public static explicit operator RecordDeclarationSyntaxWrapper(SyntaxNode instance) =>
@@ -96,7 +90,6 @@ public class SyntaxNodeWrapStrategyTest
 
                 public static bool IsInstance(SyntaxNode instance) =>
                     WrappedType.CanWrap(CanWrapCache, instance);
-
             }
             """);
     }
@@ -113,9 +106,9 @@ public class SyntaxNodeWrapStrategyTest
                 new(typeof(RecordDeclarationSyntax).GetMember(nameof(RecordDeclarationSyntax.Span))[0], true, "SpanAccessor"),
                 new(typeof(RecordDeclarationSyntax).GetMember(nameof(RecordDeclarationSyntax.ClassOrStructKeyword))[0], false, "ClassOrStructKeywordAccessor"),
                 new(skippedPropertyTypeMember, false, "ConstraintClausesAccessor"),     // PropertyType is skipped and this should not render anything
-                new(typeof(RecordDeclarationSyntax).GetMember(nameof(RecordDeclarationSyntax.Accept))[0], true, "AcceptAccessor"), // ToDo: NET-4372 Add support for Void
-                new(typeof(RecordDeclarationSyntax).GetMember(nameof(RecordDeclarationSyntax.FindTrivia))[0], true, "AcceptAccessor"),              // Passtrough method - with Func<..> parameter
-                new(typeof(RecordDeclarationSyntax).GetMember(nameof(RecordDeclarationSyntax.FindTrivia))[1], true, "AcceptAccessor_Overload2"),    // Passtrough method - normal
+                new(typeof(RecordDeclarationSyntax).GetMember(nameof(RecordDeclarationSyntax.Accept))[0], true, "AcceptAccessor"),                  // Passthrough method - void
+                new(typeof(RecordDeclarationSyntax).GetMember(nameof(RecordDeclarationSyntax.FindTrivia))[0], true, "AcceptAccessor"),              // Passthrough method - with Func<..> parameter
+                new(typeof(RecordDeclarationSyntax).GetMember(nameof(RecordDeclarationSyntax.FindTrivia))[1], true, "AcceptAccessor_Overload2"),    // Passthrough method - normal
                 new(typeof(RecordDeclarationSyntax).GetMember(nameof(RecordDeclarationSyntax.WithParameterList))[0], false, "WithParameterListAccessor"),   // Wrapped method
             ]);
         var model = new StrategyModel(new() { { skippedPropertyTypeMember.PropertyType, new SkipStrategy(skippedPropertyTypeMember.PropertyType) } });
@@ -155,18 +148,13 @@ public class SyntaxNodeWrapStrategyTest
                 private RecordDeclarationSyntaxWrapper(TypeDeclarationSyntax wrappedInstance) =>
                     this.wrappedInstance = wrappedInstance;
 
-                [Obsolete("Use WrappedInstance instead")]
-                public TypeDeclarationSyntax Node => wrappedInstance;
-
-                [Obsolete("Use WrappedInstance instead")]
-                public TypeDeclarationSyntax SyntaxNode => wrappedInstance;
-
                 public TypeDeclarationSyntax WrappedInstance => wrappedInstance;
 
                 public TextSpan Span => wrappedInstance.Span;
 
                 public SyntaxToken ClassOrStructKeyword => (SyntaxToken)ClassOrStructKeywordAccessor(wrappedInstance);
 
+                public void Accept(CSharpSyntaxVisitor visitor) => wrappedInstance.Accept(visitor);
                 public SyntaxTrivia FindTrivia(int position, Func<SyntaxTrivia, bool> stepInto) => wrappedInstance.FindTrivia(position, stepInto);
                 public SyntaxTrivia FindTrivia(int position, bool findInsideTrivia) => wrappedInstance.FindTrivia(position, findInsideTrivia);
 
@@ -196,7 +184,6 @@ public class SyntaxNodeWrapStrategyTest
 
                 public static bool IsInstance(SyntaxNode instance) =>
                     WrappedType.CanWrap(CanWrapCache, instance);
-
             }
             """);
     }
@@ -247,12 +234,6 @@ public class SyntaxNodeWrapStrategyTest
                 private IsPatternExpressionSyntaxWrapper(ExpressionSyntax wrappedInstance) =>
                     this.wrappedInstance = wrappedInstance;
 
-                [Obsolete("Use WrappedInstance instead")]
-                public ExpressionSyntax Node => wrappedInstance;
-
-                [Obsolete("Use WrappedInstance instead")]
-                public ExpressionSyntax SyntaxNode => wrappedInstance;
-
                 public ExpressionSyntax WrappedInstance => wrappedInstance;
 
                 public PatternSyntaxWrapper Pattern => PatternSyntaxWrapper.From(PatternAccessor(wrappedInstance));
@@ -281,7 +262,6 @@ public class SyntaxNodeWrapStrategyTest
 
                 public static bool IsInstance(SyntaxNode instance) =>
                     WrappedType.CanWrap(CanWrapCache, instance);
-
             }
             """);
     }
@@ -328,12 +308,6 @@ public class SyntaxNodeWrapStrategyTest
                 private ConstantPatternSyntaxWrapper(CSharpSyntaxNode wrappedInstance) =>
                     this.wrappedInstance = wrappedInstance;
 
-                [Obsolete("Use WrappedInstance instead")]
-                public CSharpSyntaxNode Node => wrappedInstance;
-
-                [Obsolete("Use WrappedInstance instead")]
-                public CSharpSyntaxNode SyntaxNode => wrappedInstance;
-
                 public CSharpSyntaxNode WrappedInstance => wrappedInstance;
 
                 public static explicit operator ConstantPatternSyntaxWrapper(SyntaxNode instance) =>
@@ -366,7 +340,6 @@ public class SyntaxNodeWrapStrategyTest
 
                 public static implicit operator ExpressionOrPatternSyntaxWrapper(ConstantPatternSyntaxWrapper up) => ExpressionOrPatternSyntaxWrapper.From(up.WrappedInstance);
                 public static explicit operator ConstantPatternSyntaxWrapper(ExpressionOrPatternSyntaxWrapper down) => ConstantPatternSyntaxWrapper.From(down.WrappedInstance);
-
             }
             """);
     }
@@ -413,12 +386,6 @@ public class SyntaxNodeWrapStrategyTest
                 private SyntaxNodeWrapper(SyntaxNode wrappedInstance) =>
                     this.wrappedInstance = wrappedInstance;
 
-                [Obsolete("Use WrappedInstance instead")]
-                public SyntaxNode Node => wrappedInstance;
-
-                [Obsolete("Use WrappedInstance instead")]
-                public SyntaxNode SyntaxNode => wrappedInstance;
-
                 public SyntaxNode WrappedInstance => wrappedInstance;
 
                 public static explicit operator SyntaxNodeWrapper(SyntaxNode instance) =>
@@ -445,7 +412,6 @@ public class SyntaxNodeWrapStrategyTest
 
                 public static bool IsInstance(SyntaxNode instance) =>
                     WrappedType.CanWrap(CanWrapCache, instance);
-
             }
             """);
     }
@@ -494,12 +460,6 @@ public class SyntaxNodeWrapStrategyTest
                 private IndexerDeclarationSyntaxWrapper(SyntaxNode wrappedInstance) =>
                     this.wrappedInstance = wrappedInstance;
 
-                [Obsolete("Use WrappedInstance instead")]
-                public SyntaxNode Node => wrappedInstance;
-
-                [Obsolete("Use WrappedInstance instead")]
-                public SyntaxNode SyntaxNode => wrappedInstance;
-
                 public SyntaxNode WrappedInstance => wrappedInstance;
 
                 [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
@@ -534,7 +494,6 @@ public class SyntaxNodeWrapStrategyTest
 
                 public static bool IsInstance(SyntaxNode instance) =>
                     WrappedType.CanWrap(CanWrapCache, instance);
-
             }
             """);
     }
@@ -589,12 +548,6 @@ public class SyntaxNodeWrapStrategyTest
                 private RecordDeclarationSyntaxWrapper(TypeDeclarationSyntax wrappedInstance) =>
                     this.wrappedInstance = wrappedInstance;
 
-                [Obsolete("Use WrappedInstance instead")]
-                public TypeDeclarationSyntax Node => wrappedInstance;
-
-                [Obsolete("Use WrappedInstance instead")]
-                public TypeDeclarationSyntax SyntaxNode => wrappedInstance;
-
                 public TypeDeclarationSyntax WrappedInstance => wrappedInstance;
 
                 public SyntaxList<AttributeListSyntax> AttributeLists => wrappedInstance.AttributeLists;
@@ -627,7 +580,6 @@ public class SyntaxNodeWrapStrategyTest
 
                 public static bool IsInstance(SyntaxNode instance) =>
                     WrappedType.CanWrap(CanWrapCache, instance);
-
             }
             """);
     }
@@ -672,12 +624,6 @@ public class SyntaxNodeWrapStrategyTest
                 private BaseNamespaceDeclarationSyntaxWrapper(MemberDeclarationSyntax wrappedInstance) =>
                     this.wrappedInstance = wrappedInstance;
 
-                [Obsolete("Use WrappedInstance instead")]
-                public MemberDeclarationSyntax Node => wrappedInstance;
-
-                [Obsolete("Use WrappedInstance instead")]
-                public MemberDeclarationSyntax SyntaxNode => wrappedInstance;
-
                 public MemberDeclarationSyntax WrappedInstance => wrappedInstance;
 
                 public static explicit operator BaseNamespaceDeclarationSyntaxWrapper(SyntaxNode instance) =>
@@ -706,7 +652,6 @@ public class SyntaxNodeWrapStrategyTest
                     WrappedType.CanWrap(CanWrapCache, instance);
 
                 public static implicit operator BaseNamespaceDeclarationSyntaxWrapper(NamespaceDeclarationSyntax instance) => new(instance);
-
             }
             """);
     }

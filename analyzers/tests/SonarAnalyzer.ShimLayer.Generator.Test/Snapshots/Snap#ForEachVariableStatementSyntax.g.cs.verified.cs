@@ -53,12 +53,6 @@ public readonly struct ForEachVariableStatementSyntaxWrapper
     private ForEachVariableStatementSyntaxWrapper(StatementSyntax wrappedInstance) =>
         this.wrappedInstance = wrappedInstance;
 
-    [Obsolete("Use WrappedInstance instead")]
-    public StatementSyntax Node => wrappedInstance;
-
-    [Obsolete("Use WrappedInstance instead")]
-    public StatementSyntax SyntaxNode => wrappedInstance;
-
     public StatementSyntax WrappedInstance => wrappedInstance;
 
     public bool ContainsAnnotations => wrappedInstance.ContainsAnnotations;
@@ -88,6 +82,7 @@ public readonly struct ForEachVariableStatementSyntaxWrapper
     public StatementSyntax Statement => StatementAccessor(wrappedInstance);
     public ExpressionSyntax Variable => VariableAccessor(wrappedInstance);
 
+    public void Accept(CSharpSyntaxVisitor visitor) => wrappedInstance.Accept(visitor);
     public IEnumerable<SyntaxNode> Ancestors(bool ascendOutOfTrivia) => wrappedInstance.Ancestors(ascendOutOfTrivia);
     public IEnumerable<SyntaxNode> AncestorsAndSelf(bool ascendOutOfTrivia) => wrappedInstance.AncestorsAndSelf(ascendOutOfTrivia);
     public IEnumerable<SyntaxNode> ChildNodes() => wrappedInstance.ChildNodes();
@@ -140,7 +135,10 @@ public readonly struct ForEachVariableStatementSyntaxWrapper
     public bool IsEquivalentTo(SyntaxNode node, bool topLevel) => wrappedInstance.IsEquivalentTo(node, topLevel);
     public bool IsPartOfStructuredTrivia() => wrappedInstance.IsPartOfStructuredTrivia();
     public SyntaxKind Kind() => wrappedInstance.Kind();
+    [System.ObsoleteAttribute("Syntax serialization support is no longer supported", true)]
+    public void SerializeTo(Stream stream, CancellationToken cancellationToken) => wrappedInstance.SerializeTo(stream, cancellationToken);
     public string ToFullString() => wrappedInstance.ToFullString();
+    public void WriteTo(TextWriter writer) => wrappedInstance.WriteTo(writer);
 
     public ForEachVariableStatementSyntaxWrapper AddAttributeLists(AttributeListSyntax[] items) => ForEachVariableStatementSyntaxWrapper.From(AddAttributeListsAccessor(wrappedInstance, items));
     public bool ContainsDirective(int rawKind) => (bool)ContainsDirectiveAccessor(wrappedInstance, rawKind);
@@ -185,5 +183,4 @@ public readonly struct ForEachVariableStatementSyntaxWrapper
 
     public static implicit operator CommonForEachStatementSyntaxWrapper(ForEachVariableStatementSyntaxWrapper up) => CommonForEachStatementSyntaxWrapper.From(up.WrappedInstance);
     public static explicit operator ForEachVariableStatementSyntaxWrapper(CommonForEachStatementSyntaxWrapper down) => ForEachVariableStatementSyntaxWrapper.From(down.WrappedInstance);
-
 }

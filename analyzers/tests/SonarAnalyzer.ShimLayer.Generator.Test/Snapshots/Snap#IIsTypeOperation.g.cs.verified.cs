@@ -33,11 +33,10 @@ public readonly struct IIsTypeOperationWrapper : IOperationWrapper
     private static readonly Func<IOperation, ITypeSymbol> TypeOperandAccessor = AccessorFactory.CreateProperty<Func<IOperation, ITypeSymbol>>(WrappedType, "TypeOperand");
     private static readonly Func<IOperation, IOperation> ValueOperandAccessor = AccessorFactory.CreateProperty<Func<IOperation, IOperation>>(WrappedType, "ValueOperand");
 
+    private static readonly Action<IOperation, OperationVisitorWrapper> AcceptAccessor = AccessorFactory.CreateMethod<Action<IOperation, OperationVisitorWrapper>>(WrappedType, "Accept");
+
     private IIsTypeOperationWrapper(IOperation wrappedInstance) =>
         this.wrappedInstance = wrappedInstance;
-
-    [Obsolete("Use WrappedInstance instead")]
-    public IOperation WrappedOperation => wrappedInstance;
 
     public IOperation WrappedInstance => wrappedInstance;
 
@@ -52,16 +51,14 @@ public readonly struct IIsTypeOperationWrapper : IOperationWrapper
     public bool IsNegated => (bool)IsNegatedAccessor(wrappedInstance);
     public string Language => (string)LanguageAccessor(wrappedInstance);
     public IOperation Parent => ParentAccessor(wrappedInstance);
-    public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(wrappedInstance);
+    public SemanticModel SemanticModel => SemanticModelAccessor(wrappedInstance);
     public ITypeSymbol TypeOperand => (ITypeSymbol)TypeOperandAccessor(wrappedInstance);
     public IOperation ValueOperand => ValueOperandAccessor(wrappedInstance);
 
+    public void Accept(OperationVisitorWrapper visitor) => AcceptAccessor(wrappedInstance, visitor);
+
     public static IIsTypeOperationWrapper? FromOrDefault(IOperation instance) =>
         IsInstance(instance) ? From(instance) : null;
-
-    [Obsolete("Use From instead")]
-    public static IIsTypeOperationWrapper FromOperation(IOperation instance) =>
-        From(instance);
 
     public static IIsTypeOperationWrapper From(IOperation instance)
     {
@@ -81,5 +78,4 @@ public readonly struct IIsTypeOperationWrapper : IOperationWrapper
 
     public static bool IsInstance(IOperation instance) =>
         WrappedType.CanWrap(CanWrapCache, instance);
-
 }

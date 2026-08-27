@@ -60,17 +60,10 @@ public class OperationWrapStrategyTest
                 private IFieldInitializerOperationWrapper(IOperation wrappedInstance) =>
                     this.wrappedInstance = wrappedInstance;
 
-                [Obsolete("Use WrappedInstance instead")]
-                public IOperation WrappedOperation => wrappedInstance;
-
                 public IOperation WrappedInstance => wrappedInstance;
 
                 public static IFieldInitializerOperationWrapper? FromOrDefault(IOperation instance) =>
                     IsInstance(instance) ? From(instance) : null;
-
-                [Obsolete("Use From instead")]
-                public static IFieldInitializerOperationWrapper FromOperation(IOperation instance) =>
-                    From(instance);
 
                 public static IFieldInitializerOperationWrapper From(IOperation instance)
                 {
@@ -90,7 +83,6 @@ public class OperationWrapStrategyTest
 
                 public static bool IsInstance(IOperation instance) =>
                     WrappedType.CanWrap(CanWrapCache, instance);
-
             }
             """);
     }
@@ -137,17 +129,10 @@ public class OperationWrapStrategyTest
                 private IFieldReferenceOperationWrapper(IOperation wrappedInstance) =>
                     this.wrappedInstance = wrappedInstance;
 
-                [Obsolete("Use WrappedInstance instead")]
-                public IOperation WrappedOperation => wrappedInstance;
-
                 public IOperation WrappedInstance => wrappedInstance;
 
                 public static IFieldReferenceOperationWrapper? FromOrDefault(IOperation instance) =>
                     IsInstance(instance) ? From(instance) : null;
-
-                [Obsolete("Use From instead")]
-                public static IFieldReferenceOperationWrapper FromOperation(IOperation instance) =>
-                    From(instance);
 
                 public static IFieldReferenceOperationWrapper From(IOperation instance)
                 {
@@ -170,7 +155,6 @@ public class OperationWrapStrategyTest
 
                 public static implicit operator IMemberReferenceOperationWrapper(IFieldReferenceOperationWrapper up) => IMemberReferenceOperationWrapper.From(up.WrappedInstance);
                 public static explicit operator IFieldReferenceOperationWrapper(IMemberReferenceOperationWrapper down) => IFieldReferenceOperationWrapper.From(down.WrappedInstance);
-
             }
             """);
     }
@@ -222,9 +206,6 @@ public class OperationWrapStrategyTest
                 private ITupleOperationWrapper(IOperation wrappedInstance) =>
                     this.wrappedInstance = wrappedInstance;
 
-                [Obsolete("Use WrappedInstance instead")]
-                public IOperation WrappedOperation => wrappedInstance;
-
                 public IOperation WrappedInstance => wrappedInstance;
 
                 public ITypeSymbol Type => wrappedInstance.Type;
@@ -235,10 +216,6 @@ public class OperationWrapStrategyTest
 
                 public static ITupleOperationWrapper? FromOrDefault(IOperation instance) =>
                     IsInstance(instance) ? From(instance) : null;
-
-                [Obsolete("Use From instead")]
-                public static ITupleOperationWrapper FromOperation(IOperation instance) =>
-                    From(instance);
 
                 public static ITupleOperationWrapper From(IOperation instance)
                 {
@@ -258,7 +235,6 @@ public class OperationWrapStrategyTest
 
                 public static bool IsInstance(IOperation instance) =>
                     WrappedType.CanWrap(CanWrapCache, instance);
-
             }
             """);
     }
@@ -310,9 +286,6 @@ public class OperationWrapStrategyTest
                 private ControlFlowGraphWrapper(IOperation wrappedInstance) =>
                     this.wrappedInstance = wrappedInstance;
 
-                [Obsolete("Use WrappedInstance instead")]
-                public IOperation WrappedOperation => wrappedInstance;
-
                 public IOperation WrappedInstance => wrappedInstance;
 
                 public ControlFlowGraphWrapper Create(IAttributeOperationWrapper attribute, CancellationToken cancellationToken) => ControlFlowGraphWrapper.From(CreateAccessor(wrappedInstance, attribute, cancellationToken));
@@ -320,10 +293,6 @@ public class OperationWrapStrategyTest
 
                 public static ControlFlowGraphWrapper? FromOrDefault(IOperation instance) =>
                     IsInstance(instance) ? From(instance) : null;
-
-                [Obsolete("Use From instead")]
-                public static ControlFlowGraphWrapper FromOperation(IOperation instance) =>
-                    From(instance);
 
                 public static ControlFlowGraphWrapper From(IOperation instance)
                 {
@@ -343,7 +312,6 @@ public class OperationWrapStrategyTest
 
                 public static bool IsInstance(IOperation instance) =>
                     WrappedType.CanWrap(CanWrapCache, instance);
-
             }
             """);
     }

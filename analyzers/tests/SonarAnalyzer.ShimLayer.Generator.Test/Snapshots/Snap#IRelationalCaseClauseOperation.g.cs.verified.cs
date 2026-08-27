@@ -34,11 +34,10 @@ public readonly struct IRelationalCaseClauseOperationWrapper : IOperationWrapper
     private static readonly Func<IOperation, SemanticModel> SemanticModelAccessor = AccessorFactory.CreateProperty<Func<IOperation, SemanticModel>>(WrappedType, "SemanticModel");
     private static readonly Func<IOperation, IOperation> ValueAccessor = AccessorFactory.CreateProperty<Func<IOperation, IOperation>>(WrappedType, "Value");
 
+    private static readonly Action<IOperation, OperationVisitorWrapper> AcceptAccessor = AccessorFactory.CreateMethod<Action<IOperation, OperationVisitorWrapper>>(WrappedType, "Accept");
+
     private IRelationalCaseClauseOperationWrapper(IOperation wrappedInstance) =>
         this.wrappedInstance = wrappedInstance;
-
-    [Obsolete("Use WrappedInstance instead")]
-    public IOperation WrappedOperation => wrappedInstance;
 
     public IOperation WrappedInstance => wrappedInstance;
 
@@ -55,15 +54,13 @@ public readonly struct IRelationalCaseClauseOperationWrapper : IOperationWrapper
     public string Language => (string)LanguageAccessor(wrappedInstance);
     public IOperation Parent => ParentAccessor(wrappedInstance);
     public BinaryOperatorKind Relation => (BinaryOperatorKind)RelationAccessor(wrappedInstance);
-    public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(wrappedInstance);
+    public SemanticModel SemanticModel => SemanticModelAccessor(wrappedInstance);
     public IOperation Value => ValueAccessor(wrappedInstance);
+
+    public void Accept(OperationVisitorWrapper visitor) => AcceptAccessor(wrappedInstance, visitor);
 
     public static IRelationalCaseClauseOperationWrapper? FromOrDefault(IOperation instance) =>
         IsInstance(instance) ? From(instance) : null;
-
-    [Obsolete("Use From instead")]
-    public static IRelationalCaseClauseOperationWrapper FromOperation(IOperation instance) =>
-        From(instance);
 
     public static IRelationalCaseClauseOperationWrapper From(IOperation instance)
     {
@@ -86,5 +83,4 @@ public readonly struct IRelationalCaseClauseOperationWrapper : IOperationWrapper
 
     public static implicit operator ICaseClauseOperationWrapper(IRelationalCaseClauseOperationWrapper up) => ICaseClauseOperationWrapper.From(up.WrappedInstance);
     public static explicit operator IRelationalCaseClauseOperationWrapper(ICaseClauseOperationWrapper down) => IRelationalCaseClauseOperationWrapper.From(down.WrappedInstance);
-
 }

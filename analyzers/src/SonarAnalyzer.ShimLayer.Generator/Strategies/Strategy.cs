@@ -22,26 +22,36 @@ namespace SonarAnalyzer.ShimLayer.Generator.Strategies;
 public abstract class Strategy
 {
     // Match 3 or more consecutive newlines (with optional whitespace-only lines between them) and replace with exactly 2 newlines.
-    private static readonly Regex ExcessiveNewLines = new(@"\n(\s*\n){2,}", RegexOptions.ExplicitCapture, TimeSpan.FromMilliseconds(100));
+    private static readonly Regex ExcessiveNewLines = new(@"\n(\s*\n){2,}", RegexOptions.None, TimeSpan.FromMilliseconds(100));
+    private static readonly Regex EmptyLineAfterBlockStart = new(@"{\n\s*\n", RegexOptions.None, TimeSpan.FromMilliseconds(100));
+    private static readonly Regex EmptyLineBeforeBlockEnd = new(@"\n\s*\n(?=\s*})", RegexOptions.None, TimeSpan.FromMilliseconds(100));
 
-    public abstract string ReturnTypeSnippet();
+    public abstract string ReturnTypeSnippet { get; }
     public abstract string ToConversionSnippet(string from);
     protected abstract string GenerateCore(StrategyModel model);
 
     public virtual bool IsSupported => true;
+    public virtual string CompiletimeTypeSnippet => Latest.Name;
 
     public Type Latest { get; }
 
     protected Strategy(Type latest) =>
         Latest = latest;
 
-    public virtual string CompiletimeTypeSnippet() =>
-        Latest.Name;
-
-    public string Generate(StrategyModel model) =>
-        GenerateCore(model) is { } content
-            ? ExcessiveNewLines.Replace(content.Replace("\r", null), "\n\n")
-            : null;
+    public string Generate(StrategyModel model)
+    {
+        if (GenerateCore(model) is { } content)
+        {
+            content = content.Replace("\r", null);
+            content = ExcessiveNewLines.Replace(content, "\n\n");
+            content = EmptyLineAfterBlockStart.Replace(content, "{\n");
+            return EmptyLineBeforeBlockEnd.Replace(content, "\n");
+        }
+        else
+        {
+            return null;
+        }
+    }
 
     protected static string JoinLines(IEnumerable<string> lines) =>
        string.Join("\n", lines.Where(x => x is not null));

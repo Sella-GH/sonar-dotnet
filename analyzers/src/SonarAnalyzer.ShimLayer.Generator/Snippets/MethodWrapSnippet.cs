@@ -25,17 +25,28 @@ public sealed class MethodWrapSnippet : MethodSnippet
     {
         if (parameters.Any(x => x.IsOut))
         {
-            var parametersSnippet = ((string[])[$"{strategy.CompiletimeTypeSnippet()} sender", .. parameters.Select(SerializeParameter)]).JoinStr(", ");
+            var parametersSnippet = ((string[])[$"{strategy.CompiletimeTypeSnippet} sender", .. parameters.Select(SerializeParameter)]).JoinStr(", ");
             return $"""
-                    private delegate {returnType.CompiletimeTypeSnippet()} {accessorName}Delegate({parametersSnippet});
+                    private delegate {returnType.CompiletimeTypeSnippet} {accessorName}Delegate({parametersSnippet});
                     private static readonly {accessorName}Delegate {accessorName} = AccessorFactory.CreateMethod<{accessorName}Delegate>(WrappedType, "{member.Name}");
                 """;
         }
         else
         {
-            var types = ((string[])[strategy.CompiletimeTypeSnippet(), .. parameters.Select(x => model[x.ParameterType].ReturnTypeSnippet()), returnType.CompiletimeTypeSnippet()]).JoinStr(", ");
+            var types = parameters.Select(x => model[x.ParameterType].ReturnTypeSnippet).Prepend(strategy.CompiletimeTypeSnippet);
+            string delegateName;
+            if (returnType.Latest.FullName == typeof(void).FullName)
+            {
+                delegateName = "Action";
+            }
+            else
+            {
+                delegateName = "Func";
+                types = types.Append(returnType.CompiletimeTypeSnippet);
+            }
+            var typesSnippet = types.JoinStr(", ");
             return $"""
-                    private static readonly Func<{types}> {accessorName} = AccessorFactory.CreateMethod<Func<{types}>>(WrappedType, "{member.Name}");
+                    private static readonly {delegateName}<{typesSnippet}> {accessorName} = AccessorFactory.CreateMethod<{delegateName}<{typesSnippet}>>(WrappedType, "{member.Name}");
                 """;
         }
     }

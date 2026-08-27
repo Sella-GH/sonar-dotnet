@@ -21,9 +21,7 @@ public class ClassWrapStrategy : WrapStrategy
 {
     protected override string BaseTypeSnippet => null;
 
-    protected override string FromTypeName => CompiletimeTypeSnippet();
-
-    protected override string ObsoletePropertiesSnippet => null;
+    protected override string FromTypeName => CompiletimeTypeSnippet;
 
     protected override string ConversionSnippet => null;
 

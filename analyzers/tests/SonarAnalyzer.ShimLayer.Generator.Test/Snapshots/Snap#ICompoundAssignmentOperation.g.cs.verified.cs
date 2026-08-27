@@ -37,11 +37,10 @@ public readonly struct ICompoundAssignmentOperationWrapper : IOperationWrapper
     private static readonly Func<IOperation, IOperation> TargetAccessor = AccessorFactory.CreateProperty<Func<IOperation, IOperation>>(WrappedType, "Target");
     private static readonly Func<IOperation, IOperation> ValueAccessor = AccessorFactory.CreateProperty<Func<IOperation, IOperation>>(WrappedType, "Value");
 
+    private static readonly Action<IOperation, OperationVisitorWrapper> AcceptAccessor = AccessorFactory.CreateMethod<Action<IOperation, OperationVisitorWrapper>>(WrappedType, "Accept");
+
     private ICompoundAssignmentOperationWrapper(IOperation wrappedInstance) =>
         this.wrappedInstance = wrappedInstance;
-
-    [Obsolete("Use WrappedInstance instead")]
-    public IOperation WrappedOperation => wrappedInstance;
 
     public IOperation WrappedInstance => wrappedInstance;
 
@@ -60,16 +59,14 @@ public readonly struct ICompoundAssignmentOperationWrapper : IOperationWrapper
     public BinaryOperatorKind OperatorKind => (BinaryOperatorKind)OperatorKindAccessor(wrappedInstance);
     public IMethodSymbol OperatorMethod => (IMethodSymbol)OperatorMethodAccessor(wrappedInstance);
     public IOperation Parent => ParentAccessor(wrappedInstance);
-    public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(wrappedInstance);
+    public SemanticModel SemanticModel => SemanticModelAccessor(wrappedInstance);
     public IOperation Target => TargetAccessor(wrappedInstance);
     public IOperation Value => ValueAccessor(wrappedInstance);
 
+    public void Accept(OperationVisitorWrapper visitor) => AcceptAccessor(wrappedInstance, visitor);
+
     public static ICompoundAssignmentOperationWrapper? FromOrDefault(IOperation instance) =>
         IsInstance(instance) ? From(instance) : null;
-
-    [Obsolete("Use From instead")]
-    public static ICompoundAssignmentOperationWrapper FromOperation(IOperation instance) =>
-        From(instance);
 
     public static ICompoundAssignmentOperationWrapper From(IOperation instance)
     {
@@ -92,5 +89,4 @@ public readonly struct ICompoundAssignmentOperationWrapper : IOperationWrapper
 
     public static implicit operator IAssignmentOperationWrapper(ICompoundAssignmentOperationWrapper up) => IAssignmentOperationWrapper.From(up.WrappedInstance);
     public static explicit operator ICompoundAssignmentOperationWrapper(IAssignmentOperationWrapper down) => ICompoundAssignmentOperationWrapper.From(down.WrappedInstance);
-
 }

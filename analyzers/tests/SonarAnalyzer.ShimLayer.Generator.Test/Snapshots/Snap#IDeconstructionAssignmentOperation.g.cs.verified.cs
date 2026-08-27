@@ -32,11 +32,10 @@ public readonly struct IDeconstructionAssignmentOperationWrapper : IOperationWra
     private static readonly Func<IOperation, IOperation> TargetAccessor = AccessorFactory.CreateProperty<Func<IOperation, IOperation>>(WrappedType, "Target");
     private static readonly Func<IOperation, IOperation> ValueAccessor = AccessorFactory.CreateProperty<Func<IOperation, IOperation>>(WrappedType, "Value");
 
+    private static readonly Action<IOperation, OperationVisitorWrapper> AcceptAccessor = AccessorFactory.CreateMethod<Action<IOperation, OperationVisitorWrapper>>(WrappedType, "Accept");
+
     private IDeconstructionAssignmentOperationWrapper(IOperation wrappedInstance) =>
         this.wrappedInstance = wrappedInstance;
-
-    [Obsolete("Use WrappedInstance instead")]
-    public IOperation WrappedOperation => wrappedInstance;
 
     public IOperation WrappedInstance => wrappedInstance;
 
@@ -50,16 +49,14 @@ public readonly struct IDeconstructionAssignmentOperationWrapper : IOperationWra
     public bool IsImplicit => (bool)IsImplicitAccessor(wrappedInstance);
     public string Language => (string)LanguageAccessor(wrappedInstance);
     public IOperation Parent => ParentAccessor(wrappedInstance);
-    public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(wrappedInstance);
+    public SemanticModel SemanticModel => SemanticModelAccessor(wrappedInstance);
     public IOperation Target => TargetAccessor(wrappedInstance);
     public IOperation Value => ValueAccessor(wrappedInstance);
 
+    public void Accept(OperationVisitorWrapper visitor) => AcceptAccessor(wrappedInstance, visitor);
+
     public static IDeconstructionAssignmentOperationWrapper? FromOrDefault(IOperation instance) =>
         IsInstance(instance) ? From(instance) : null;
-
-    [Obsolete("Use From instead")]
-    public static IDeconstructionAssignmentOperationWrapper FromOperation(IOperation instance) =>
-        From(instance);
 
     public static IDeconstructionAssignmentOperationWrapper From(IOperation instance)
     {
@@ -82,5 +79,4 @@ public readonly struct IDeconstructionAssignmentOperationWrapper : IOperationWra
 
     public static implicit operator IAssignmentOperationWrapper(IDeconstructionAssignmentOperationWrapper up) => IAssignmentOperationWrapper.From(up.WrappedInstance);
     public static explicit operator IDeconstructionAssignmentOperationWrapper(IAssignmentOperationWrapper down) => IDeconstructionAssignmentOperationWrapper.From(down.WrappedInstance);
-
 }

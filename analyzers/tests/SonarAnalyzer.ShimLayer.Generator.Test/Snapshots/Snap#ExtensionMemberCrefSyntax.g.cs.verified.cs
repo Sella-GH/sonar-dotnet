@@ -44,12 +44,6 @@ public readonly struct ExtensionMemberCrefSyntaxWrapper
     private ExtensionMemberCrefSyntaxWrapper(MemberCrefSyntax wrappedInstance) =>
         this.wrappedInstance = wrappedInstance;
 
-    [Obsolete("Use WrappedInstance instead")]
-    public MemberCrefSyntax Node => wrappedInstance;
-
-    [Obsolete("Use WrappedInstance instead")]
-    public MemberCrefSyntax SyntaxNode => wrappedInstance;
-
     public MemberCrefSyntax WrappedInstance => wrappedInstance;
 
     public bool ContainsAnnotations => wrappedInstance.ContainsAnnotations;
@@ -75,6 +69,7 @@ public readonly struct ExtensionMemberCrefSyntaxWrapper
     public CrefParameterListSyntax Parameters => ParametersAccessor(wrappedInstance);
     public TypeArgumentListSyntax TypeArgumentList => TypeArgumentListAccessor(wrappedInstance);
 
+    public void Accept(CSharpSyntaxVisitor visitor) => wrappedInstance.Accept(visitor);
     public IEnumerable<SyntaxNode> Ancestors(bool ascendOutOfTrivia) => wrappedInstance.Ancestors(ascendOutOfTrivia);
     public IEnumerable<SyntaxNode> AncestorsAndSelf(bool ascendOutOfTrivia) => wrappedInstance.AncestorsAndSelf(ascendOutOfTrivia);
     public IEnumerable<SyntaxNode> ChildNodes() => wrappedInstance.ChildNodes();
@@ -127,7 +122,10 @@ public readonly struct ExtensionMemberCrefSyntaxWrapper
     public bool IsEquivalentTo(SyntaxNode node, bool topLevel) => wrappedInstance.IsEquivalentTo(node, topLevel);
     public bool IsPartOfStructuredTrivia() => wrappedInstance.IsPartOfStructuredTrivia();
     public SyntaxKind Kind() => wrappedInstance.Kind();
+    [System.ObsoleteAttribute("Syntax serialization support is no longer supported", true)]
+    public void SerializeTo(Stream stream, CancellationToken cancellationToken) => wrappedInstance.SerializeTo(stream, cancellationToken);
     public string ToFullString() => wrappedInstance.ToFullString();
+    public void WriteTo(TextWriter writer) => wrappedInstance.WriteTo(writer);
 
     public ExtensionMemberCrefSyntaxWrapper AddParametersParameters(CrefParameterSyntax[] items) => ExtensionMemberCrefSyntaxWrapper.From(AddParametersParametersAccessor(wrappedInstance, items));
     public ExtensionMemberCrefSyntaxWrapper AddTypeArgumentListArguments(TypeSyntax[] items) => ExtensionMemberCrefSyntaxWrapper.From(AddTypeArgumentListArgumentsAccessor(wrappedInstance, items));
@@ -164,5 +162,4 @@ public readonly struct ExtensionMemberCrefSyntaxWrapper
 
     public static bool IsInstance(SyntaxNode instance) =>
         WrappedType.CanWrap(CanWrapCache, instance);
-
 }

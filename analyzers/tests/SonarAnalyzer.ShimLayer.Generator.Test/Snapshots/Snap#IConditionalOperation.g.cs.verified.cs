@@ -34,11 +34,10 @@ public readonly struct IConditionalOperationWrapper : IOperationWrapper
     private static readonly Func<IOperation, IOperation> WhenFalseAccessor = AccessorFactory.CreateProperty<Func<IOperation, IOperation>>(WrappedType, "WhenFalse");
     private static readonly Func<IOperation, IOperation> WhenTrueAccessor = AccessorFactory.CreateProperty<Func<IOperation, IOperation>>(WrappedType, "WhenTrue");
 
+    private static readonly Action<IOperation, OperationVisitorWrapper> AcceptAccessor = AccessorFactory.CreateMethod<Action<IOperation, OperationVisitorWrapper>>(WrappedType, "Accept");
+
     private IConditionalOperationWrapper(IOperation wrappedInstance) =>
         this.wrappedInstance = wrappedInstance;
-
-    [Obsolete("Use WrappedInstance instead")]
-    public IOperation WrappedOperation => wrappedInstance;
 
     public IOperation WrappedInstance => wrappedInstance;
 
@@ -54,16 +53,14 @@ public readonly struct IConditionalOperationWrapper : IOperationWrapper
     public bool IsRef => (bool)IsRefAccessor(wrappedInstance);
     public string Language => (string)LanguageAccessor(wrappedInstance);
     public IOperation Parent => ParentAccessor(wrappedInstance);
-    public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(wrappedInstance);
+    public SemanticModel SemanticModel => SemanticModelAccessor(wrappedInstance);
     public IOperation WhenFalse => WhenFalseAccessor(wrappedInstance);
     public IOperation WhenTrue => WhenTrueAccessor(wrappedInstance);
 
+    public void Accept(OperationVisitorWrapper visitor) => AcceptAccessor(wrappedInstance, visitor);
+
     public static IConditionalOperationWrapper? FromOrDefault(IOperation instance) =>
         IsInstance(instance) ? From(instance) : null;
-
-    [Obsolete("Use From instead")]
-    public static IConditionalOperationWrapper FromOperation(IOperation instance) =>
-        From(instance);
 
     public static IConditionalOperationWrapper From(IOperation instance)
     {
@@ -83,5 +80,4 @@ public readonly struct IConditionalOperationWrapper : IOperationWrapper
 
     public static bool IsInstance(IOperation instance) =>
         WrappedType.CanWrap(CanWrapCache, instance);
-
 }

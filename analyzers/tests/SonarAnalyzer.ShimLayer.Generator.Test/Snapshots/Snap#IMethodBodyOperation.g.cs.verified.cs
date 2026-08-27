@@ -32,11 +32,10 @@ public readonly struct IMethodBodyOperationWrapper : IOperationWrapper
     private static readonly Func<IOperation, IOperation> ParentAccessor = AccessorFactory.CreateProperty<Func<IOperation, IOperation>>(WrappedType, "Parent");
     private static readonly Func<IOperation, SemanticModel> SemanticModelAccessor = AccessorFactory.CreateProperty<Func<IOperation, SemanticModel>>(WrappedType, "SemanticModel");
 
+    private static readonly Action<IOperation, OperationVisitorWrapper> AcceptAccessor = AccessorFactory.CreateMethod<Action<IOperation, OperationVisitorWrapper>>(WrappedType, "Accept");
+
     private IMethodBodyOperationWrapper(IOperation wrappedInstance) =>
         this.wrappedInstance = wrappedInstance;
-
-    [Obsolete("Use WrappedInstance instead")]
-    public IOperation WrappedOperation => wrappedInstance;
 
     public IOperation WrappedInstance => wrappedInstance;
 
@@ -52,14 +51,12 @@ public readonly struct IMethodBodyOperationWrapper : IOperationWrapper
     public bool IsImplicit => (bool)IsImplicitAccessor(wrappedInstance);
     public string Language => (string)LanguageAccessor(wrappedInstance);
     public IOperation Parent => ParentAccessor(wrappedInstance);
-    public SemanticModel SemanticModel => (SemanticModel)SemanticModelAccessor(wrappedInstance);
+    public SemanticModel SemanticModel => SemanticModelAccessor(wrappedInstance);
+
+    public void Accept(OperationVisitorWrapper visitor) => AcceptAccessor(wrappedInstance, visitor);
 
     public static IMethodBodyOperationWrapper? FromOrDefault(IOperation instance) =>
         IsInstance(instance) ? From(instance) : null;
-
-    [Obsolete("Use From instead")]
-    public static IMethodBodyOperationWrapper FromOperation(IOperation instance) =>
-        From(instance);
 
     public static IMethodBodyOperationWrapper From(IOperation instance)
     {
@@ -82,5 +79,4 @@ public readonly struct IMethodBodyOperationWrapper : IOperationWrapper
 
     public static implicit operator IMethodBodyBaseOperationWrapper(IMethodBodyOperationWrapper up) => IMethodBodyBaseOperationWrapper.From(up.WrappedInstance);
     public static explicit operator IMethodBodyOperationWrapper(IMethodBodyBaseOperationWrapper down) => IMethodBodyOperationWrapper.From(down.WrappedInstance);
-
 }

@@ -22,18 +22,9 @@ public class OperationWrapStrategy : WrapStrategy
     protected override string BaseTypeSnippet => "IOperationWrapper";
     protected override string FromTypeName => "IOperation";
 
-    protected override string ObsoletePropertiesSnippet => $"""
-            [Obsolete("Use WrappedInstance instead")]
-            public {CompiletimeTypeSnippet()} WrappedOperation => wrappedInstance;
-        """;
-
     protected override string ConversionSnippet => $"""
-            public static {ReturnTypeSnippet()}? FromOrDefault(IOperation instance) =>
+            public static {ReturnTypeSnippet}? FromOrDefault(IOperation instance) =>
                 IsInstance(instance) ? From(instance) : null;
-
-            [Obsolete("Use From instead")]
-            public static {ReturnTypeSnippet()} FromOperation(IOperation instance) =>
-                From(instance);
         """;
 
     public OperationWrapStrategy(Type latest, MemberDescriptor[] members) : base(latest, typeof(IOperation), null, members) { }
