@@ -17,7 +17,7 @@
 
 namespace SonarAnalyzer.ShimLayer.Generator.Strategies;
 
-public class OperationWrapStrategy : WrapStrategy
+public class OperationWrapStrategy : InterfaceWrapStrategy
 {
     protected override string BaseTypeSnippet => "IOperationWrapper";
     protected override string FromTypeName => "IOperation";
@@ -27,8 +27,5 @@ public class OperationWrapStrategy : WrapStrategy
                 IsInstance(instance) ? From(instance) : null;
         """;
 
-    public OperationWrapStrategy(Type latest, MemberDescriptor[] members) : base(latest, typeof(IOperation), null, members) { }
-
-    protected override string WrapperToWrapperConversions(StrategyModel model) =>
-        WrapperToWrapperConversions(Latest.GetInterfaces().Where(x => model[x] is OperationWrapStrategy));
+    public OperationWrapStrategy(Type latest, MemberDescriptor[] members) : base(latest, typeof(IOperation), members) { }
 }

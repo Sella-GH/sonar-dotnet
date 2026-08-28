@@ -24,10 +24,10 @@ public static partial class CSharpCommandLineParserShimExtensions
 {
     private static readonly Type WrappedType = typeof(CSharpCommandLineParser);
 
-    private static readonly Func<CSharpCommandLineParser, CSharpCommandLineParser> ScriptAccessor = AccessorFactory.CreateProperty<Func<CSharpCommandLineParser, CSharpCommandLineParser>>(WrappedType, "Script");
+    private static readonly Func<CSharpCommandLineParser> ScriptAccessor = AccessorFactory.CreateStaticProperty<Func<CSharpCommandLineParser>>(WrappedType, "Script");
 
     extension(CSharpCommandLineParser wrappedInstance)
     {
-        public CSharpCommandLineParser Script => ScriptAccessor(wrappedInstance);
+        public static CSharpCommandLineParser Script => ScriptAccessor();
     }
 }

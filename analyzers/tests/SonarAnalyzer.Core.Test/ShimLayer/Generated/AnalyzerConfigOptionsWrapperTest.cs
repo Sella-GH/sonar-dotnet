@@ -15,11 +15,12 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-namespace StyleCop.Analyzers.Lightup;
+namespace SonarAnalyzer.Core.Test.ShimLayer.Generated;
 
-public static partial class ITypeSymbolExtensions
+[TestClass]
+public class AnalyzerConfigOptionsWrapperTest
 {
-    private static readonly Func<ITypeSymbol, bool> IsRefLikeTypeAccessor = LightupHelpers.CreateSyntaxPropertyAccessor<ITypeSymbol, bool>(typeof(ITypeSymbol), nameof(IsRefLikeType));
-
-    public static bool IsRefLikeType(this ITypeSymbol symbol) => IsRefLikeTypeAccessor(symbol);
+    [TestMethod]
+    public void StaticProperty() =>
+        AnalyzerConfigOptionsWrapper.KeyComparer.Should().NotBeNull();
 }
