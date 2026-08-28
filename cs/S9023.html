@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="S9023: &quot;Include&quot; calls discarded by query reshaping should be fixed (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S9023 - &quot;Include&quot; calls discarded by query reshaping should be fixed (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+<script src="../theme.js"></script>
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../"><span aria-hidden="true">&larr;</span> Back to index</a><button type="button" id="theme-toggle" aria-label="Toggle color theme, currently Auto" title="Theme: Auto"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="18" x2="12" y2="21"></line></svg></button></nav>
+<header>
+<h1>S9023 &mdash; &quot;Include&quot; calls discarded by query reshaping should be fixed</h1>
+
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Bug</dd></div>
+<div><dt>Severity</dt><dd>Critical</dd></div>
+<div><dt>Tags</dt><dd>entity-framework-core, entity-framework, orm, database</dd></div>
+</dl>
+</header>
+<main>
+<p>An <code>Include</code> call can compile and run without error while Entity Framework Core silently drops the data it requests.</p>
+<h2>Why is this an issue?</h2>
+<p>Entity Framework Core tracks pending <code>Include</code> calls against the shape of the entity flowing through the query. An operation such as
+<code>SelectMany</code> that changes this shape to a different entity type drops any <code>Include</code> that was requested against the earlier
+shape. No exception is thrown and no warning is logged, so the missing data is only noticed once it turns out to be missing.</p>
+<h3>What is the potential impact?</h3>
+<p>Code that expects a navigation to be loaded still compiles and runs, but the property is null or empty at runtime. The resulting bug — a
+<code>NullReferenceException</code>, or silently incomplete data shown to a user — surfaces far from the query that caused it.</p>
+<h2>How to fix it</h2>
+<p>Move the <code>Include</code> after the operation that changes the shape, anchored on the new entity type. This requires a navigation back to the
+original type; if the target entity does not expose one, add it, or restructure the query so the <code>Include</code> runs before the shape-changing
+operation.</p>
+<h3>Code examples</h3>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+var posts = await context.Blogs
+    .Include(b =&gt; b.Owner) // Noncompliant: dropped once SelectMany reshapes the query to Post
+    .SelectMany(b =&gt; b.Posts)
+    .ToListAsync();
+</code></pre>
+<h4>Compliant solution</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+var posts = await context.Blogs
+    .SelectMany(b =&gt; b.Posts)
+    .Include(p =&gt; p.Blog).ThenInclude(b =&gt; b.Owner)
+    .ToListAsync();
+</code></pre>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/ef/core/querying/related-data/eager">Loading related data - Eager loading</a></li>
+</ul>
+<h3>Related rules</h3>
+<ul>
+  <li><a href="../cs/S8733.html">S8733</a> - covers loading multiple sibling collections in a single query; that rule’s Includes are effective but expensive, this
+  rule’s Includes are dropped entirely.</li>
+  <li><a href="../cs/S9022.html">S9022</a> - covers <code>Include</code> calls that are harmless no-ops rather than silent data loss.</li>
+</ul>
+
+</main>
+<p class="to-top"><a href="#">&uarr; Back to top</a></p>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>
