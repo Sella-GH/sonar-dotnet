@@ -18,7 +18,7 @@
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly struct LineDirectivePositionSyntaxWrapper
+public readonly struct LineDirectivePositionSyntaxWrapper : IWrapper, IEquatable<LineDirectivePositionSyntaxWrapper>
 {
     private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.LineDirectivePositionSyntax");
     private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
@@ -44,6 +44,24 @@ public readonly struct LineDirectivePositionSyntaxWrapper
 
     public CSharpSyntaxNode WrappedInstance => wrappedInstance;
 
+    object IWrapper.WrappedInstance => wrappedInstance;
+
+    public override int GetHashCode() =>
+        wrappedInstance?.GetHashCode() ?? 0;
+
+    public override bool Equals(object obj) =>
+        (obj is IWrapper wrapper && Equals(wrappedInstance, wrapper.WrappedInstance))
+        || Equals(wrappedInstance, obj);
+
+    public bool Equals(LineDirectivePositionSyntaxWrapper other) =>
+        Equals(wrappedInstance, other.wrappedInstance);
+
+    public static bool operator ==(LineDirectivePositionSyntaxWrapper left, LineDirectivePositionSyntaxWrapper right) =>
+        Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public static bool operator !=(LineDirectivePositionSyntaxWrapper left, LineDirectivePositionSyntaxWrapper right) =>
+        !Equals(left.wrappedInstance, right.wrappedInstance);
+
     public bool ContainsAnnotations => wrappedInstance.ContainsAnnotations;
     public bool ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
     public bool ContainsDirectives => wrappedInstance.ContainsDirectives;
@@ -61,11 +79,11 @@ public readonly struct LineDirectivePositionSyntaxWrapper
     public TextSpan Span => wrappedInstance.Span;
     public int SpanStart => wrappedInstance.SpanStart;
 
-    public SyntaxToken Character => (SyntaxToken)CharacterAccessor(wrappedInstance);
-    public SyntaxToken CloseParenToken => (SyntaxToken)CloseParenTokenAccessor(wrappedInstance);
-    public SyntaxToken CommaToken => (SyntaxToken)CommaTokenAccessor(wrappedInstance);
-    public SyntaxToken Line => (SyntaxToken)LineAccessor(wrappedInstance);
-    public SyntaxToken OpenParenToken => (SyntaxToken)OpenParenTokenAccessor(wrappedInstance);
+    public SyntaxToken Character => CharacterAccessor(wrappedInstance);
+    public SyntaxToken CloseParenToken => CloseParenTokenAccessor(wrappedInstance);
+    public SyntaxToken CommaToken => CommaTokenAccessor(wrappedInstance);
+    public SyntaxToken Line => LineAccessor(wrappedInstance);
+    public SyntaxToken OpenParenToken => OpenParenTokenAccessor(wrappedInstance);
 
     public void Accept(CSharpSyntaxVisitor visitor) => wrappedInstance.Accept(visitor);
     public IEnumerable<SyntaxNode> Ancestors(bool ascendOutOfTrivia) => wrappedInstance.Ancestors(ascendOutOfTrivia);

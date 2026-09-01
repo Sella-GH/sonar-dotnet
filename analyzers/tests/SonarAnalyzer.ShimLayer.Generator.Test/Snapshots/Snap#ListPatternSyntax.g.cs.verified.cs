@@ -18,7 +18,7 @@
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly struct ListPatternSyntaxWrapper
+public readonly struct ListPatternSyntaxWrapper : IWrapper, IEquatable<ListPatternSyntaxWrapper>
 {
     private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.ListPatternSyntax");
     private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
@@ -43,6 +43,24 @@ public readonly struct ListPatternSyntaxWrapper
 
     public CSharpSyntaxNode WrappedInstance => wrappedInstance;
 
+    object IWrapper.WrappedInstance => wrappedInstance;
+
+    public override int GetHashCode() =>
+        wrappedInstance?.GetHashCode() ?? 0;
+
+    public override bool Equals(object obj) =>
+        (obj is IWrapper wrapper && Equals(wrappedInstance, wrapper.WrappedInstance))
+        || Equals(wrappedInstance, obj);
+
+    public bool Equals(ListPatternSyntaxWrapper other) =>
+        Equals(wrappedInstance, other.wrappedInstance);
+
+    public static bool operator ==(ListPatternSyntaxWrapper left, ListPatternSyntaxWrapper right) =>
+        Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public static bool operator !=(ListPatternSyntaxWrapper left, ListPatternSyntaxWrapper right) =>
+        !Equals(left.wrappedInstance, right.wrappedInstance);
+
     public bool ContainsAnnotations => wrappedInstance.ContainsAnnotations;
     public bool ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
     public bool ContainsDirectives => wrappedInstance.ContainsDirectives;
@@ -60,9 +78,9 @@ public readonly struct ListPatternSyntaxWrapper
     public TextSpan Span => wrappedInstance.Span;
     public int SpanStart => wrappedInstance.SpanStart;
 
-    public SyntaxToken CloseBracketToken => (SyntaxToken)CloseBracketTokenAccessor(wrappedInstance);
+    public SyntaxToken CloseBracketToken => CloseBracketTokenAccessor(wrappedInstance);
     public VariableDesignationSyntaxWrapper Designation => VariableDesignationSyntaxWrapper.From(DesignationAccessor(wrappedInstance));
-    public SyntaxToken OpenBracketToken => (SyntaxToken)OpenBracketTokenAccessor(wrappedInstance);
+    public SyntaxToken OpenBracketToken => OpenBracketTokenAccessor(wrappedInstance);
     public SeparatedSyntaxListWrapper<PatternSyntaxWrapper> Patterns => PatternsAccessor(wrappedInstance);
 
     public void Accept(CSharpSyntaxVisitor visitor) => wrappedInstance.Accept(visitor);

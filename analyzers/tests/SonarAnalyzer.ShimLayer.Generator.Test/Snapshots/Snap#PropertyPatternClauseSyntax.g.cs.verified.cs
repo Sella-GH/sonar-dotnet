@@ -18,7 +18,7 @@
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly struct PropertyPatternClauseSyntaxWrapper
+public readonly struct PropertyPatternClauseSyntaxWrapper : IWrapper, IEquatable<PropertyPatternClauseSyntaxWrapper>
 {
     private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternClauseSyntax");
     private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
@@ -41,6 +41,24 @@ public readonly struct PropertyPatternClauseSyntaxWrapper
 
     public CSharpSyntaxNode WrappedInstance => wrappedInstance;
 
+    object IWrapper.WrappedInstance => wrappedInstance;
+
+    public override int GetHashCode() =>
+        wrappedInstance?.GetHashCode() ?? 0;
+
+    public override bool Equals(object obj) =>
+        (obj is IWrapper wrapper && Equals(wrappedInstance, wrapper.WrappedInstance))
+        || Equals(wrappedInstance, obj);
+
+    public bool Equals(PropertyPatternClauseSyntaxWrapper other) =>
+        Equals(wrappedInstance, other.wrappedInstance);
+
+    public static bool operator ==(PropertyPatternClauseSyntaxWrapper left, PropertyPatternClauseSyntaxWrapper right) =>
+        Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public static bool operator !=(PropertyPatternClauseSyntaxWrapper left, PropertyPatternClauseSyntaxWrapper right) =>
+        !Equals(left.wrappedInstance, right.wrappedInstance);
+
     public bool ContainsAnnotations => wrappedInstance.ContainsAnnotations;
     public bool ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
     public bool ContainsDirectives => wrappedInstance.ContainsDirectives;
@@ -58,8 +76,8 @@ public readonly struct PropertyPatternClauseSyntaxWrapper
     public TextSpan Span => wrappedInstance.Span;
     public int SpanStart => wrappedInstance.SpanStart;
 
-    public SyntaxToken CloseBraceToken => (SyntaxToken)CloseBraceTokenAccessor(wrappedInstance);
-    public SyntaxToken OpenBraceToken => (SyntaxToken)OpenBraceTokenAccessor(wrappedInstance);
+    public SyntaxToken CloseBraceToken => CloseBraceTokenAccessor(wrappedInstance);
+    public SyntaxToken OpenBraceToken => OpenBraceTokenAccessor(wrappedInstance);
     public SeparatedSyntaxListWrapper<SubpatternSyntaxWrapper> Subpatterns => SubpatternsAccessor(wrappedInstance);
 
     public void Accept(CSharpSyntaxVisitor visitor) => wrappedInstance.Accept(visitor);

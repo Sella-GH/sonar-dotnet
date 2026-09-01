@@ -18,12 +18,13 @@
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly struct ControlFlowGraphWrapper
+public readonly struct ControlFlowGraphWrapper : IWrapper, IEquatable<ControlFlowGraphWrapper>
 {
     private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph");
     private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly Object wrappedInstance;
 
+    private static readonly Func<Object, ImmutableArray<BasicBlockWrapper>> BlocksAccessor = AccessorFactory.CreateProperty<Func<Object, ImmutableArray<BasicBlockWrapper>>>(WrappedType, "Blocks");
     private static readonly Func<Object, ImmutableArray<IMethodSymbol>> LocalFunctionsAccessor = AccessorFactory.CreateProperty<Func<Object, ImmutableArray<IMethodSymbol>>>(WrappedType, "LocalFunctions");
     private static readonly Func<Object, IOperation> OriginalOperationAccessor = AccessorFactory.CreateProperty<Func<Object, IOperation>>(WrappedType, "OriginalOperation");
     private static readonly Func<Object, Object> ParentAccessor = AccessorFactory.CreateProperty<Func<Object, Object>>(WrappedType, "Parent");
@@ -45,6 +46,25 @@ public readonly struct ControlFlowGraphWrapper
 
     public Object WrappedInstance => wrappedInstance;
 
+    object IWrapper.WrappedInstance => wrappedInstance;
+
+    public override int GetHashCode() =>
+        wrappedInstance?.GetHashCode() ?? 0;
+
+    public override bool Equals(object obj) =>
+        (obj is IWrapper wrapper && Equals(wrappedInstance, wrapper.WrappedInstance))
+        || Equals(wrappedInstance, obj);
+
+    public bool Equals(ControlFlowGraphWrapper other) =>
+        Equals(wrappedInstance, other.wrappedInstance);
+
+    public static bool operator ==(ControlFlowGraphWrapper left, ControlFlowGraphWrapper right) =>
+        Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public static bool operator !=(ControlFlowGraphWrapper left, ControlFlowGraphWrapper right) =>
+        !Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public ImmutableArray<BasicBlockWrapper> Blocks => BlocksAccessor(wrappedInstance);
     public ImmutableArray<IMethodSymbol> LocalFunctions => (ImmutableArray<IMethodSymbol>)LocalFunctionsAccessor(wrappedInstance);
     public IOperation OriginalOperation => OriginalOperationAccessor(wrappedInstance);
     public ControlFlowGraphWrapper Parent => ControlFlowGraphWrapper.From(ParentAccessor(wrappedInstance));

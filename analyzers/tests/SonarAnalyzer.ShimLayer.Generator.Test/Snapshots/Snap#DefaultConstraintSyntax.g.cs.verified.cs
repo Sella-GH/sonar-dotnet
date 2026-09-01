@@ -18,7 +18,7 @@
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly struct DefaultConstraintSyntaxWrapper
+public readonly struct DefaultConstraintSyntaxWrapper : IWrapper, IEquatable<DefaultConstraintSyntaxWrapper>
 {
     private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.DefaultConstraintSyntax");
     private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
@@ -35,6 +35,24 @@ public readonly struct DefaultConstraintSyntaxWrapper
         this.wrappedInstance = wrappedInstance;
 
     public TypeParameterConstraintSyntax WrappedInstance => wrappedInstance;
+
+    object IWrapper.WrappedInstance => wrappedInstance;
+
+    public override int GetHashCode() =>
+        wrappedInstance?.GetHashCode() ?? 0;
+
+    public override bool Equals(object obj) =>
+        (obj is IWrapper wrapper && Equals(wrappedInstance, wrapper.WrappedInstance))
+        || Equals(wrappedInstance, obj);
+
+    public bool Equals(DefaultConstraintSyntaxWrapper other) =>
+        Equals(wrappedInstance, other.wrappedInstance);
+
+    public static bool operator ==(DefaultConstraintSyntaxWrapper left, DefaultConstraintSyntaxWrapper right) =>
+        Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public static bool operator !=(DefaultConstraintSyntaxWrapper left, DefaultConstraintSyntaxWrapper right) =>
+        !Equals(left.wrappedInstance, right.wrappedInstance);
 
     public bool ContainsAnnotations => wrappedInstance.ContainsAnnotations;
     public bool ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
@@ -53,7 +71,7 @@ public readonly struct DefaultConstraintSyntaxWrapper
     public TextSpan Span => wrappedInstance.Span;
     public int SpanStart => wrappedInstance.SpanStart;
 
-    public SyntaxToken DefaultKeyword => (SyntaxToken)DefaultKeywordAccessor(wrappedInstance);
+    public SyntaxToken DefaultKeyword => DefaultKeywordAccessor(wrappedInstance);
 
     public void Accept(CSharpSyntaxVisitor visitor) => wrappedInstance.Accept(visitor);
     public IEnumerable<SyntaxNode> Ancestors(bool ascendOutOfTrivia) => wrappedInstance.Ancestors(ascendOutOfTrivia);

@@ -18,7 +18,7 @@
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly struct RefStructConstraintSyntaxWrapper
+public readonly struct RefStructConstraintSyntaxWrapper : IWrapper, IEquatable<RefStructConstraintSyntaxWrapper>
 {
     private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.RefStructConstraintSyntax");
     private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
@@ -38,6 +38,24 @@ public readonly struct RefStructConstraintSyntaxWrapper
 
     public CSharpSyntaxNode WrappedInstance => wrappedInstance;
 
+    object IWrapper.WrappedInstance => wrappedInstance;
+
+    public override int GetHashCode() =>
+        wrappedInstance?.GetHashCode() ?? 0;
+
+    public override bool Equals(object obj) =>
+        (obj is IWrapper wrapper && Equals(wrappedInstance, wrapper.WrappedInstance))
+        || Equals(wrappedInstance, obj);
+
+    public bool Equals(RefStructConstraintSyntaxWrapper other) =>
+        Equals(wrappedInstance, other.wrappedInstance);
+
+    public static bool operator ==(RefStructConstraintSyntaxWrapper left, RefStructConstraintSyntaxWrapper right) =>
+        Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public static bool operator !=(RefStructConstraintSyntaxWrapper left, RefStructConstraintSyntaxWrapper right) =>
+        !Equals(left.wrappedInstance, right.wrappedInstance);
+
     public bool ContainsAnnotations => wrappedInstance.ContainsAnnotations;
     public bool ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
     public bool ContainsDirectives => wrappedInstance.ContainsDirectives;
@@ -55,8 +73,8 @@ public readonly struct RefStructConstraintSyntaxWrapper
     public TextSpan Span => wrappedInstance.Span;
     public int SpanStart => wrappedInstance.SpanStart;
 
-    public SyntaxToken RefKeyword => (SyntaxToken)RefKeywordAccessor(wrappedInstance);
-    public SyntaxToken StructKeyword => (SyntaxToken)StructKeywordAccessor(wrappedInstance);
+    public SyntaxToken RefKeyword => RefKeywordAccessor(wrappedInstance);
+    public SyntaxToken StructKeyword => StructKeywordAccessor(wrappedInstance);
 
     public void Accept(CSharpSyntaxVisitor visitor) => wrappedInstance.Accept(visitor);
     public IEnumerable<SyntaxNode> Ancestors(bool ascendOutOfTrivia) => wrappedInstance.Ancestors(ascendOutOfTrivia);

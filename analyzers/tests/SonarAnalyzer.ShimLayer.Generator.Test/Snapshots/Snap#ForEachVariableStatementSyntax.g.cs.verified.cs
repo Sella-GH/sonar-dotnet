@@ -18,7 +18,7 @@
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly struct ForEachVariableStatementSyntaxWrapper
+public readonly struct ForEachVariableStatementSyntaxWrapper : IWrapper, IEquatable<ForEachVariableStatementSyntaxWrapper>
 {
     private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.ForEachVariableStatementSyntax");
     private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
@@ -55,6 +55,24 @@ public readonly struct ForEachVariableStatementSyntaxWrapper
 
     public StatementSyntax WrappedInstance => wrappedInstance;
 
+    object IWrapper.WrappedInstance => wrappedInstance;
+
+    public override int GetHashCode() =>
+        wrappedInstance?.GetHashCode() ?? 0;
+
+    public override bool Equals(object obj) =>
+        (obj is IWrapper wrapper && Equals(wrappedInstance, wrapper.WrappedInstance))
+        || Equals(wrappedInstance, obj);
+
+    public bool Equals(ForEachVariableStatementSyntaxWrapper other) =>
+        Equals(wrappedInstance, other.wrappedInstance);
+
+    public static bool operator ==(ForEachVariableStatementSyntaxWrapper left, ForEachVariableStatementSyntaxWrapper right) =>
+        Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public static bool operator !=(ForEachVariableStatementSyntaxWrapper left, ForEachVariableStatementSyntaxWrapper right) =>
+        !Equals(left.wrappedInstance, right.wrappedInstance);
+
     public bool ContainsAnnotations => wrappedInstance.ContainsAnnotations;
     public bool ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
     public bool ContainsDirectives => wrappedInstance.ContainsDirectives;
@@ -73,12 +91,12 @@ public readonly struct ForEachVariableStatementSyntaxWrapper
     public int SpanStart => wrappedInstance.SpanStart;
 
     public SyntaxList<AttributeListSyntax> AttributeLists => (SyntaxList<AttributeListSyntax>)AttributeListsAccessor(wrappedInstance);
-    public SyntaxToken AwaitKeyword => (SyntaxToken)AwaitKeywordAccessor(wrappedInstance);
-    public SyntaxToken CloseParenToken => (SyntaxToken)CloseParenTokenAccessor(wrappedInstance);
+    public SyntaxToken AwaitKeyword => AwaitKeywordAccessor(wrappedInstance);
+    public SyntaxToken CloseParenToken => CloseParenTokenAccessor(wrappedInstance);
     public ExpressionSyntax Expression => ExpressionAccessor(wrappedInstance);
-    public SyntaxToken ForEachKeyword => (SyntaxToken)ForEachKeywordAccessor(wrappedInstance);
-    public SyntaxToken InKeyword => (SyntaxToken)InKeywordAccessor(wrappedInstance);
-    public SyntaxToken OpenParenToken => (SyntaxToken)OpenParenTokenAccessor(wrappedInstance);
+    public SyntaxToken ForEachKeyword => ForEachKeywordAccessor(wrappedInstance);
+    public SyntaxToken InKeyword => InKeywordAccessor(wrappedInstance);
+    public SyntaxToken OpenParenToken => OpenParenTokenAccessor(wrappedInstance);
     public StatementSyntax Statement => StatementAccessor(wrappedInstance);
     public ExpressionSyntax Variable => VariableAccessor(wrappedInstance);
 

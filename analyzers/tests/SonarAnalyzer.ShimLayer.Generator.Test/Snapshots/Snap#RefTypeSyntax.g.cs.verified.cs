@@ -18,7 +18,7 @@
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly struct RefTypeSyntaxWrapper
+public readonly struct RefTypeSyntaxWrapper : IWrapper, IEquatable<RefTypeSyntaxWrapper>
 {
     private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax");
     private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
@@ -45,6 +45,24 @@ public readonly struct RefTypeSyntaxWrapper
 
     public TypeSyntax WrappedInstance => wrappedInstance;
 
+    object IWrapper.WrappedInstance => wrappedInstance;
+
+    public override int GetHashCode() =>
+        wrappedInstance?.GetHashCode() ?? 0;
+
+    public override bool Equals(object obj) =>
+        (obj is IWrapper wrapper && Equals(wrappedInstance, wrapper.WrappedInstance))
+        || Equals(wrappedInstance, obj);
+
+    public bool Equals(RefTypeSyntaxWrapper other) =>
+        Equals(wrappedInstance, other.wrappedInstance);
+
+    public static bool operator ==(RefTypeSyntaxWrapper left, RefTypeSyntaxWrapper right) =>
+        Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public static bool operator !=(RefTypeSyntaxWrapper left, RefTypeSyntaxWrapper right) =>
+        !Equals(left.wrappedInstance, right.wrappedInstance);
+
     public bool ContainsAnnotations => wrappedInstance.ContainsAnnotations;
     public bool ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
     public bool ContainsDirectives => wrappedInstance.ContainsDirectives;
@@ -67,8 +85,8 @@ public readonly struct RefTypeSyntaxWrapper
     public bool IsNotNull => (bool)IsNotNullAccessor(wrappedInstance);
     public bool IsNuint => (bool)IsNuintAccessor(wrappedInstance);
     public bool IsUnmanaged => (bool)IsUnmanagedAccessor(wrappedInstance);
-    public SyntaxToken ReadOnlyKeyword => (SyntaxToken)ReadOnlyKeywordAccessor(wrappedInstance);
-    public SyntaxToken RefKeyword => (SyntaxToken)RefKeywordAccessor(wrappedInstance);
+    public SyntaxToken ReadOnlyKeyword => ReadOnlyKeywordAccessor(wrappedInstance);
+    public SyntaxToken RefKeyword => RefKeywordAccessor(wrappedInstance);
     public TypeSyntax Type => TypeAccessor(wrappedInstance);
 
     public void Accept(CSharpSyntaxVisitor visitor) => wrappedInstance.Accept(visitor);

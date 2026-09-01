@@ -18,7 +18,7 @@
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly struct LineSpanDirectiveTriviaSyntaxWrapper
+public readonly struct LineSpanDirectiveTriviaSyntaxWrapper : IWrapper, IEquatable<LineSpanDirectiveTriviaSyntaxWrapper>
 {
     private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.LineSpanDirectiveTriviaSyntax");
     private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
@@ -49,6 +49,24 @@ public readonly struct LineSpanDirectiveTriviaSyntaxWrapper
 
     public DirectiveTriviaSyntax WrappedInstance => wrappedInstance;
 
+    object IWrapper.WrappedInstance => wrappedInstance;
+
+    public override int GetHashCode() =>
+        wrappedInstance?.GetHashCode() ?? 0;
+
+    public override bool Equals(object obj) =>
+        (obj is IWrapper wrapper && Equals(wrappedInstance, wrapper.WrappedInstance))
+        || Equals(wrappedInstance, obj);
+
+    public bool Equals(LineSpanDirectiveTriviaSyntaxWrapper other) =>
+        Equals(wrappedInstance, other.wrappedInstance);
+
+    public static bool operator ==(LineSpanDirectiveTriviaSyntaxWrapper left, LineSpanDirectiveTriviaSyntaxWrapper right) =>
+        Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public static bool operator !=(LineSpanDirectiveTriviaSyntaxWrapper left, LineSpanDirectiveTriviaSyntaxWrapper right) =>
+        !Equals(left.wrappedInstance, right.wrappedInstance);
+
     public bool ContainsAnnotations => wrappedInstance.ContainsAnnotations;
     public bool ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
     public bool ContainsDirectives => wrappedInstance.ContainsDirectives;
@@ -70,11 +88,11 @@ public readonly struct LineSpanDirectiveTriviaSyntaxWrapper
     public TextSpan Span => wrappedInstance.Span;
     public int SpanStart => wrappedInstance.SpanStart;
 
-    public SyntaxToken CharacterOffset => (SyntaxToken)CharacterOffsetAccessor(wrappedInstance);
+    public SyntaxToken CharacterOffset => CharacterOffsetAccessor(wrappedInstance);
     public LineDirectivePositionSyntaxWrapper End => LineDirectivePositionSyntaxWrapper.From(EndAccessor(wrappedInstance));
-    public SyntaxToken File => (SyntaxToken)FileAccessor(wrappedInstance);
-    public SyntaxToken LineKeyword => (SyntaxToken)LineKeywordAccessor(wrappedInstance);
-    public SyntaxToken MinusToken => (SyntaxToken)MinusTokenAccessor(wrappedInstance);
+    public SyntaxToken File => FileAccessor(wrappedInstance);
+    public SyntaxToken LineKeyword => LineKeywordAccessor(wrappedInstance);
+    public SyntaxToken MinusToken => MinusTokenAccessor(wrappedInstance);
     public LineDirectivePositionSyntaxWrapper Start => LineDirectivePositionSyntaxWrapper.From(StartAccessor(wrappedInstance));
 
     public void Accept(CSharpSyntaxVisitor visitor) => wrappedInstance.Accept(visitor);

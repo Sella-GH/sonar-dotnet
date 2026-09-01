@@ -18,7 +18,7 @@
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly struct ScopedTypeSyntaxWrapper
+public readonly struct ScopedTypeSyntaxWrapper : IWrapper, IEquatable<ScopedTypeSyntaxWrapper>
 {
     private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax");
     private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
@@ -42,6 +42,24 @@ public readonly struct ScopedTypeSyntaxWrapper
 
     public TypeSyntax WrappedInstance => wrappedInstance;
 
+    object IWrapper.WrappedInstance => wrappedInstance;
+
+    public override int GetHashCode() =>
+        wrappedInstance?.GetHashCode() ?? 0;
+
+    public override bool Equals(object obj) =>
+        (obj is IWrapper wrapper && Equals(wrappedInstance, wrapper.WrappedInstance))
+        || Equals(wrappedInstance, obj);
+
+    public bool Equals(ScopedTypeSyntaxWrapper other) =>
+        Equals(wrappedInstance, other.wrappedInstance);
+
+    public static bool operator ==(ScopedTypeSyntaxWrapper left, ScopedTypeSyntaxWrapper right) =>
+        Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public static bool operator !=(ScopedTypeSyntaxWrapper left, ScopedTypeSyntaxWrapper right) =>
+        !Equals(left.wrappedInstance, right.wrappedInstance);
+
     public bool ContainsAnnotations => wrappedInstance.ContainsAnnotations;
     public bool ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
     public bool ContainsDirectives => wrappedInstance.ContainsDirectives;
@@ -64,7 +82,7 @@ public readonly struct ScopedTypeSyntaxWrapper
     public bool IsNotNull => (bool)IsNotNullAccessor(wrappedInstance);
     public bool IsNuint => (bool)IsNuintAccessor(wrappedInstance);
     public bool IsUnmanaged => (bool)IsUnmanagedAccessor(wrappedInstance);
-    public SyntaxToken ScopedKeyword => (SyntaxToken)ScopedKeywordAccessor(wrappedInstance);
+    public SyntaxToken ScopedKeyword => ScopedKeywordAccessor(wrappedInstance);
     public TypeSyntax Type => TypeAccessor(wrappedInstance);
 
     public void Accept(CSharpSyntaxVisitor visitor) => wrappedInstance.Accept(visitor);

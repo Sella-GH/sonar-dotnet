@@ -18,7 +18,7 @@
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly struct WhenClauseSyntaxWrapper
+public readonly struct WhenClauseSyntaxWrapper : IWrapper, IEquatable<WhenClauseSyntaxWrapper>
 {
     private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax");
     private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
@@ -38,6 +38,24 @@ public readonly struct WhenClauseSyntaxWrapper
 
     public CSharpSyntaxNode WrappedInstance => wrappedInstance;
 
+    object IWrapper.WrappedInstance => wrappedInstance;
+
+    public override int GetHashCode() =>
+        wrappedInstance?.GetHashCode() ?? 0;
+
+    public override bool Equals(object obj) =>
+        (obj is IWrapper wrapper && Equals(wrappedInstance, wrapper.WrappedInstance))
+        || Equals(wrappedInstance, obj);
+
+    public bool Equals(WhenClauseSyntaxWrapper other) =>
+        Equals(wrappedInstance, other.wrappedInstance);
+
+    public static bool operator ==(WhenClauseSyntaxWrapper left, WhenClauseSyntaxWrapper right) =>
+        Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public static bool operator !=(WhenClauseSyntaxWrapper left, WhenClauseSyntaxWrapper right) =>
+        !Equals(left.wrappedInstance, right.wrappedInstance);
+
     public bool ContainsAnnotations => wrappedInstance.ContainsAnnotations;
     public bool ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
     public bool ContainsDirectives => wrappedInstance.ContainsDirectives;
@@ -56,7 +74,7 @@ public readonly struct WhenClauseSyntaxWrapper
     public int SpanStart => wrappedInstance.SpanStart;
 
     public ExpressionSyntax Condition => ConditionAccessor(wrappedInstance);
-    public SyntaxToken WhenKeyword => (SyntaxToken)WhenKeywordAccessor(wrappedInstance);
+    public SyntaxToken WhenKeyword => WhenKeywordAccessor(wrappedInstance);
 
     public void Accept(CSharpSyntaxVisitor visitor) => wrappedInstance.Accept(visitor);
     public IEnumerable<SyntaxNode> Ancestors(bool ascendOutOfTrivia) => wrappedInstance.Ancestors(ascendOutOfTrivia);

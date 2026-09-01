@@ -18,7 +18,7 @@
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly struct TupleExpressionSyntaxWrapper
+public readonly struct TupleExpressionSyntaxWrapper : IWrapper, IEquatable<TupleExpressionSyntaxWrapper>
 {
     private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.TupleExpressionSyntax");
     private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
@@ -41,6 +41,24 @@ public readonly struct TupleExpressionSyntaxWrapper
 
     public ExpressionSyntax WrappedInstance => wrappedInstance;
 
+    object IWrapper.WrappedInstance => wrappedInstance;
+
+    public override int GetHashCode() =>
+        wrappedInstance?.GetHashCode() ?? 0;
+
+    public override bool Equals(object obj) =>
+        (obj is IWrapper wrapper && Equals(wrappedInstance, wrapper.WrappedInstance))
+        || Equals(wrappedInstance, obj);
+
+    public bool Equals(TupleExpressionSyntaxWrapper other) =>
+        Equals(wrappedInstance, other.wrappedInstance);
+
+    public static bool operator ==(TupleExpressionSyntaxWrapper left, TupleExpressionSyntaxWrapper right) =>
+        Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public static bool operator !=(TupleExpressionSyntaxWrapper left, TupleExpressionSyntaxWrapper right) =>
+        !Equals(left.wrappedInstance, right.wrappedInstance);
+
     public bool ContainsAnnotations => wrappedInstance.ContainsAnnotations;
     public bool ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
     public bool ContainsDirectives => wrappedInstance.ContainsDirectives;
@@ -59,8 +77,8 @@ public readonly struct TupleExpressionSyntaxWrapper
     public int SpanStart => wrappedInstance.SpanStart;
 
     public SeparatedSyntaxList<ArgumentSyntax> Arguments => (SeparatedSyntaxList<ArgumentSyntax>)ArgumentsAccessor(wrappedInstance);
-    public SyntaxToken CloseParenToken => (SyntaxToken)CloseParenTokenAccessor(wrappedInstance);
-    public SyntaxToken OpenParenToken => (SyntaxToken)OpenParenTokenAccessor(wrappedInstance);
+    public SyntaxToken CloseParenToken => CloseParenTokenAccessor(wrappedInstance);
+    public SyntaxToken OpenParenToken => OpenParenTokenAccessor(wrappedInstance);
 
     public void Accept(CSharpSyntaxVisitor visitor) => wrappedInstance.Accept(visitor);
     public IEnumerable<SyntaxNode> Ancestors(bool ascendOutOfTrivia) => wrappedInstance.Ancestors(ascendOutOfTrivia);

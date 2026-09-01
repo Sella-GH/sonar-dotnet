@@ -18,7 +18,7 @@
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly struct SwitchExpressionSyntaxWrapper
+public readonly struct SwitchExpressionSyntaxWrapper : IWrapper, IEquatable<SwitchExpressionSyntaxWrapper>
 {
     private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.SwitchExpressionSyntax");
     private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
@@ -45,6 +45,24 @@ public readonly struct SwitchExpressionSyntaxWrapper
 
     public ExpressionSyntax WrappedInstance => wrappedInstance;
 
+    object IWrapper.WrappedInstance => wrappedInstance;
+
+    public override int GetHashCode() =>
+        wrappedInstance?.GetHashCode() ?? 0;
+
+    public override bool Equals(object obj) =>
+        (obj is IWrapper wrapper && Equals(wrappedInstance, wrapper.WrappedInstance))
+        || Equals(wrappedInstance, obj);
+
+    public bool Equals(SwitchExpressionSyntaxWrapper other) =>
+        Equals(wrappedInstance, other.wrappedInstance);
+
+    public static bool operator ==(SwitchExpressionSyntaxWrapper left, SwitchExpressionSyntaxWrapper right) =>
+        Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public static bool operator !=(SwitchExpressionSyntaxWrapper left, SwitchExpressionSyntaxWrapper right) =>
+        !Equals(left.wrappedInstance, right.wrappedInstance);
+
     public bool ContainsAnnotations => wrappedInstance.ContainsAnnotations;
     public bool ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
     public bool ContainsDirectives => wrappedInstance.ContainsDirectives;
@@ -63,10 +81,10 @@ public readonly struct SwitchExpressionSyntaxWrapper
     public int SpanStart => wrappedInstance.SpanStart;
 
     public SeparatedSyntaxListWrapper<SwitchExpressionArmSyntaxWrapper> Arms => ArmsAccessor(wrappedInstance);
-    public SyntaxToken CloseBraceToken => (SyntaxToken)CloseBraceTokenAccessor(wrappedInstance);
+    public SyntaxToken CloseBraceToken => CloseBraceTokenAccessor(wrappedInstance);
     public ExpressionSyntax GoverningExpression => GoverningExpressionAccessor(wrappedInstance);
-    public SyntaxToken OpenBraceToken => (SyntaxToken)OpenBraceTokenAccessor(wrappedInstance);
-    public SyntaxToken SwitchKeyword => (SyntaxToken)SwitchKeywordAccessor(wrappedInstance);
+    public SyntaxToken OpenBraceToken => OpenBraceTokenAccessor(wrappedInstance);
+    public SyntaxToken SwitchKeyword => SwitchKeywordAccessor(wrappedInstance);
 
     public void Accept(CSharpSyntaxVisitor visitor) => wrappedInstance.Accept(visitor);
     public IEnumerable<SyntaxNode> Ancestors(bool ascendOutOfTrivia) => wrappedInstance.Ancestors(ascendOutOfTrivia);

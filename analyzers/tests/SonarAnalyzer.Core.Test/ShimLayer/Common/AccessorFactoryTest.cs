@@ -18,6 +18,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using SonarAnalyzer.ShimLayer.Common;
 
@@ -93,6 +94,20 @@ public class AccessorFactoryTest
     {
         var accessor = AccessorFactory.CreateProperty<Func<IOperation, ImmutableArray<ILocalSymbol>>>(null, "Locals");
         accessor(CreateForEachOperation()).Should().NotBeNull().And.BeEmpty();
+    }
+
+    [TestMethod]
+    public void ReturnType_ImmutableArrayOfValueType_Shimmed()
+    {
+        var accessor = AccessorFactory.CreateProperty<Func<object, ImmutableArray<CaptureIdWrapper>>>(typeof(ControlFlowRegion), nameof(ControlFlowRegion.CaptureIds));
+        accessor(CreateControlFlowRegion()).Should().NotBeNull().And.HaveCount(1);
+    }
+
+    [TestMethod]
+    public void ReturnType_ImmutableArrayOfValueType_Fallback()
+    {
+        var accessor = AccessorFactory.CreateProperty<Func<object, ImmutableArray<CaptureIdWrapper>>>(null, nameof(ControlFlowRegion.CaptureIds));
+        accessor(CreateControlFlowRegion()).Should().NotBeNull().And.BeEmpty();
     }
 
     [TestMethod]
@@ -216,7 +231,7 @@ public class AccessorFactoryTest
     public void CreateMethod_Void_Shimmed()
     {
         var accessor = AccessorFactory.CreateMethod<Action<CollectionExpressionSyntax, CSharpSyntaxVisitor>>(typeof(CollectionExpressionSyntax), nameof(CollectionExpressionSyntax.Accept));
-        var visitor = new TestVisitor();
+        var visitor = new TestSyntaxVisitor();
         accessor(CreateCollectionExpression(), visitor);
         visitor.Visited.Should().BeTrue();
     }
@@ -225,8 +240,26 @@ public class AccessorFactoryTest
     public void CreateMethod_Void_Fallback()
     {
         var accessor = AccessorFactory.CreateMethod<Action<CollectionExpressionSyntax, CSharpSyntaxVisitor>>(null, nameof(CollectionExpressionSyntax.Accept));
-        var visitor = new TestVisitor();
+        var visitor = new TestSyntaxVisitor();
         accessor(CreateCollectionExpression(), visitor);
+        visitor.Visited.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void CreateMethod_MethodDeclaredOnBaseInterface_Shimmed()
+    {
+        var accessor = AccessorFactory.CreateMethod<Action<IOperation, OperationVisitor>>(typeof(IArgumentOperation), nameof(IOperation.Accept));
+        var visitor = new TestOperationVisitor();
+        accessor(CreateInvocationOperation().Arguments[0], visitor);
+        visitor.Visited.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void CreateMethod_MethodDeclaredOnBaseInterface_Fallback()
+    {
+        var accessor = AccessorFactory.CreateMethod<Action<IOperation, OperationVisitor>>(null, nameof(IOperation.Accept));
+        var visitor = new TestOperationVisitor();
+        accessor(CreateInvocationOperation().Arguments[0], visitor);
         visitor.Visited.Should().BeFalse();
     }
 
@@ -271,7 +304,6 @@ public class AccessorFactoryTest
         var accessor = AccessorFactory.CreateStaticMethod<Func<string, bool>>(null, nameof(SyntaxFacts.IsCheckedOperator));
         accessor(WellKnownMemberNames.CheckedAdditionOperatorName).Should().BeFalse();
     }
-
 
     [TestMethod]
     public void Create_MethodWithEnumParameter_Shimmed()
@@ -324,6 +356,20 @@ public class AccessorFactoryTest
             }
             """).MethodSymbol("Sample.Method");
 
+    private static ControlFlowRegion CreateControlFlowRegion()
+    {
+        var compiler = new SnippetCompiler("""
+            public class Sample
+            {
+                public string Method(object a, object b) =>
+                    a?.ToString() + b?.ToString();
+            }
+            """);
+        var method = compiler.MethodDeclaration("Sample.Method");
+        var cfg = ControlFlowGraph.Create(method, compiler.Model);
+        return cfg.Root.NestedRegions.Single().NestedRegions.First();
+    }
+
     private static ClassDeclarationSyntax CreateClassDeclaration() =>
         SyntaxFactory.ClassDeclaration("Sample")
             .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("First")).WithType(CreateTypeSyntax()));
@@ -353,11 +399,19 @@ public class AccessorFactoryTest
         }
     }
 
-    private sealed class TestVisitor : CSharpSyntaxVisitor
+    private sealed class TestSyntaxVisitor : CSharpSyntaxVisitor
     {
         public bool Visited { get; private set; }
 
         public override void VisitCollectionExpression(CollectionExpressionSyntax node) =>
+            Visited = true;
+    }
+
+    private sealed class TestOperationVisitor : OperationVisitor
+    {
+        public bool Visited { get; private set; }
+
+        public override void DefaultVisit(IOperation operation) =>
             Visited = true;
     }
 }

@@ -18,7 +18,7 @@
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly struct ICoalesceOperationWrapper : IOperationWrapper
+public readonly struct ICoalesceOperationWrapper : IOperationWrapper, IWrapper, IEquatable<ICoalesceOperationWrapper>
 {
     private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.Operations.ICoalesceOperation");
     private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
@@ -30,6 +30,7 @@ public readonly struct ICoalesceOperationWrapper : IOperationWrapper
     private static readonly Func<IOperation, IOperation> ParentAccessor = AccessorFactory.CreateProperty<Func<IOperation, IOperation>>(WrappedType, "Parent");
     private static readonly Func<IOperation, SemanticModel> SemanticModelAccessor = AccessorFactory.CreateProperty<Func<IOperation, SemanticModel>>(WrappedType, "SemanticModel");
     private static readonly Func<IOperation, IOperation> ValueAccessor = AccessorFactory.CreateProperty<Func<IOperation, IOperation>>(WrappedType, "Value");
+    private static readonly Func<IOperation, Object> ValueConversionAccessor = AccessorFactory.CreateProperty<Func<IOperation, Object>>(WrappedType, "ValueConversion");
     private static readonly Func<IOperation, IOperation> WhenNullAccessor = AccessorFactory.CreateProperty<Func<IOperation, IOperation>>(WrappedType, "WhenNull");
 
     private static readonly Action<IOperation, OperationVisitorWrapper> AcceptAccessor = AccessorFactory.CreateMethod<Action<IOperation, OperationVisitorWrapper>>(WrappedType, "Accept");
@@ -38,6 +39,24 @@ public readonly struct ICoalesceOperationWrapper : IOperationWrapper
         this.wrappedInstance = wrappedInstance;
 
     public IOperation WrappedInstance => wrappedInstance;
+
+    object IWrapper.WrappedInstance => wrappedInstance;
+
+    public override int GetHashCode() =>
+        wrappedInstance?.GetHashCode() ?? 0;
+
+    public override bool Equals(object obj) =>
+        (obj is IWrapper wrapper && Equals(wrappedInstance, wrapper.WrappedInstance))
+        || Equals(wrappedInstance, obj);
+
+    public bool Equals(ICoalesceOperationWrapper other) =>
+        Equals(wrappedInstance, other.wrappedInstance);
+
+    public static bool operator ==(ICoalesceOperationWrapper left, ICoalesceOperationWrapper right) =>
+        Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public static bool operator !=(ICoalesceOperationWrapper left, ICoalesceOperationWrapper right) =>
+        !Equals(left.wrappedInstance, right.wrappedInstance);
 
     public Optional<object> ConstantValue => wrappedInstance.ConstantValue;
     public OperationKind Kind => wrappedInstance.Kind;
@@ -51,6 +70,7 @@ public readonly struct ICoalesceOperationWrapper : IOperationWrapper
     public IOperation Parent => ParentAccessor(wrappedInstance);
     public SemanticModel SemanticModel => SemanticModelAccessor(wrappedInstance);
     public IOperation Value => ValueAccessor(wrappedInstance);
+    public CommonConversionWrapper ValueConversion => CommonConversionWrapper.From(ValueConversionAccessor(wrappedInstance));
     public IOperation WhenNull => WhenNullAccessor(wrappedInstance);
 
     public void Accept(OperationVisitorWrapper visitor) => AcceptAccessor(wrappedInstance, visitor);

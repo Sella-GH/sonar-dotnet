@@ -18,7 +18,7 @@
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly struct ParenthesizedVariableDesignationSyntaxWrapper
+public readonly struct ParenthesizedVariableDesignationSyntaxWrapper : IWrapper, IEquatable<ParenthesizedVariableDesignationSyntaxWrapper>
 {
     private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedVariableDesignationSyntax");
     private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
@@ -41,6 +41,24 @@ public readonly struct ParenthesizedVariableDesignationSyntaxWrapper
 
     public CSharpSyntaxNode WrappedInstance => wrappedInstance;
 
+    object IWrapper.WrappedInstance => wrappedInstance;
+
+    public override int GetHashCode() =>
+        wrappedInstance?.GetHashCode() ?? 0;
+
+    public override bool Equals(object obj) =>
+        (obj is IWrapper wrapper && Equals(wrappedInstance, wrapper.WrappedInstance))
+        || Equals(wrappedInstance, obj);
+
+    public bool Equals(ParenthesizedVariableDesignationSyntaxWrapper other) =>
+        Equals(wrappedInstance, other.wrappedInstance);
+
+    public static bool operator ==(ParenthesizedVariableDesignationSyntaxWrapper left, ParenthesizedVariableDesignationSyntaxWrapper right) =>
+        Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public static bool operator !=(ParenthesizedVariableDesignationSyntaxWrapper left, ParenthesizedVariableDesignationSyntaxWrapper right) =>
+        !Equals(left.wrappedInstance, right.wrappedInstance);
+
     public bool ContainsAnnotations => wrappedInstance.ContainsAnnotations;
     public bool ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
     public bool ContainsDirectives => wrappedInstance.ContainsDirectives;
@@ -58,8 +76,8 @@ public readonly struct ParenthesizedVariableDesignationSyntaxWrapper
     public TextSpan Span => wrappedInstance.Span;
     public int SpanStart => wrappedInstance.SpanStart;
 
-    public SyntaxToken CloseParenToken => (SyntaxToken)CloseParenTokenAccessor(wrappedInstance);
-    public SyntaxToken OpenParenToken => (SyntaxToken)OpenParenTokenAccessor(wrappedInstance);
+    public SyntaxToken CloseParenToken => CloseParenTokenAccessor(wrappedInstance);
+    public SyntaxToken OpenParenToken => OpenParenTokenAccessor(wrappedInstance);
     public SeparatedSyntaxListWrapper<VariableDesignationSyntaxWrapper> Variables => VariablesAccessor(wrappedInstance);
 
     public void Accept(CSharpSyntaxVisitor visitor) => wrappedInstance.Accept(visitor);

@@ -15,15 +15,13 @@
  * along with this program; if not, see https://sonarsource.com/license/ssal/
  */
 
-namespace SonarAnalyzer.ShimLayer.Generator.Strategies;
+namespace SonarAnalyzer.CFG.Extensions;
 
-public class ClassWrapStrategy : WrapStrategy
+public static class CaptureIdWrapperExtensions
 {
-    protected override string BaseTypeSnippet => null;
-
-    protected override string FromTypeName => CompiletimeTypeSnippet;
-
-    protected override string ConversionSnippet => null;
-
-    public ClassWrapStrategy(Type latest, Type baseType, MemberDescriptor[] members) : base(latest, baseType, null, members) { }
+    extension(CaptureIdWrapper captureId)
+    {
+        public string Serialize() =>
+            "#Capture-" + captureId.GetHashCode();
+    }
 }

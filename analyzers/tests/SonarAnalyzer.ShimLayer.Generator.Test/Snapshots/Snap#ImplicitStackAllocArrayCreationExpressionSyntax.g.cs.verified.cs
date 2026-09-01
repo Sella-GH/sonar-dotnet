@@ -18,7 +18,7 @@
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly struct ImplicitStackAllocArrayCreationExpressionSyntaxWrapper
+public readonly struct ImplicitStackAllocArrayCreationExpressionSyntaxWrapper : IWrapper, IEquatable<ImplicitStackAllocArrayCreationExpressionSyntaxWrapper>
 {
     private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.ImplicitStackAllocArrayCreationExpressionSyntax");
     private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
@@ -43,6 +43,24 @@ public readonly struct ImplicitStackAllocArrayCreationExpressionSyntaxWrapper
 
     public ExpressionSyntax WrappedInstance => wrappedInstance;
 
+    object IWrapper.WrappedInstance => wrappedInstance;
+
+    public override int GetHashCode() =>
+        wrappedInstance?.GetHashCode() ?? 0;
+
+    public override bool Equals(object obj) =>
+        (obj is IWrapper wrapper && Equals(wrappedInstance, wrapper.WrappedInstance))
+        || Equals(wrappedInstance, obj);
+
+    public bool Equals(ImplicitStackAllocArrayCreationExpressionSyntaxWrapper other) =>
+        Equals(wrappedInstance, other.wrappedInstance);
+
+    public static bool operator ==(ImplicitStackAllocArrayCreationExpressionSyntaxWrapper left, ImplicitStackAllocArrayCreationExpressionSyntaxWrapper right) =>
+        Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public static bool operator !=(ImplicitStackAllocArrayCreationExpressionSyntaxWrapper left, ImplicitStackAllocArrayCreationExpressionSyntaxWrapper right) =>
+        !Equals(left.wrappedInstance, right.wrappedInstance);
+
     public bool ContainsAnnotations => wrappedInstance.ContainsAnnotations;
     public bool ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
     public bool ContainsDirectives => wrappedInstance.ContainsDirectives;
@@ -60,10 +78,10 @@ public readonly struct ImplicitStackAllocArrayCreationExpressionSyntaxWrapper
     public TextSpan Span => wrappedInstance.Span;
     public int SpanStart => wrappedInstance.SpanStart;
 
-    public SyntaxToken CloseBracketToken => (SyntaxToken)CloseBracketTokenAccessor(wrappedInstance);
+    public SyntaxToken CloseBracketToken => CloseBracketTokenAccessor(wrappedInstance);
     public InitializerExpressionSyntax Initializer => InitializerAccessor(wrappedInstance);
-    public SyntaxToken OpenBracketToken => (SyntaxToken)OpenBracketTokenAccessor(wrappedInstance);
-    public SyntaxToken StackAllocKeyword => (SyntaxToken)StackAllocKeywordAccessor(wrappedInstance);
+    public SyntaxToken OpenBracketToken => OpenBracketTokenAccessor(wrappedInstance);
+    public SyntaxToken StackAllocKeyword => StackAllocKeywordAccessor(wrappedInstance);
 
     public void Accept(CSharpSyntaxVisitor visitor) => wrappedInstance.Accept(visitor);
     public IEnumerable<SyntaxNode> Ancestors(bool ascendOutOfTrivia) => wrappedInstance.Ancestors(ascendOutOfTrivia);

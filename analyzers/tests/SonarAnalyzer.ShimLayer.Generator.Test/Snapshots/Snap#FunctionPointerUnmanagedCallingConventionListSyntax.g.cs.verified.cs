@@ -18,7 +18,7 @@
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly struct FunctionPointerUnmanagedCallingConventionListSyntaxWrapper
+public readonly struct FunctionPointerUnmanagedCallingConventionListSyntaxWrapper : IWrapper, IEquatable<FunctionPointerUnmanagedCallingConventionListSyntaxWrapper>
 {
     private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax");
     private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
@@ -41,6 +41,24 @@ public readonly struct FunctionPointerUnmanagedCallingConventionListSyntaxWrappe
 
     public CSharpSyntaxNode WrappedInstance => wrappedInstance;
 
+    object IWrapper.WrappedInstance => wrappedInstance;
+
+    public override int GetHashCode() =>
+        wrappedInstance?.GetHashCode() ?? 0;
+
+    public override bool Equals(object obj) =>
+        (obj is IWrapper wrapper && Equals(wrappedInstance, wrapper.WrappedInstance))
+        || Equals(wrappedInstance, obj);
+
+    public bool Equals(FunctionPointerUnmanagedCallingConventionListSyntaxWrapper other) =>
+        Equals(wrappedInstance, other.wrappedInstance);
+
+    public static bool operator ==(FunctionPointerUnmanagedCallingConventionListSyntaxWrapper left, FunctionPointerUnmanagedCallingConventionListSyntaxWrapper right) =>
+        Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public static bool operator !=(FunctionPointerUnmanagedCallingConventionListSyntaxWrapper left, FunctionPointerUnmanagedCallingConventionListSyntaxWrapper right) =>
+        !Equals(left.wrappedInstance, right.wrappedInstance);
+
     public bool ContainsAnnotations => wrappedInstance.ContainsAnnotations;
     public bool ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
     public bool ContainsDirectives => wrappedInstance.ContainsDirectives;
@@ -59,8 +77,8 @@ public readonly struct FunctionPointerUnmanagedCallingConventionListSyntaxWrappe
     public int SpanStart => wrappedInstance.SpanStart;
 
     public SeparatedSyntaxListWrapper<FunctionPointerUnmanagedCallingConventionSyntaxWrapper> CallingConventions => CallingConventionsAccessor(wrappedInstance);
-    public SyntaxToken CloseBracketToken => (SyntaxToken)CloseBracketTokenAccessor(wrappedInstance);
-    public SyntaxToken OpenBracketToken => (SyntaxToken)OpenBracketTokenAccessor(wrappedInstance);
+    public SyntaxToken CloseBracketToken => CloseBracketTokenAccessor(wrappedInstance);
+    public SyntaxToken OpenBracketToken => OpenBracketTokenAccessor(wrappedInstance);
 
     public void Accept(CSharpSyntaxVisitor visitor) => wrappedInstance.Accept(visitor);
     public IEnumerable<SyntaxNode> Ancestors(bool ascendOutOfTrivia) => wrappedInstance.Ancestors(ascendOutOfTrivia);

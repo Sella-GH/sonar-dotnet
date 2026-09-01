@@ -18,7 +18,7 @@
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly struct BasicBlockWrapper
+public readonly struct BasicBlockWrapper : IWrapper, IEquatable<BasicBlockWrapper>
 {
     private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock");
     private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
@@ -33,11 +33,30 @@ public readonly struct BasicBlockWrapper
     private static readonly Func<Object, BasicBlockKind> KindAccessor = AccessorFactory.CreateProperty<Func<Object, BasicBlockKind>>(WrappedType, "Kind");
     private static readonly Func<Object, ImmutableArray<IOperation>> OperationsAccessor = AccessorFactory.CreateProperty<Func<Object, ImmutableArray<IOperation>>>(WrappedType, "Operations");
     private static readonly Func<Object, int> OrdinalAccessor = AccessorFactory.CreateProperty<Func<Object, int>>(WrappedType, "Ordinal");
+    private static readonly Func<Object, ImmutableArray<ControlFlowBranchWrapper>> PredecessorsAccessor = AccessorFactory.CreateProperty<Func<Object, ImmutableArray<ControlFlowBranchWrapper>>>(WrappedType, "Predecessors");
 
     private BasicBlockWrapper(Object wrappedInstance) =>
         this.wrappedInstance = wrappedInstance;
 
     public Object WrappedInstance => wrappedInstance;
+
+    object IWrapper.WrappedInstance => wrappedInstance;
+
+    public override int GetHashCode() =>
+        wrappedInstance?.GetHashCode() ?? 0;
+
+    public override bool Equals(object obj) =>
+        (obj is IWrapper wrapper && Equals(wrappedInstance, wrapper.WrappedInstance))
+        || Equals(wrappedInstance, obj);
+
+    public bool Equals(BasicBlockWrapper other) =>
+        Equals(wrappedInstance, other.wrappedInstance);
+
+    public static bool operator ==(BasicBlockWrapper left, BasicBlockWrapper right) =>
+        Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public static bool operator !=(BasicBlockWrapper left, BasicBlockWrapper right) =>
+        !Equals(left.wrappedInstance, right.wrappedInstance);
 
     public IOperation BranchValue => BranchValueAccessor(wrappedInstance);
     public ControlFlowConditionKind ConditionKind => (ControlFlowConditionKind)ConditionKindAccessor(wrappedInstance);
@@ -48,6 +67,7 @@ public readonly struct BasicBlockWrapper
     public BasicBlockKind Kind => (BasicBlockKind)KindAccessor(wrappedInstance);
     public ImmutableArray<IOperation> Operations => (ImmutableArray<IOperation>)OperationsAccessor(wrappedInstance);
     public int Ordinal => (int)OrdinalAccessor(wrappedInstance);
+    public ImmutableArray<ControlFlowBranchWrapper> Predecessors => PredecessorsAccessor(wrappedInstance);
 
     public static BasicBlockWrapper From(Object instance)
     {

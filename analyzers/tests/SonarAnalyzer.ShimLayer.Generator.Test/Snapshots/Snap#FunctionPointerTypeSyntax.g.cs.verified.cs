@@ -18,7 +18,7 @@
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly struct FunctionPointerTypeSyntaxWrapper
+public readonly struct FunctionPointerTypeSyntaxWrapper : IWrapper, IEquatable<FunctionPointerTypeSyntaxWrapper>
 {
     private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax");
     private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
@@ -47,6 +47,24 @@ public readonly struct FunctionPointerTypeSyntaxWrapper
 
     public TypeSyntax WrappedInstance => wrappedInstance;
 
+    object IWrapper.WrappedInstance => wrappedInstance;
+
+    public override int GetHashCode() =>
+        wrappedInstance?.GetHashCode() ?? 0;
+
+    public override bool Equals(object obj) =>
+        (obj is IWrapper wrapper && Equals(wrappedInstance, wrapper.WrappedInstance))
+        || Equals(wrappedInstance, obj);
+
+    public bool Equals(FunctionPointerTypeSyntaxWrapper other) =>
+        Equals(wrappedInstance, other.wrappedInstance);
+
+    public static bool operator ==(FunctionPointerTypeSyntaxWrapper left, FunctionPointerTypeSyntaxWrapper right) =>
+        Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public static bool operator !=(FunctionPointerTypeSyntaxWrapper left, FunctionPointerTypeSyntaxWrapper right) =>
+        !Equals(left.wrappedInstance, right.wrappedInstance);
+
     public bool ContainsAnnotations => wrappedInstance.ContainsAnnotations;
     public bool ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
     public bool ContainsDirectives => wrappedInstance.ContainsDirectives;
@@ -65,9 +83,9 @@ public readonly struct FunctionPointerTypeSyntaxWrapper
     public TextSpan Span => wrappedInstance.Span;
     public int SpanStart => wrappedInstance.SpanStart;
 
-    public SyntaxToken AsteriskToken => (SyntaxToken)AsteriskTokenAccessor(wrappedInstance);
+    public SyntaxToken AsteriskToken => AsteriskTokenAccessor(wrappedInstance);
     public FunctionPointerCallingConventionSyntaxWrapper CallingConvention => FunctionPointerCallingConventionSyntaxWrapper.From(CallingConventionAccessor(wrappedInstance));
-    public SyntaxToken DelegateKeyword => (SyntaxToken)DelegateKeywordAccessor(wrappedInstance);
+    public SyntaxToken DelegateKeyword => DelegateKeywordAccessor(wrappedInstance);
     public bool IsNint => (bool)IsNintAccessor(wrappedInstance);
     public bool IsNotNull => (bool)IsNotNullAccessor(wrappedInstance);
     public bool IsNuint => (bool)IsNuintAccessor(wrappedInstance);

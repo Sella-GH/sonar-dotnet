@@ -18,19 +18,23 @@
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly struct CSharpGeneratorDriverWrapper
+public readonly struct CSharpGeneratorDriverWrapper : IWrapper, IEquatable<CSharpGeneratorDriverWrapper>
 {
     private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.CSharpGeneratorDriver");
     private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly Object wrappedInstance;
 
     private static readonly Func<Object, ImmutableArray<AdditionalText>, Object> AddAdditionalTextsAccessor = AccessorFactory.CreateMethod<Func<Object, ImmutableArray<AdditionalText>, Object>>(WrappedType, "AddAdditionalTexts");
+    private static readonly Func<Object, ImmutableArray<ISourceGeneratorWrapper>, Object> AddGeneratorsAccessor = AccessorFactory.CreateMethod<Func<Object, ImmutableArray<ISourceGeneratorWrapper>, Object>>(WrappedType, "AddGenerators");
     private static readonly Func<IIncrementalGeneratorWrapper[], Object> CreateAccessor = AccessorFactory.CreateStaticMethod<Func<IIncrementalGeneratorWrapper[], Object>>(WrappedType, "Create");
     private static readonly Func<ISourceGeneratorWrapper[], Object> CreateAccessor_Overload2 = AccessorFactory.CreateStaticMethod<Func<ISourceGeneratorWrapper[], Object>>(WrappedType, "Create");
     private static readonly Func<Object, Object> GetRunResultAccessor = AccessorFactory.CreateMethod<Func<Object, Object>>(WrappedType, "GetRunResult");
+    private static readonly Func<Object, Object> GetTimingInfoAccessor = AccessorFactory.CreateMethod<Func<Object, Object>>(WrappedType, "GetTimingInfo");
     private static readonly Func<Object, ImmutableArray<AdditionalText>, Object> RemoveAdditionalTextsAccessor = AccessorFactory.CreateMethod<Func<Object, ImmutableArray<AdditionalText>, Object>>(WrappedType, "RemoveAdditionalTexts");
+    private static readonly Func<Object, ImmutableArray<ISourceGeneratorWrapper>, Object> RemoveGeneratorsAccessor = AccessorFactory.CreateMethod<Func<Object, ImmutableArray<ISourceGeneratorWrapper>, Object>>(WrappedType, "RemoveGenerators");
     private static readonly Func<Object, AdditionalText, AdditionalText, Object> ReplaceAdditionalTextAccessor = AccessorFactory.CreateMethod<Func<Object, AdditionalText, AdditionalText, Object>>(WrappedType, "ReplaceAdditionalText");
     private static readonly Func<Object, ImmutableArray<AdditionalText>, Object> ReplaceAdditionalTextsAccessor = AccessorFactory.CreateMethod<Func<Object, ImmutableArray<AdditionalText>, Object>>(WrappedType, "ReplaceAdditionalTexts");
+    private static readonly Func<Object, ImmutableArray<ISourceGeneratorWrapper>, Object> ReplaceGeneratorsAccessor = AccessorFactory.CreateMethod<Func<Object, ImmutableArray<ISourceGeneratorWrapper>, Object>>(WrappedType, "ReplaceGenerators");
     private static readonly Func<Object, Compilation, Object> RunGeneratorsAccessor = AccessorFactory.CreateMethod<Func<Object, Compilation, Object>>(WrappedType, "RunGenerators");
     private static readonly Func<Object, Compilation, CancellationToken, Object> RunGeneratorsAccessor_Overload3 = AccessorFactory.CreateMethod<Func<Object, Compilation, CancellationToken, Object>>(WrappedType, "RunGenerators");
     private delegate Object RunGeneratorsAndUpdateCompilationAccessorDelegate(Object sender, Compilation compilation, out Compilation outputCompilation, out ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken);
@@ -43,13 +47,35 @@ public readonly struct CSharpGeneratorDriverWrapper
 
     public Object WrappedInstance => wrappedInstance;
 
+    object IWrapper.WrappedInstance => wrappedInstance;
+
+    public override int GetHashCode() =>
+        wrappedInstance?.GetHashCode() ?? 0;
+
+    public override bool Equals(object obj) =>
+        (obj is IWrapper wrapper && Equals(wrappedInstance, wrapper.WrappedInstance))
+        || Equals(wrappedInstance, obj);
+
+    public bool Equals(CSharpGeneratorDriverWrapper other) =>
+        Equals(wrappedInstance, other.wrappedInstance);
+
+    public static bool operator ==(CSharpGeneratorDriverWrapper left, CSharpGeneratorDriverWrapper right) =>
+        Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public static bool operator !=(CSharpGeneratorDriverWrapper left, CSharpGeneratorDriverWrapper right) =>
+        !Equals(left.wrappedInstance, right.wrappedInstance);
+
     public GeneratorDriverWrapper AddAdditionalTexts(ImmutableArray<AdditionalText> additionalTexts) => GeneratorDriverWrapper.From(AddAdditionalTextsAccessor(wrappedInstance, additionalTexts));
+    public GeneratorDriverWrapper AddGenerators(ImmutableArray<ISourceGeneratorWrapper> generators) => GeneratorDriverWrapper.From(AddGeneratorsAccessor(wrappedInstance, generators));
     public static CSharpGeneratorDriverWrapper Create(IIncrementalGeneratorWrapper[] incrementalGenerators) => CSharpGeneratorDriverWrapper.From(CreateAccessor(incrementalGenerators));
     public static CSharpGeneratorDriverWrapper Create(ISourceGeneratorWrapper[] generators) => CSharpGeneratorDriverWrapper.From(CreateAccessor_Overload2(generators));
     public GeneratorDriverRunResultWrapper GetRunResult() => GeneratorDriverRunResultWrapper.From(GetRunResultAccessor(wrappedInstance));
+    public GeneratorDriverTimingInfoWrapper GetTimingInfo() => GeneratorDriverTimingInfoWrapper.From(GetTimingInfoAccessor(wrappedInstance));
     public GeneratorDriverWrapper RemoveAdditionalTexts(ImmutableArray<AdditionalText> additionalTexts) => GeneratorDriverWrapper.From(RemoveAdditionalTextsAccessor(wrappedInstance, additionalTexts));
+    public GeneratorDriverWrapper RemoveGenerators(ImmutableArray<ISourceGeneratorWrapper> generators) => GeneratorDriverWrapper.From(RemoveGeneratorsAccessor(wrappedInstance, generators));
     public GeneratorDriverWrapper ReplaceAdditionalText(AdditionalText oldText, AdditionalText newText) => GeneratorDriverWrapper.From(ReplaceAdditionalTextAccessor(wrappedInstance, oldText, newText));
     public GeneratorDriverWrapper ReplaceAdditionalTexts(ImmutableArray<AdditionalText> newTexts) => GeneratorDriverWrapper.From(ReplaceAdditionalTextsAccessor(wrappedInstance, newTexts));
+    public GeneratorDriverWrapper ReplaceGenerators(ImmutableArray<ISourceGeneratorWrapper> generators) => GeneratorDriverWrapper.From(ReplaceGeneratorsAccessor(wrappedInstance, generators));
     public GeneratorDriverWrapper RunGenerators(Compilation compilation) => GeneratorDriverWrapper.From(RunGeneratorsAccessor(wrappedInstance, compilation));
     public GeneratorDriverWrapper RunGenerators(Compilation compilation, CancellationToken cancellationToken) => GeneratorDriverWrapper.From(RunGeneratorsAccessor_Overload3(wrappedInstance, compilation, cancellationToken));
     public GeneratorDriverWrapper RunGeneratorsAndUpdateCompilation(Compilation compilation, out Compilation outputCompilation, out ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken) => GeneratorDriverWrapper.From(RunGeneratorsAndUpdateCompilationAccessor(wrappedInstance, compilation, out outputCompilation, out diagnostics, cancellationToken));

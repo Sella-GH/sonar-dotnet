@@ -18,7 +18,7 @@
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly struct BinaryPatternSyntaxWrapper
+public readonly struct BinaryPatternSyntaxWrapper : IWrapper, IEquatable<BinaryPatternSyntaxWrapper>
 {
     private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.BinaryPatternSyntax");
     private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
@@ -40,6 +40,24 @@ public readonly struct BinaryPatternSyntaxWrapper
 
     public CSharpSyntaxNode WrappedInstance => wrappedInstance;
 
+    object IWrapper.WrappedInstance => wrappedInstance;
+
+    public override int GetHashCode() =>
+        wrappedInstance?.GetHashCode() ?? 0;
+
+    public override bool Equals(object obj) =>
+        (obj is IWrapper wrapper && Equals(wrappedInstance, wrapper.WrappedInstance))
+        || Equals(wrappedInstance, obj);
+
+    public bool Equals(BinaryPatternSyntaxWrapper other) =>
+        Equals(wrappedInstance, other.wrappedInstance);
+
+    public static bool operator ==(BinaryPatternSyntaxWrapper left, BinaryPatternSyntaxWrapper right) =>
+        Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public static bool operator !=(BinaryPatternSyntaxWrapper left, BinaryPatternSyntaxWrapper right) =>
+        !Equals(left.wrappedInstance, right.wrappedInstance);
+
     public bool ContainsAnnotations => wrappedInstance.ContainsAnnotations;
     public bool ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
     public bool ContainsDirectives => wrappedInstance.ContainsDirectives;
@@ -58,7 +76,7 @@ public readonly struct BinaryPatternSyntaxWrapper
     public int SpanStart => wrappedInstance.SpanStart;
 
     public PatternSyntaxWrapper Left => PatternSyntaxWrapper.From(LeftAccessor(wrappedInstance));
-    public SyntaxToken OperatorToken => (SyntaxToken)OperatorTokenAccessor(wrappedInstance);
+    public SyntaxToken OperatorToken => OperatorTokenAccessor(wrappedInstance);
     public PatternSyntaxWrapper Right => PatternSyntaxWrapper.From(RightAccessor(wrappedInstance));
 
     public void Accept(CSharpSyntaxVisitor visitor) => wrappedInstance.Accept(visitor);

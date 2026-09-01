@@ -18,7 +18,7 @@
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly struct TupleTypeSyntaxWrapper
+public readonly struct TupleTypeSyntaxWrapper : IWrapper, IEquatable<TupleTypeSyntaxWrapper>
 {
     private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax");
     private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
@@ -45,6 +45,24 @@ public readonly struct TupleTypeSyntaxWrapper
 
     public TypeSyntax WrappedInstance => wrappedInstance;
 
+    object IWrapper.WrappedInstance => wrappedInstance;
+
+    public override int GetHashCode() =>
+        wrappedInstance?.GetHashCode() ?? 0;
+
+    public override bool Equals(object obj) =>
+        (obj is IWrapper wrapper && Equals(wrappedInstance, wrapper.WrappedInstance))
+        || Equals(wrappedInstance, obj);
+
+    public bool Equals(TupleTypeSyntaxWrapper other) =>
+        Equals(wrappedInstance, other.wrappedInstance);
+
+    public static bool operator ==(TupleTypeSyntaxWrapper left, TupleTypeSyntaxWrapper right) =>
+        Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public static bool operator !=(TupleTypeSyntaxWrapper left, TupleTypeSyntaxWrapper right) =>
+        !Equals(left.wrappedInstance, right.wrappedInstance);
+
     public bool ContainsAnnotations => wrappedInstance.ContainsAnnotations;
     public bool ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
     public bool ContainsDirectives => wrappedInstance.ContainsDirectives;
@@ -63,13 +81,13 @@ public readonly struct TupleTypeSyntaxWrapper
     public TextSpan Span => wrappedInstance.Span;
     public int SpanStart => wrappedInstance.SpanStart;
 
-    public SyntaxToken CloseParenToken => (SyntaxToken)CloseParenTokenAccessor(wrappedInstance);
+    public SyntaxToken CloseParenToken => CloseParenTokenAccessor(wrappedInstance);
     public SeparatedSyntaxListWrapper<TupleElementSyntaxWrapper> Elements => ElementsAccessor(wrappedInstance);
     public bool IsNint => (bool)IsNintAccessor(wrappedInstance);
     public bool IsNotNull => (bool)IsNotNullAccessor(wrappedInstance);
     public bool IsNuint => (bool)IsNuintAccessor(wrappedInstance);
     public bool IsUnmanaged => (bool)IsUnmanagedAccessor(wrappedInstance);
-    public SyntaxToken OpenParenToken => (SyntaxToken)OpenParenTokenAccessor(wrappedInstance);
+    public SyntaxToken OpenParenToken => OpenParenTokenAccessor(wrappedInstance);
 
     public void Accept(CSharpSyntaxVisitor visitor) => wrappedInstance.Accept(visitor);
     public IEnumerable<SyntaxNode> Ancestors(bool ascendOutOfTrivia) => wrappedInstance.Ancestors(ascendOutOfTrivia);

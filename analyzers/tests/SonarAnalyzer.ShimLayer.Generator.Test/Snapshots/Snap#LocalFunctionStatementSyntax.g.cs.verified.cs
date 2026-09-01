@@ -18,7 +18,7 @@
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly struct LocalFunctionStatementSyntaxWrapper
+public readonly struct LocalFunctionStatementSyntaxWrapper : IWrapper, IEquatable<LocalFunctionStatementSyntaxWrapper>
 {
     private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax");
     private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
@@ -62,6 +62,24 @@ public readonly struct LocalFunctionStatementSyntaxWrapper
 
     public StatementSyntax WrappedInstance => wrappedInstance;
 
+    object IWrapper.WrappedInstance => wrappedInstance;
+
+    public override int GetHashCode() =>
+        wrappedInstance?.GetHashCode() ?? 0;
+
+    public override bool Equals(object obj) =>
+        (obj is IWrapper wrapper && Equals(wrappedInstance, wrapper.WrappedInstance))
+        || Equals(wrappedInstance, obj);
+
+    public bool Equals(LocalFunctionStatementSyntaxWrapper other) =>
+        Equals(wrappedInstance, other.wrappedInstance);
+
+    public static bool operator ==(LocalFunctionStatementSyntaxWrapper left, LocalFunctionStatementSyntaxWrapper right) =>
+        Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public static bool operator !=(LocalFunctionStatementSyntaxWrapper left, LocalFunctionStatementSyntaxWrapper right) =>
+        !Equals(left.wrappedInstance, right.wrappedInstance);
+
     public bool ContainsAnnotations => wrappedInstance.ContainsAnnotations;
     public bool ContainsDiagnostics => wrappedInstance.ContainsDiagnostics;
     public bool ContainsDirectives => wrappedInstance.ContainsDirectives;
@@ -83,11 +101,11 @@ public readonly struct LocalFunctionStatementSyntaxWrapper
     public BlockSyntax Body => BodyAccessor(wrappedInstance);
     public SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => (SyntaxList<TypeParameterConstraintClauseSyntax>)ConstraintClausesAccessor(wrappedInstance);
     public ArrowExpressionClauseSyntax ExpressionBody => ExpressionBodyAccessor(wrappedInstance);
-    public SyntaxToken Identifier => (SyntaxToken)IdentifierAccessor(wrappedInstance);
-    public SyntaxTokenList Modifiers => (SyntaxTokenList)ModifiersAccessor(wrappedInstance);
+    public SyntaxToken Identifier => IdentifierAccessor(wrappedInstance);
+    public SyntaxTokenList Modifiers => ModifiersAccessor(wrappedInstance);
     public ParameterListSyntax ParameterList => ParameterListAccessor(wrappedInstance);
     public TypeSyntax ReturnType => ReturnTypeAccessor(wrappedInstance);
-    public SyntaxToken SemicolonToken => (SyntaxToken)SemicolonTokenAccessor(wrappedInstance);
+    public SyntaxToken SemicolonToken => SemicolonTokenAccessor(wrappedInstance);
     public TypeParameterListSyntax TypeParameterList => TypeParameterListAccessor(wrappedInstance);
 
     public void Accept(CSharpSyntaxVisitor visitor) => wrappedInstance.Accept(visitor);

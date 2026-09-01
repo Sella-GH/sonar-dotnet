@@ -18,13 +18,14 @@
 
 namespace SonarAnalyzer.ShimLayer;
 
-public readonly struct ISpreadOperationWrapper : IOperationWrapper
+public readonly struct ISpreadOperationWrapper : IOperationWrapper, IWrapper, IEquatable<ISpreadOperationWrapper>
 {
     private static readonly Type WrappedType = TypeRegister.LatestType("Microsoft.CodeAnalysis.Operations.ISpreadOperation");
     private static readonly ConcurrentDictionary<Type, bool> CanWrapCache = new();
     private readonly IOperation wrappedInstance;
 
     private static readonly Func<IOperation, IEnumerable<IOperation>> ChildrenAccessor = AccessorFactory.CreateProperty<Func<IOperation, IEnumerable<IOperation>>>(WrappedType, "Children");
+    private static readonly Func<IOperation, Object> ElementConversionAccessor = AccessorFactory.CreateProperty<Func<IOperation, Object>>(WrappedType, "ElementConversion");
     private static readonly Func<IOperation, ITypeSymbol> ElementTypeAccessor = AccessorFactory.CreateProperty<Func<IOperation, ITypeSymbol>>(WrappedType, "ElementType");
     private static readonly Func<IOperation, bool> IsImplicitAccessor = AccessorFactory.CreateProperty<Func<IOperation, bool>>(WrappedType, "IsImplicit");
     private static readonly Func<IOperation, string> LanguageAccessor = AccessorFactory.CreateProperty<Func<IOperation, string>>(WrappedType, "Language");
@@ -39,6 +40,24 @@ public readonly struct ISpreadOperationWrapper : IOperationWrapper
 
     public IOperation WrappedInstance => wrappedInstance;
 
+    object IWrapper.WrappedInstance => wrappedInstance;
+
+    public override int GetHashCode() =>
+        wrappedInstance?.GetHashCode() ?? 0;
+
+    public override bool Equals(object obj) =>
+        (obj is IWrapper wrapper && Equals(wrappedInstance, wrapper.WrappedInstance))
+        || Equals(wrappedInstance, obj);
+
+    public bool Equals(ISpreadOperationWrapper other) =>
+        Equals(wrappedInstance, other.wrappedInstance);
+
+    public static bool operator ==(ISpreadOperationWrapper left, ISpreadOperationWrapper right) =>
+        Equals(left.wrappedInstance, right.wrappedInstance);
+
+    public static bool operator !=(ISpreadOperationWrapper left, ISpreadOperationWrapper right) =>
+        !Equals(left.wrappedInstance, right.wrappedInstance);
+
     public Optional<object> ConstantValue => wrappedInstance.ConstantValue;
     public OperationKind Kind => wrappedInstance.Kind;
     public SyntaxNode Syntax => wrappedInstance.Syntax;
@@ -46,6 +65,7 @@ public readonly struct ISpreadOperationWrapper : IOperationWrapper
 
     [System.ObsoleteAttribute("This API has performance penalties, please use ChildOperations instead.", false)]
     public IEnumerable<IOperation> Children => (IEnumerable<IOperation>)ChildrenAccessor(wrappedInstance);
+    public CommonConversionWrapper ElementConversion => CommonConversionWrapper.From(ElementConversionAccessor(wrappedInstance));
     public ITypeSymbol ElementType => ElementTypeAccessor(wrappedInstance);
     public bool IsImplicit => (bool)IsImplicitAccessor(wrappedInstance);
     public string Language => (string)LanguageAccessor(wrappedInstance);
