@@ -19,12 +19,9 @@ namespace SonarAnalyzer.ShimLayer.Generator.Strategies;
 
 public class ExtendStrategy : MemberStrategy
 {
-    public override string ReturnTypeSnippet => Latest.Name;
+    public override string TypeSnippet => Latest.Name;
 
     public ExtendStrategy(Type latest, MemberDescriptor[] members) : base(latest, members) { }
-
-    public override string ToConversionSnippet(string from) =>
-        from;
 
     protected override string GenerateCore(StrategyModel model)
     {

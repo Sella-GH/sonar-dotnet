@@ -30,14 +30,14 @@ public sealed class MethodWrapSnippet : MethodSnippet
                 ? parameters.Select(SerializeParameter)
                 : parameters.Select(SerializeParameter).Prepend($"{strategy.CompiletimeTypeSnippet} sender");
             return $"""
-                    private delegate {returnType.CompiletimeTypeSnippet} {accessorName}Delegate({parameterSnippets.JoinStr(", ")});
+                    private delegate {returnType.ReturnTypeSnippet} {accessorName}Delegate({parameterSnippets.JoinStr(", ")});
                     private static readonly {accessorName}Delegate {accessorName} = AccessorFactory.{createMethodName}<{accessorName}Delegate>(WrappedType, "{member.Name}");
                 """;
         }
         else
         {
             string delegateName;
-            var types = new List<string>(parameters.Select(x => model[x.ParameterType].ReturnTypeSnippet));
+            var types = new List<string>(parameters.Select(x => model[x.ParameterType].TypeSnippet));
             if (!member.IsStatic)
             {
                 types.Insert(0, strategy.CompiletimeTypeSnippet);
@@ -49,7 +49,7 @@ public sealed class MethodWrapSnippet : MethodSnippet
             else
             {
                 delegateName = "Func";
-                types.Add(returnType.CompiletimeTypeSnippet);
+                types.Add(returnType.ReturnTypeSnippet);
             }
             var typesSnippet = types.Any() ? $"<{types.JoinStr(", ")}>" : null;
             return $"""
@@ -64,7 +64,7 @@ public sealed class MethodWrapSnippet : MethodSnippet
             ? parameters.Select(SerializeParameterArgument)
             : parameters.Select(SerializeParameterArgument).Prepend("wrappedInstance");
         return $"""
-            {returnType.ToConversionSnippet($"{accessorName}({parameterSnippets.JoinStr(", ")})")}
+            {accessorName}({parameterSnippets.JoinStr(", ")})
             """;
     }
 }

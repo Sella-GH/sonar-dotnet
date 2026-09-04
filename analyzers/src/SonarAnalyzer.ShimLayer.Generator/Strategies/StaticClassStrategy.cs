@@ -19,12 +19,9 @@ namespace SonarAnalyzer.ShimLayer.Generator.Strategies;
 
 public class StaticClassStrategy : MemberStrategy
 {
-    public override string ReturnTypeSnippet => throw new NotSupportedException();
+    public override string TypeSnippet => throw new NotSupportedException();
 
     public StaticClassStrategy(Type latest, MemberDescriptor[] members) : base(latest, members) { }
-
-    public override string ToConversionSnippet(string from) =>
-        throw new NotSupportedException();
 
     protected override string GenerateCore(StrategyModel model)
     {

@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
+using NuGet.ContentModel;
 using SonarAnalyzer.ShimLayer.Common;
 
 namespace SonarAnalyzer.Core.Test.ShimLayer.Common;
@@ -50,6 +51,21 @@ public class AccessorFactoryTest
     {
         var accessor = AccessorFactory.CreateProperty<Func<ClassDeclarationSyntax, ParameterListSyntax>>(null, nameof(ClassDeclarationSyntax.ParameterList));
         accessor(CreateClassDeclaration()).Should().BeNull();
+    }
+
+    [TestMethod]
+    public void ReturnType_WrappedType_Shimmed()
+    {
+        var accessor = AccessorFactory.CreateProperty<Func<object, ControlFlowRegionWrapper>>(typeof(ControlFlowRegion), nameof(ControlFlowRegion.EnclosingRegion));
+        var region = CreateControlFlowRegion();
+        accessor(region).Should().Be(region.EnclosingRegion);
+    }
+
+    [TestMethod]
+    public void ReturnType_WrappedType_Fallback()
+    {
+        var accessor = AccessorFactory.CreateProperty<Func<object, ControlFlowRegionWrapper>>(null, nameof(ControlFlowRegion.EnclosingRegion));
+        accessor(CreateControlFlowRegion()).WrappedInstance.Should().BeNull();
     }
 
     [TestMethod]
@@ -165,6 +181,22 @@ public class AccessorFactoryTest
     }
 
     [TestMethod]
+    public void ReturnType_NullableWrapper_Shimmed()
+    {
+        var accessor = AccessorFactory.CreateProperty<Func<TypeInfo, NullabilityInfoWrapper?>>(typeof(TypeInfo), nameof(TypeInfo.Nullability));
+        var result = accessor(CreateTypeInfo());
+        result.Should().NotBeNull();
+        result.Value.FlowState.Should().Be(SonarAnalyzer.ShimLayer.NullableFlowState.NotNull);
+    }
+
+    [TestMethod]
+    public void ReturnType_NullableWrapper_Fallback()
+    {
+        var accessor = AccessorFactory.CreateProperty<Func<TypeInfo, NullabilityInfoWrapper?>>(null, nameof(TypeInfo.Nullability));
+        accessor(CreateTypeInfo()).Should().BeNull();
+    }
+
+    [TestMethod]
     public void CreateMethod_NullInstance_Throws()
     {
         var accessor = AccessorFactory.CreateMethod<Func<ClassDeclarationSyntax, ParameterSyntax[], ClassDeclarationSyntax>>(typeof(ClassDeclarationSyntax), "AddParameterListParameters");
@@ -193,14 +225,14 @@ public class AccessorFactoryTest
     public void CreateMethod_WithArrayOfWrappedType_Shimmed()
     {
         var accessor = AccessorFactory.CreateMethod<Func<TypeSyntax, TupleElementSyntaxWrapper[], TypeSyntax>>(typeof(TupleTypeSyntax), nameof(TupleTypeSyntax.AddElements));
-        accessor(CreateTupleTypeSyntax(), [TupleElementSyntaxWrapper.From(SyntaxFactory.TupleElement(CreateTypeSyntax()))]).Should().BeOfType<TupleTypeSyntax>().Which.Elements.Should().HaveCount(2);
+        accessor(CreateTupleTypeSyntax(), [TupleElementSyntaxWrapper.From(CreateTupleElement())]).Should().BeOfType<TupleTypeSyntax>().Which.Elements.Should().HaveCount(2);
     }
 
     [TestMethod]
     public void CreateMethod_WithArrayOfWrappedType_Fallback()
     {
         var accessor = AccessorFactory.CreateMethod<Func<TypeSyntax, TupleElementSyntaxWrapper[], TypeSyntax>>(null, nameof(TupleTypeSyntax.AddElements));
-        accessor(CreateTupleTypeSyntax(), [TupleElementSyntaxWrapper.From(SyntaxFactory.TupleElement(CreateTypeSyntax()))]).Should().BeNull();
+        accessor(CreateTupleTypeSyntax(), [TupleElementSyntaxWrapper.From(CreateTupleElement())]).Should().BeNull();
     }
 
     [TestMethod]
@@ -275,6 +307,22 @@ public class AccessorFactoryTest
     {
         var accessor = AccessorFactory.CreateMethod<Func<SemanticModel, int, SonarAnalyzer.ShimLayer.NullableContext>>(null, nameof(SemanticModel.GetNullableContext));
         accessor(CreateInvocationOperation().SemanticModel, 0).Should().Be(SonarAnalyzer.ShimLayer.NullableContext.Disabled);
+    }
+
+    [TestMethod]
+    public void CreateMethod_WithWrapperReturnType_Shimmed()
+    {
+        var accessor = AccessorFactory.CreateMethod<Func<TypeSyntax, TupleElementSyntaxWrapper[], TupleTypeSyntaxWrapper>>(typeof(TupleTypeSyntax), nameof(TupleTypeSyntax.AddElements));
+        var result = accessor(CreateTupleTypeSyntax(), [TupleElementSyntaxWrapper.From(CreateTupleElement())]);
+        result.WrappedInstance.Should().NotBeNull();
+        result.Elements.Should().HaveCount(2);
+    }
+
+    [TestMethod]
+    public void CreateMethod_WithWrapperReturnType_Fallback()
+    {
+        var accessor = AccessorFactory.CreateMethod<Func<TypeSyntax, TupleElementSyntaxWrapper[], TupleTypeSyntaxWrapper>>(null, nameof(TupleTypeSyntax.AddElements));
+        accessor(CreateTupleTypeSyntax(), [TupleElementSyntaxWrapper.From(CreateTupleElement())]).WrappedInstance.Should().BeNull();
     }
 
     [TestMethod]
@@ -370,6 +418,18 @@ public class AccessorFactoryTest
         return cfg.Root.NestedRegions.Single().NestedRegions.First();
     }
 
+    private static TypeInfo CreateTypeInfo()
+    {
+        var compiler = new SnippetCompiler("""
+            #nullable enable
+            public class Sample
+            {
+                public string Method() => "value";
+            }
+            """);
+        return compiler.Model.GetTypeInfo(compiler.Nodes<LiteralExpressionSyntax>().Single());
+    }
+
     private static ClassDeclarationSyntax CreateClassDeclaration() =>
         SyntaxFactory.ClassDeclaration("Sample")
             .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("First")).WithType(CreateTypeSyntax()));
@@ -382,7 +442,10 @@ public class AccessorFactoryTest
         SyntaxFactory.TupleExpression().AddArguments(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("first")));
 
     private static TupleTypeSyntax CreateTupleTypeSyntax() =>
-        SyntaxFactory.TupleType().AddElements(SyntaxFactory.TupleElement(CreateTypeSyntax()));
+        SyntaxFactory.TupleType().AddElements(CreateTupleElement());
+
+    private static TupleElementSyntax CreateTupleElement() =>
+        SyntaxFactory.TupleElement(CreateTypeSyntax());
 
     private static ParameterSyntax CreateParameter() =>
         SyntaxFactory.Parameter(SyntaxFactory.Identifier("Name")).WithType(CreateTypeSyntax());
