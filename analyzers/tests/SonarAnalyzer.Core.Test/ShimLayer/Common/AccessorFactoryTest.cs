@@ -236,6 +236,47 @@ public class AccessorFactoryTest
     }
 
     [TestMethod]
+    public void CreateMethod_WithImmutableArrayOfWrappedEnum_Shimmed()
+    {
+        var accessor = AccessorFactory.CreateMethod<Func<INamedTypeSymbol, ImmutableArray<ITypeSymbol>, ImmutableArray<SonarAnalyzer.ShimLayer.NullableAnnotation>, INamedTypeSymbol>>(typeof(INamedTypeSymbol), "Construct");
+        var type = CreateNamedTypeSymbol();
+        var result = accessor(type, [type], [SonarAnalyzer.ShimLayer.NullableAnnotation.Annotated]);
+        result.Should().NotBeNull();
+        result.TypeArguments.Should().ContainSingle().Which.Should().Be(type);
+        result.TypeArgumentNullableAnnotations.Should().ContainSingle().Which.Should().Be(Microsoft.CodeAnalysis.NullableAnnotation.Annotated);
+    }
+
+    [TestMethod]
+    public void CreateMethod_WithImmutableArrayOfWrappedEnum_Fallback()
+    {
+        var accessor = AccessorFactory.CreateMethod<Func<INamedTypeSymbol, ImmutableArray<ITypeSymbol>, ImmutableArray<SonarAnalyzer.ShimLayer.NullableAnnotation>, INamedTypeSymbol>>(null, "Construct");
+        var type = CreateNamedTypeSymbol();
+        accessor(type, [type], [SonarAnalyzer.ShimLayer.NullableAnnotation.Annotated]).Should().BeNull();
+    }
+
+    [TestMethod]
+    public void CreateMethod_WithActionOfWrappedType_Shimmed()
+    {
+        var accessor = AccessorFactory.CreateMethod<Action<TestAnalysisContext, Action<CollectionExpressionSyntaxWrapper>>>(typeof(TestAnalysisContext), nameof(TestAnalysisContext.RegisterSomething));
+        var instance = new TestAnalysisContext();
+        var parameter = CreateCollectionExpression();
+        ExpressionSyntax captured = null;
+        accessor(instance, x => captured = x.WrappedInstance);  // Use the accessor to register the action, we send Action<XxxWrapper> inside.
+
+        instance.Action.Invoke(parameter);         // Actual invocation of the captured action
+        captured.Should().Be(parameter, "accessor wrapped the analyzed CollectionExpressionSyntax into CollectionExpressionSyntaxWrapper, and passed it into our registered action");
+    }
+
+    [TestMethod]
+    public void CreateMethod_WithActionOfWrappedType_Fallback()
+    {
+        var accessor = AccessorFactory.CreateMethod<Action<TestAnalysisContext, Action<CollectionExpressionSyntaxWrapper>>>(null, nameof(TestAnalysisContext.RegisterSomething));
+        var instance = new TestAnalysisContext();
+        accessor(instance, x => throw new NotSupportedException("This should not be reached in fallback scenario"));
+        instance.Action.Should().BeNull("Registration was never invoked, and action was not persisted");
+    }
+
+    [TestMethod]
     public void CreateMethod_FromFallbackWrappedTypeName()
     {
         var accessor = AccessorFactory.CreateMethod<Func<MemberDeclarationSyntax, SyntaxList<UsingDirectiveSyntax>, MemberDeclarationSyntax>>(typeof(BaseNamespaceDeclarationSyntax), "WithUsings");
@@ -257,6 +298,23 @@ public class AccessorFactoryTest
         var accessor = AccessorFactory.CreateMethod<TryGetValueAccessorDelegate<TestAnalyzerConfigOptions, string, string>>(null, nameof(AnalyzerConfigOptions.TryGetValue));
         accessor(new TestAnalyzerConfigOptions(), "AnyKey", out var value).Should().BeFalse();
         value.Should().BeNull();
+    }
+
+    [TestMethod]
+    public void CreateMethod_Generic_Shimmed()
+    {
+        var accessor = CreateFirstAncestorOrSelfAccessor<SyntaxNode, string>(typeof(ClassDeclarationSyntax));
+        var instance = CreateClassDeclaration();
+        string capturedArg = null;
+        accessor(instance, (x, arg) => { capturedArg = arg; return true; }, "TArg value", false).Should().NotBeNull();
+        capturedArg.Should().Be("TArg value");
+    }
+
+    [TestMethod]
+    public void CreateMethod_Generic_Fallback()
+    {
+        var accessor = CreateFirstAncestorOrSelfAccessor<SyntaxNode, string>(null);
+        accessor(CreateClassDeclaration(), (x, arg) => throw new NotSupportedException("This should not be executed in fallback scenario"), "TArg value", false).Should().BeNull();
     }
 
     [TestMethod]
@@ -404,6 +462,13 @@ public class AccessorFactoryTest
             }
             """).MethodSymbol("Sample.Method");
 
+    private static INamedTypeSymbol CreateNamedTypeSymbol() =>
+        new SnippetCompiler("""
+            public class Sample<T>
+            {
+            }
+            """).DeclaredSymbol<INamedTypeSymbol>("Sample");
+
     private static ControlFlowRegion CreateControlFlowRegion()
     {
         var compiler = new SnippetCompiler("""
@@ -453,6 +518,9 @@ public class AccessorFactoryTest
     private static TypeSyntax CreateTypeSyntax() =>
         SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword));
 
+    private static Func<ClassDeclarationSyntax, Func<TNode, TArg, bool>, TArg, bool, TNode> CreateFirstAncestorOrSelfAccessor<TNode, TArg>(Type wrappedType) =>
+        AccessorFactory.CreateMethod<Func<ClassDeclarationSyntax, Func<TNode, TArg, bool>, TArg, bool, TNode>>(wrappedType, "FirstAncestorOrSelf", typeof(TNode), typeof(TArg));
+
     private sealed class TestAnalyzerConfigOptions : AnalyzerConfigOptions
     {
         public override bool TryGetValue(string key, [NotNullWhen(true)] out string value)
@@ -476,5 +544,13 @@ public class AccessorFactoryTest
 
         public override void DefaultVisit(IOperation operation) =>
             Visited = true;
+    }
+
+    private sealed class TestAnalysisContext
+    {
+        public Action<CollectionExpressionSyntax> Action;
+
+        public void RegisterSomething(Action<CollectionExpressionSyntax> action) => // We receive non-wrapper type, as Roslyn runtime would.
+            Action = action;
     }
 }

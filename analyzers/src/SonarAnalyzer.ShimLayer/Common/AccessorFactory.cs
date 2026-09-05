@@ -25,11 +25,11 @@ internal static class AccessorFactory
     private static readonly MethodInfo UnboundEnumerableToArrayMethod = typeof(Enumerable).GetMethod(nameof(Enumerable.ToArray));
     private static readonly MethodInfo UnboundImmutableArrayCreateRangeMethod = typeof(ImmutableArray).GetMethods().Single(IsImmutableArrayCreateRange);
 
-    public static TFunc CreateMethod<TFunc>(Type runtimeSenderType, string methodName) where TFunc : Delegate =>
-        CreateMethod<TFunc>(runtimeSenderType, methodName, new(typeof(TFunc), false));
+    public static TFunc CreateMethod<TFunc>(Type runtimeSenderType, string methodName, params Type[] typeArguments) where TFunc : Delegate =>
+        CreateMethod<TFunc>(runtimeSenderType, methodName, typeArguments, new(typeof(TFunc), false));
 
-    public static TFunc CreateStaticMethod<TFunc>(Type runtimeSenderType, string methodName) where TFunc : Delegate =>
-        CreateMethod<TFunc>(runtimeSenderType, methodName, new(typeof(TFunc), true));
+    public static TFunc CreateStaticMethod<TFunc>(Type runtimeSenderType, string methodName, params Type[] typeArguments) where TFunc : Delegate =>
+        CreateMethod<TFunc>(runtimeSenderType, methodName, typeArguments, new(typeof(TFunc), true));
 
     public static TFunc CreateProperty<TFunc>(Type runtimeSenderType, string propertyName) where TFunc : Delegate =>
         CreateProperty<TFunc>(runtimeSenderType, propertyName, new(typeof(TFunc), false));
@@ -37,9 +37,14 @@ internal static class AccessorFactory
     public static TFunc CreateStaticProperty<TFunc>(Type runtimeSenderType, string propertyName) where TFunc : Delegate =>
         CreateProperty<TFunc>(runtimeSenderType, propertyName, new(typeof(TFunc), true));
 
-    private static TFunc CreateMethod<TFunc>(Type runtimeSenderType, string methodName, AccessorTypes types) where TFunc : Delegate
+    private static TFunc CreateMethod<TFunc>(Type runtimeSenderType, string methodName, Type[] typeArguments, AccessorTypes types) where TFunc : Delegate
     {
-        return CreateAccessor<TFunc>(types, runtimeSenderType, methodName, AllRuntimeMethods(runtimeSenderType).FirstOrDefault(IsMethodMatch));
+        var method = AllRuntimeMethods(runtimeSenderType).FirstOrDefault(IsMethodMatch);
+        if (method is { IsGenericMethodDefinition: true })
+        {
+            method = method.MakeGenericMethod(typeArguments);
+        }
+        return CreateAccessor<TFunc>(types, runtimeSenderType, methodName, method);
 
         static IEnumerable<MethodInfo> AllRuntimeMethods(Type type)
         {
@@ -67,11 +72,20 @@ internal static class AccessorFactory
             method.Name == methodName
             && method.GetParameters() is var parameters
             && parameters.Length == types.ParameterTypes.Length
-            && parameters.Select((x, i) => IsParameterMatch(types.ParameterTypes[i], x.ParameterType)).All(x => x);
+            && parameters.Select((x, i) => IsTypeMatch(types.ParameterTypes[i], x.ParameterType, true)).All(x => x);
 
-        static bool IsParameterMatch(Type compiletime, Type runtime) =>
-            compiletime.Equals(runtime)
-            || (compiletime.IsArray && runtime.IsArray && IsParameterMatch(compiletime.GetElementType(), runtime.GetElementType()))
+        static bool IsTypeMatch(Type compiletime, Type runtime, bool isParameter) =>
+            IsTypeMatchFlat(compiletime, runtime, isParameter)
+            || (compiletime.IsArray && runtime.IsArray && IsTypeMatchFlat(compiletime.GetElementType(), runtime.GetElementType(), isParameter))
+            || (compiletime.IsGenericType
+                && runtime.IsGenericType
+                && IsTypeMatchFlat(compiletime.GetGenericTypeDefinition(), runtime.GetGenericTypeDefinition(), isParameter)
+                && compiletime.GenericTypeArguments.Length == runtime.GenericTypeArguments.Length
+                && compiletime.GenericTypeArguments.Select((x, i) => IsTypeMatch(x, runtime.GenericTypeArguments[i], isParameter)).All(x => x));
+
+        static bool IsTypeMatchFlat(Type compiletime, Type runtime, bool isParameter) =>
+            (isParameter ? compiletime.Equals(runtime) : compiletime.IsAssignableFrom(runtime))
+            || runtime.IsGenericParameter
             || IsEnumMatch(compiletime, runtime)
             || compiletime.Name == $"{runtime.Name}Wrapper";
 
@@ -189,6 +203,24 @@ internal static class AccessorFactory
             var items = Expression.Call(UnboundEnumerableSelectMethod.MakeGenericMethod(elementWrapperType, itemRuntimeType), expression, selectorLambda);
             return Expression.Call(UnboundEnumerableToArrayMethod.MakeGenericMethod(itemRuntimeType), items);
         }
+        else if (type.IsGenericType // ImmutableArray<XxxWrapper> => ImmutableArray<Xxx>
+            && type.GetGenericTypeDefinition() == typeof(ImmutableArray<>)
+            && !type.IsAssignableFrom(expression.Type)
+            && expression.Type.GenericTypeArguments.Single() is var wrapperTypeArgument
+            && wrapperTypeArgument.IsEnum)   // Only for enums for now. Supporting other Wrappers requires unwrapping in the CreateImmutableArrayConversion
+        {
+            return CreateImmutableArrayConversion(expression, expression.Type, type.GenericTypeArguments[0]);
+        }
+        else if (type.Name == "Action`1"    // Action<XxxWrapper> => Action<Xxx>
+            && expression.Type.GetGenericArguments().Single() is var wrapperType
+            && typeof(IWrapper).IsAssignableFrom(wrapperType)
+            && wrapperType.GetMethod("From") is { } fromMethod)
+        {
+            // Generate: x => expression.Invoke(XxxWrapper.From((object)x))
+            var lambdaParameter = Expression.Parameter(type.GetGenericArguments().Single(), "x");
+            var wrapped = Expression.Call(fromMethod, WrapConvert(lambdaParameter, fromMethod.GetParameters().Single().ParameterType));
+            return Expression.Lambda(type, Expression.Invoke(expression, wrapped), lambdaParameter);
+        }
         else if (expression.Type.GetProperty("WrappedInstance") is { } wrappedInstance)
         {
             return WrapConvert(Expression.Property(expression, wrappedInstance), type);
@@ -206,18 +238,18 @@ internal static class AccessorFactory
         return underlayingType.IsAssignableFrom(expression.Type) && !needsBoxing ? expression : Expression.Convert(expression, underlayingType);
     }
 
-    private static Expression CreateImmutableArrayConversion(Expression result, Type runtimeReturnType, Type wrapperTypeArgument)
+    private static Expression CreateImmutableArrayConversion(Expression result, Type inputType, Type outputTypeArgument)
     {
         // Generate: ImmutableArray.CreateRange(result, x => XxxWrapper.From(x))
         // For enum: ImmutableArray.CreateRange(result, x => (XxxWrapper)(object)(x))
-        var itemRuntimeType = runtimeReturnType.GetGenericArguments().Single();
+        var itemRuntimeType = inputType.GetGenericArguments().Single();
         var selectorParameter = Expression.Parameter(itemRuntimeType, "x");
-        var fromMethod = wrapperTypeArgument.GetMethod("From");
-        var selectorConversion = wrapperTypeArgument.IsEnum
-            ? (Expression)Expression.Convert(Expression.Convert(selectorParameter, typeof(object)), wrapperTypeArgument)
+        var fromMethod = outputTypeArgument.GetMethod("From");
+        var selectorConversion = outputTypeArgument.IsEnum
+            ? (Expression)Expression.Convert(Expression.Convert(selectorParameter, typeof(object)), outputTypeArgument)
             : Expression.Call(fromMethod, WrapConvert(selectorParameter, fromMethod.GetParameters().Single().ParameterType));
         var selectorLambda = Expression.Lambda(selectorConversion, selectorParameter);
-        return Expression.Call(UnboundImmutableArrayCreateRangeMethod.MakeGenericMethod(itemRuntimeType, wrapperTypeArgument), result, selectorLambda);
+        return Expression.Call(UnboundImmutableArrayCreateRangeMethod.MakeGenericMethod(itemRuntimeType, outputTypeArgument), result, selectorLambda);
     }
 
     private static Expression CreateSeparatedSyntaxListConversion(Expression result, Type runtimeReturnType, Type compiletimeResultType)
