@@ -108,6 +108,7 @@ public sealed class UseAwaitableMethod : SonarDiagnosticAnalyzer
         {
             exclusions.Add(x => x.IsImplementingInterfaceMember(KnownType.FluentValidation_IValidator, "Validate"));   // https://github.com/SonarSource/sonar-dotnet/issues/9339
             exclusions.Add(x => x.IsImplementingInterfaceMember(KnownType.FluentValidation_IValidator_T, "Validate")); // https://github.com/SonarSource/sonar-dotnet/issues/9339
+            exclusions.Add(x => x.IsAny(KnownType.FluentValidation_DefaultValidatorExtensions, "Validate", "ValidateAndThrow")); // https://sonarsource.atlassian.net/browse/NET-1559
         }
         if (compilation.GetTypeByMetadataName(KnownType.MongoDB_Driver_IMongoCollectionExtensions) is not null)
         {
@@ -145,9 +146,8 @@ public sealed class UseAwaitableMethod : SonarDiagnosticAnalyzer
                 : containingSymbol.ContainingType; // If not dotted, than the scope is the current type. Local function support is missing here.
             var members = FetchMethodSymbolsInScope($"{methodSymbol.Name}Async", wellKnownExtensionMethodContainer, invokedType, methodSymbol.ContainingType);
             var awaitableCandidates = members.Where(x => x.IsAwaitableNonDynamic());
-            // Get the method alternatives and exclude candidates that would resolve to the containing method (endless loop)
             var awaitableAlternatives = SpeculativeBindCandidates(model, awaitableRoot, invocationExpression, awaitableCandidates)
-                .Where(x => !containingSymbol.Equals(x))
+                .Where(x => !containingSymbol.Equals(x) && x.IsAwaitableNonDynamic())
                 .ToImmutableArray();
             return awaitableAlternatives;
         }
