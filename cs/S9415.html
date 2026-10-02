@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="S9415: Local functions should be marked &quot;static&quot; when they don&apos;t capture variables (C#) - SonarAnalyzer rule specification.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c0392b'/%3E%3Ctext x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3ES%3C/text%3E%3C/svg%3E">
+<title>S9415 - Local functions should be marked &quot;static&quot; when they don&apos;t capture variables (C#)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../vendor/hljs.css">
+<script src="../theme.js"></script>
+</head><body>
+<nav aria-label="Breadcrumb"><a class="back" href="../"><span aria-hidden="true">&larr;</span> Back to index</a><button type="button" id="theme-toggle" aria-label="Toggle color theme, currently Auto" title="Theme: Auto"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="18" x2="12" y2="21"></line></svg></button></nav>
+<header>
+<h1>S9415 &mdash; Local functions should be marked &quot;static&quot; when they don&apos;t capture variables</h1>
+
+<dl class="meta">
+<div><dt>Language</dt><dd>C#</dd></div>
+<div><dt>Type</dt><dd>Code smell</dd></div>
+<div><dt>Severity</dt><dd>Major</dd></div>
+<div><dt>Tags</dt><dd>clarity, idiomatic</dd></div>
+</dl>
+</header>
+<main>
+<p>This rule raises an issue when a nested function does not use any variables from its enclosing scope but is not marked with a qualifier indicating
+it doesn’t capture outer variables.</p>
+<h2>Why is this an issue?</h2>
+<p>Nested functions can access variables from their enclosing scope (known as "capturing" or "closing over" variables). When a nested function doesn’t
+capture any variables, it is completely independent of the surrounding function’s state.</p>
+<p>Some languages provide mechanisms to explicitly mark nested functions as non-capturing, making this independence explicit. When you mark a nested
+function as non-capturing, you are communicating to other developers that:</p>
+<ul>
+  <li>The function operates independently of the enclosing scope</li>
+  <li>The function cannot accidentally capture variables in the future</li>
+  <li>The function’s behavior depends only on its parameters</li>
+</ul>
+<p>Without such explicit marking, readers must examine the entire function body to determine whether it captures variables. This creates unnecessary
+cognitive load and makes the code’s intent less clear.</p>
+<p>Additionally, language tools can prevent accidental captures when a function is explicitly marked as non-capturing. If someone later tries to use a
+variable from the enclosing scope, the compiler or linter will produce an error, preventing subtle bugs.</p>
+<p>In C#, this mechanism is the <code>static</code> modifier for local functions, introduced in C# 8.0.</p>
+<h3>What is the potential impact?</h3>
+<p>The impact of this issue is limited to code maintainability and clarity:</p>
+<ul>
+  <li><strong>Reduced code clarity</strong>: Without explicitly marking the nested function as not accessing outer scope, developers must read the
+  entire function to understand its dependencies</li>
+  <li><strong>Harder maintenance</strong>: Future modifications might accidentally introduce variable captures, changing the function’s behavior in
+  unexpected ways</li>
+  <li><strong>Missed optimization opportunities</strong>: In some cases, the compiler may generate slightly more efficient code for nested functions
+  that are marked as not capturing variables because it knows no closure allocation is needed</li>
+</ul>
+<p>In C#, nested functions are marked with the <code>static</code> modifier to indicate they don’t capture variables from the outer scope.</p>
+<h2>How to fix it</h2>
+<p>Add the <code>static</code> modifier to the local function declaration. This explicitly marks the function as independent of the enclosing
+scope.</p>
+<h3>Code examples</h3>
+<h4>Noncompliant code example</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="noncompliant" aria-label="Noncompliant code example"><code class="language-csharp">
+void ProcessData()
+{
+    Console.WriteLine(FormatText("test  "));
+
+    string FormatText(string input) =&gt; input.Trim(); // Noncompliant
+}
+</code></pre>
+<h4>Compliant solution</h4>
+<pre tabindex="0" data-diff-id="1" data-diff-type="compliant" aria-label="Compliant solution"><code class="language-csharp">
+void ProcessData()
+{
+    Console.WriteLine(FormatText("test  "));
+
+    static string FormatText(string input) =&gt; input.Trim();
+}
+</code></pre>
+<h2>Resources</h2>
+<h3>Documentation</h3>
+<ul>
+  <li>Microsoft Learn - <a href="https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/local-functions">Local
+  functions - C# Programming Guide</a></li>
+  <li>Microsoft Learn - <a
+  href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-8.0/static-local-functions">Static local functions - C#
+  8.0 draft feature specification</a></li>
+</ul>
+
+</main>
+<p class="to-top"><a href="#">&uarr; Back to top</a></p>
+<script src="../vendor/highlight.js"></script>
+<script>hljs.highlightAll();</script>
+</body></html>
