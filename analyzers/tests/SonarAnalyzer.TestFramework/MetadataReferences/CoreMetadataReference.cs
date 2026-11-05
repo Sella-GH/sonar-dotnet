@@ -50,8 +50,10 @@ public static class CoreMetadataReference
     public static MetadataReference SystemIoFileSystem { get; } = CreateReference("System.IO.FileSystem.dll");
     public static MetadataReference SystemIoFileSystemAccessControl { get; } = CreateReference("System.IO.FileSystem.AccessControl.dll");
     public static MetadataReference SystemLinq { get; } = CreateReference("System.Linq.dll");
+    public static MetadataReference SystemLinqAsyncEnumerable { get; } = CreateReference("System.Linq.AsyncEnumerable.dll");
     public static MetadataReference SystemLinqExpressions { get; } = CreateReference("System.Linq.Expressions.dll");
     public static MetadataReference SystemLinqQueryable { get; } = CreateReference("System.Linq.Queryable.dll");
+    public static MetadataReference SystemMemory { get; } = CreateReference("System.Memory.dll");
     public static MetadataReference SystemNetHttp { get; } = CreateReference("System.Net.Http.dll");
     public static MetadataReference SystemNetMail { get; } = CreateReference("System.Net.Mail.dll");
     public static MetadataReference SystemNetRequests { get; } = CreateReference("System.Net.Requests.dll");
@@ -69,6 +71,7 @@ public static class CoreMetadataReference
     public static MetadataReference SystemRuntime { get; } = CreateReference("System.Runtime.dll");
     public static MetadataReference SystemRuntimeExtensions { get; } = CreateReference("System.Runtime.Extensions.dll");
     public static MetadataReference SystemRuntimeInteropServices { get; } = CreateReference("System.Runtime.InteropServices.dll");
+    public static MetadataReference SystemRuntimeNumerics { get; } = CreateReference("System.Runtime.Numerics.dll");
     public static MetadataReference SystemRuntimeSerialization { get; } = CreateReference("System.Runtime.Serialization.dll");
     public static MetadataReference SystemRuntimeSerializationFormatters { get; } = CreateReference("System.Runtime.Serialization.Formatters.dll");
     public static MetadataReference SystemRuntimeSerializationPrimitives { get; } = CreateReference("System.Runtime.Serialization.Primitives.dll");
