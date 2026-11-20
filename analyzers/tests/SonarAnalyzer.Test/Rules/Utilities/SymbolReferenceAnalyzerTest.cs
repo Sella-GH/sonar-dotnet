@@ -326,6 +326,11 @@ public class SymbolReferenceAnalyzerTest
         Verify("TokenThreshold.cs", ProjectType.Product, _ => { }, false);
 
     [TestMethod]
+    public void Verify_TokenThreshold_Razor() =>
+        // TokenThreshold.razor generates 777 tokens in the main tree and 39876 in the declaration tree (@code block). Each is below the limit of 40000, the sum is above it.
+        Verify("TokenThreshold.razor", ProjectType.Product, _ => { }, false);
+
+    [TestMethod]
     [DataRow("Method.cs", true)]
     [DataRow("SomethingElse.cs", false)]
     public void Verify_UnchangedFiles(string unchangedFileName, bool expectedProtobufIsEmpty)
@@ -348,19 +353,24 @@ public class SymbolReferenceAnalyzerTest
             .VerifyUtilityAnalyzer<SymbolReferenceInfo>(x =>
                 {
                     var orderedSymbols = x.OrderBy(x => x.FilePath, StringComparer.InvariantCulture).ToArray();
-                    // The .NET 11 Razor declaration files *_razor.decl.g.cs are not mapped to the original .razor file path
-                    orderedSymbols.Select(x => Path.GetFileName(x.FilePath)).Should().BeEquivalentTo(
-                        "Razor.razor",
-                        "Razor.razor.cs",
-                        "RazorComponent.razor",
-                        "ToDo.cs",
-                        "Razor_razor.decl.g.cs",
-                        "RazorComponent_razor.decl.g.cs");
+                    orderedSymbols.Select(x => Path.GetFileName(x.FilePath)).Should().BeEquivalentTo("Razor.razor", "Razor.razor.cs", "RazorComponent.razor", "ToDo.cs");
                     orderedSymbols[0].FilePath.Should().EndWith("Razor.razor");
 
-                    // FN: Since .NET 11, the members of the @code block are declared in Razor_razor.decl.g.cs and their references are lost.
-                    // Before, there were 10 declarations: currentCount, IncrementAmount, IncrementCount, x, todos, AddTodo, x, y, LocalMethod, AdditionalAttributes
-                    VerifyReferences(orderedSymbols[0].Reference, 1, 35, 35);                   // x
+                    VerifyReferences(orderedSymbols[0].Reference, 10, 14, 5, 7, 21, 49);        // currentCount
+                    VerifyReferences(orderedSymbols[0].Reference, 10, 17, 11, 21, 22);          // IncrementAmount
+                    VerifyReferences(orderedSymbols[0].Reference, 10, 19, 9, 53);               // IncrementCount
+                    VerifyReferences(orderedSymbols[0].Reference, 10, 35, 35);                  // x
+                    VerifyReferences(orderedSymbols[0].Reference, 10, 38, 29, 35);              // todos
+                    VerifyReferences(orderedSymbols[0].Reference, 10, 40, 26);                  // AddTodo
+                    VerifyReferences(orderedSymbols[0].Reference, 10, 42);                      // x
+                    VerifyReferences(orderedSymbols[0].Reference, 10, 43);                      // y
+                    VerifyReferences(orderedSymbols[0].Reference, 10, 45, 42);                  // LocalMethod
+                    VerifyReferences(orderedSymbols[0].Reference, 10, 58, 52);                  // AdditionalAttributes
+
+                    VerifyReferencesColumns(orderedSymbols[0].Reference, 14, 5, 5, 19, 31);     // currentCount: line 5
+                    VerifyReferencesColumns(orderedSymbols[0].Reference, 14, 7, 7, 1, 13);      // currentCount: line 7
+                    VerifyReferencesColumns(orderedSymbols[0].Reference, 14, 21, 21, 8, 20);    // currentCount: line 21
+                    VerifyReferencesColumns(orderedSymbols[0].Reference, 14, 49, 49, 26, 38);   // currentCount: line 49
 
                     orderedSymbols[1].FilePath.Should().EndWith("RazorComponent.razor");        // RazorComponent.razor
                     // https://github.com/SonarSource/sonar-dotnet/issues/8417
@@ -470,6 +480,15 @@ public class SymbolReferenceAnalyzerTest
         references.Should().ContainSingle(x => x.Declaration.StartLine == assertedDeclarationLine).Subject.Reference.Select(x => x.StartLine)
                   .Should().BeEquivalentTo(assertedDeclarationLineReferences);
     }
+
+    private static void VerifyReferencesColumns(IReadOnlyList<SymbolReferenceInfo.Types.SymbolReference> symbolReference,
+                                                int declarationLine,
+                                                int startLine,
+                                                int endLine,
+                                                int startOffset,
+                                                int endOffset) =>
+        symbolReference.Should().ContainSingle(x => x.Declaration.StartLine == declarationLine).Subject.Reference
+            .Should().ContainSingle(x => x.StartLine == startLine && x.EndLine == endLine && x.StartOffset == startOffset && x.EndOffset == endOffset);
 
     // We need to set protected properties and this class exists just to enable the analyzer without bothering with additional files with parameters
     private sealed class TestSymbolReferenceAnalyzer_CS : CS.SymbolReferenceAnalyzer
