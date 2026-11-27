@@ -17,12 +17,14 @@
 
     interface IOuterInterface
     {
-        static void OnlyUsedByNestedClass() { }                     // Noncompliant
+        static void ImplicitlyPublicUsedByNestedClass() { }         // Compliant NET-5275 - interface members are public by default
+        private static void OnlyUsedByNestedClass() { }             // Noncompliant
 
         class NestedClass
         {
             void Foo()
             {
+                ImplicitlyPublicUsedByNestedClass();
                 OnlyUsedByNestedClass();
             }
         }
@@ -82,12 +84,14 @@ namespace CSharp10
     {
         private static void UsedOnlyByNestedClass() { }  // Noncompliant
         private static void UsedOnlyByNestedRecord() { } // Noncompliant
+        static void ImplicitlyPrivateUsedOnlyByNestedClass() { } // Noncompliant
 
         class NestedClass
         {
             void Foo()
             {
                 UsedOnlyByNestedClass();
+                ImplicitlyPrivateUsedOnlyByNestedClass();
             }
         }
 
@@ -122,12 +126,14 @@ namespace CSharp15
     public union UnionRepro(UnionCaseA, UnionCaseB)
     {
         private static void UsedOnlyByNestedClass() { } // Noncompliant
+        static void ImplicitlyPrivateUsedOnlyByNestedClass() { } // Noncompliant
 
         public class NestedClass
         {
             void Foo()
             {
                 UsedOnlyByNestedClass();
+                ImplicitlyPrivateUsedOnlyByNestedClass();
             }
         }
 
